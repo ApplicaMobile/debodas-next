@@ -9,9 +9,16 @@ import {
 } from "@/lib/account/actions/gifts";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
+import {
+  canAddGift,
+  formatPlanLimit,
+  getPlanLimits,
+  giftLimitMessage,
+} from "@/lib/plans/limits";
 
 interface GiftsPanelProps {
   listTitle: string;
+  plan: string;
   gifts: Array<{
     id: string;
     title: string;
@@ -22,7 +29,14 @@ interface GiftsPanelProps {
 
 const initialState: FormState = {};
 
-export function GiftsPanel({ listTitle, gifts }: GiftsPanelProps) {
+export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
+  const limits = getPlanLimits(plan);
+  const atGiftLimit = !canAddGift(plan, gifts.length);
+  const giftLimitLabel =
+    limits.maxGifts === null
+      ? `${gifts.length} regalos`
+      : `${gifts.length} / ${formatPlanLimit(limits.maxGifts)} regalos`;
+
   const [titleState, titleAction, titlePending] = useActionState(
     updateGiftsListTitleAction,
     initialState,
@@ -57,7 +71,13 @@ export function GiftsPanel({ listTitle, gifts }: GiftsPanelProps) {
       </section>
 
       <section className="rounded-3xl bg-white p-8 shadow-sm">
-        <h3 className="text-lg font-semibold text-stone-800">Regalos</h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="text-lg font-semibold text-stone-800">Regalos</h3>
+          <p className="text-sm text-stone-500">{giftLimitLabel}</p>
+        </div>
+        {limits.maxGifts !== null ? (
+          <p className="mt-1 text-xs text-stone-500">{giftLimitMessage(plan)}</p>
+        ) : null}
         <ul className="mt-4 divide-y divide-stone-100">
           {gifts.map((gift) => (
             <li
@@ -89,6 +109,7 @@ export function GiftsPanel({ listTitle, gifts }: GiftsPanelProps) {
             className="rounded-xl border border-stone-200 px-4 py-3 sm:col-span-2"
             placeholder="Nombre del regalo"
             required
+            disabled={atGiftLimit}
           />
           <input
             name="price"
@@ -97,6 +118,7 @@ export function GiftsPanel({ listTitle, gifts }: GiftsPanelProps) {
             className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Precio"
             required
+            disabled={atGiftLimit}
           />
           <input
             name="quantity"
@@ -105,15 +127,20 @@ export function GiftsPanel({ listTitle, gifts }: GiftsPanelProps) {
             defaultValue="1"
             className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Cant."
+            disabled={atGiftLimit}
           />
           <div className="sm:col-span-4">
             <FormAlert error={addState.error} success={addState.success} />
             <button
               type="submit"
-              disabled={addPending}
+              disabled={addPending || atGiftLimit}
               className="mt-2 rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
             >
-              {addPending ? "Agregando…" : "Agregar regalo"}
+              {atGiftLimit
+                ? "Límite de regalos alcanzado"
+                : addPending
+                  ? "Agregando…"
+                  : "Agregar regalo"}
             </button>
           </div>
         </form>

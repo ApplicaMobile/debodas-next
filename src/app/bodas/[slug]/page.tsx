@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCoupleDisplayName } from "@/data/bodas";
-import { getBodaBySlug } from "@/lib/bodas/queries";
+import { getBodaBySlug, getBodaRsvpCount } from "@/lib/bodas/queries";
+import { canAddRsvpGuest } from "@/lib/plans/limits";
 import { getTheme, isThemeSlug } from "@/lib/themes/registry";
 import { MicrositeDemo } from "@/components/microsite/MicrositeDemo";
 import { ThemeProvider } from "@/components/themes/ThemeProvider";
@@ -50,10 +51,13 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
         ? boda.microsite_theme
         : "marfil";
 
+  const rsvpCount = await getBodaRsvpCount(slug);
+  const rsvpOpen = canAddRsvpGuest(boda.plan, rsvpCount);
+
   return (
     <ThemeProvider slug={resolvedTheme}>
       <ThemeSwitcher weddingSlug={slug} />
-      <MicrositeDemo boda={boda} />
+      <MicrositeDemo boda={boda} rsvpOpen={rsvpOpen} />
     </ThemeProvider>
   );
 }

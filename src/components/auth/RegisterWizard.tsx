@@ -22,31 +22,18 @@ const initialState: RegisterState = {};
 const TOTAL_STEPS = 3;
 const STEP_LABELS = ["Cuenta", "Tu boda", "Plan"];
 
-interface RegisterFields {
-  email: string;
-  password: string;
-  password_confirm: string;
-  bride_name: string;
-  bride_lastname: string;
-  groom_name: string;
-  groom_lastname: string;
-  phone: string;
-  event_date: string;
-  our_story: string;
-}
-
-const emptyFields: RegisterFields = {
-  email: "",
-  password: "",
-  password_confirm: "",
-  bride_name: "",
-  bride_lastname: "",
-  groom_name: "",
-  groom_lastname: "",
-  phone: "",
-  event_date: "",
-  our_story: "",
-};
+const FIELD_NAMES = [
+  "email",
+  "password",
+  "password_confirm",
+  "bride_name",
+  "bride_lastname",
+  "groom_name",
+  "groom_lastname",
+  "phone",
+  "event_date",
+  "our_story",
+] as const;
 
 function StepError({ message }: { message: string }) {
   return (
@@ -59,16 +46,40 @@ function StepError({ message }: { message: string }) {
   );
 }
 
+function readFormValue(form: HTMLFormElement | null, name: string): string {
+  if (!form) {
+    return "";
+  }
+
+  const element = form.elements.namedItem(name);
+  if (element instanceof RadioNodeList) {
+    for (let index = 0; index < element.length; index += 1) {
+      const radio = element[index];
+      if (radio instanceof HTMLInputElement && radio.checked) {
+        return radio.value;
+      }
+    }
+    return "";
+  }
+
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement
+  ) {
+    return element.value;
+  }
+
+  return "";
+}
+
 export function RegisterWizard() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
-  const errorRef = useRef<HTMLParagraphElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(1);
   const [stepError, setStepError] = useState<string | null>(null);
-  const [fields, setFields] = useState<RegisterFields>(emptyFields);
-  const [siteSource, setSiteSource] = useState("");
-  const [siteSourceOther, setSiteSourceOther] = useState("");
-  const [selectedPlan, setSelectedPlan] = useState("gratuito");
+  const [showSiteSourceOther, setShowSiteSourceOther] = useState(false);
   const [state, formAction, isPending] = useActionState(
     registerAction,
     initialState,
@@ -87,26 +98,19 @@ export function RegisterWizard() {
     }
   }, [stepError]);
 
-  function updateField(name: keyof RegisterFields, value: string) {
-    setFields((current) => ({ ...current, [name]: value }));
-    setStepError(null);
-  }
-
   function buildFormData(): FormData {
+    const form = formRef.current;
     const formData = new FormData();
 
-    for (const [name, value] of Object.entries(fields)) {
-      formData.set(name, value);
+    for (const name of FIELD_NAMES) {
+      formData.set(name, readFormValue(form, name));
     }
 
-    formData.set("site_source", siteSource);
-    formData.set(
-      "site_source_other",
-      siteSource === "other" ? siteSourceOther : "",
-    );
-    formData.set("selected_plan", selectedPlan);
+    formData.set("site_source", readFormValue(form, "site_source"));
+    formData.set("site_source_other", readFormValue(form, "site_source_other"));
+    formData.set("selected_plan", readFormValue(form, "selected_plan") || "gratuito");
 
-    const bannerInput = formRef.current?.elements.namedItem("banner_file");
+    const bannerInput = form?.elements.namedItem("banner_file");
     if (
       bannerInput instanceof HTMLInputElement &&
       bannerInput.files?.[0]
@@ -130,10 +134,11 @@ export function RegisterWizard() {
   }
 
   function validateAllSteps(): string | null {
+    const formData = buildFormData();
     return (
-      validateRegisterStep1(buildFormData()) ??
-      validateRegisterStep2(buildFormData()) ??
-      validateRegisterStep3(buildFormData())
+      validateRegisterStep1(formData) ??
+      validateRegisterStep2(formData) ??
+      validateRegisterStep3(formData)
     );
   }
 
@@ -149,7 +154,14 @@ export function RegisterWizard() {
     setStepError(error);
   }
 
-  function handleNext() {
+  function clearStepError() {
+    setStepError(null);
+  }
+
+  function handleNext(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+
     const error = validateStep(step);
     if (error) {
       setStepError(error);
@@ -208,42 +220,38 @@ export function RegisterWizard() {
         onSubmit={handleSubmit}
         className="mt-6 space-y-4"
       >
-        <div className={step === 1 ? "space-y-4" : "hidden"} aria-hidden={step !== 1}>
+        <div className={step === 1 ? "space-y-4" : "hidden"}>
           <p className="text-sm text-stone-600">
             Creá tu acceso al panel de DeBodas.
           </p>
           <input
             name="email"
             type="email"
-            value={fields.email}
-            onChange={(event) => updateField("email", event.target.value)}
             className={inputClassName}
             placeholder="Email"
             autoComplete="email"
+            onInput={clearStepError}
           />
           <input
             name="password"
             type="password"
-            value={fields.password}
-            onChange={(event) => updateField("password", event.target.value)}
             className={inputClassName}
             placeholder="Contraseña (mín. 8 caracteres)"
             autoComplete="new-password"
+            onInput={clearStepError}
           />
           <input
             name="password_confirm"
             type="password"
-            value={fields.password_confirm}
-            onChange={(event) =>
-              updateField("password_confirm", event.target.value)
-            }
             className={inputClassName}
             placeholder="Repetir contraseña"
             autoComplete="new-password"
+            onInput={clearStepError}
           />
+          {step === 1 && stepError ? <StepError message={stepError} /> : null}
         </div>
 
-        <div className={step === 2 ? "space-y-4" : "hidden"} aria-hidden={step !== 2}>
+        <div className={step === 2 ? "space-y-4" : "hidden"}>
           <p className="text-sm text-stone-600">
             Contanos sobre la pareja y la fecha del evento.
           </p>
@@ -251,67 +259,56 @@ export function RegisterWizard() {
           <div className="grid gap-4 sm:grid-cols-2">
             <input
               name="bride_name"
-              value={fields.bride_name}
-              onChange={(event) => updateField("bride_name", event.target.value)}
               className={inputClassName}
               placeholder="Nombre novia/o 1"
               autoComplete="given-name"
+              onInput={clearStepError}
             />
             <input
               name="bride_lastname"
-              value={fields.bride_lastname}
-              onChange={(event) =>
-                updateField("bride_lastname", event.target.value)
-              }
               className={inputClassName}
               placeholder="Apellido novia/o 1"
               autoComplete="family-name"
+              onInput={clearStepError}
             />
             <input
               name="groom_name"
-              value={fields.groom_name}
-              onChange={(event) => updateField("groom_name", event.target.value)}
               className={inputClassName}
               placeholder="Nombre novia/o 2"
               autoComplete="given-name"
+              onInput={clearStepError}
             />
             <input
               name="groom_lastname"
-              value={fields.groom_lastname}
-              onChange={(event) =>
-                updateField("groom_lastname", event.target.value)
-              }
               className={inputClassName}
               placeholder="Apellido novia/o 2"
               autoComplete="family-name"
+              onInput={clearStepError}
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <input
               name="phone"
-              value={fields.phone}
-              onChange={(event) => updateField("phone", event.target.value)}
               className={inputClassName}
               placeholder="Teléfono"
               autoComplete="tel"
+              onInput={clearStepError}
             />
             <input
               name="event_date"
-              value={fields.event_date}
-              onChange={(event) => updateField("event_date", event.target.value)}
               className={inputClassName}
               placeholder="Fecha de la boda (dd/mm/aaaa)"
+              onInput={clearStepError}
             />
           </div>
 
           <textarea
             name="our_story"
             rows={3}
-            value={fields.our_story}
-            onChange={(event) => updateField("our_story", event.target.value)}
             className={inputClassName}
             placeholder="¿Cómo se conocieron? (opcional)"
+            onInput={clearStepError}
           />
 
           <div>
@@ -324,10 +321,10 @@ export function RegisterWizard() {
             <select
               id="site_source"
               name="site_source"
-              value={siteSource}
+              defaultValue=""
               onChange={(event) => {
-                setSiteSource(event.target.value);
-                setStepError(null);
+                setShowSiteSourceOther(event.target.value === "other");
+                clearStepError();
               }}
               className={inputClassName}
             >
@@ -342,13 +339,9 @@ export function RegisterWizard() {
 
           <input
             name="site_source_other"
-            value={siteSource === "other" ? siteSourceOther : ""}
-            onChange={(event) => {
-              setSiteSourceOther(event.target.value);
-              setStepError(null);
-            }}
-            className={siteSource === "other" ? inputClassName : "hidden"}
+            className={showSiteSourceOther ? inputClassName : "hidden"}
             placeholder="Contanos cómo nos conociste"
+            onInput={clearStepError}
           />
 
           <ImageFileInput
@@ -356,9 +349,10 @@ export function RegisterWizard() {
             label="Foto del banner (opcional)"
             hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
           />
+          {step === 2 && stepError ? <StepError message={stepError} /> : null}
         </div>
 
-        <div className={step === 3 ? "space-y-4" : "hidden"} aria-hidden={step !== 3}>
+        <div className={step === 3 ? "space-y-4" : "hidden"}>
           <p className="text-sm text-stone-600">
             Elegí con qué plan querés empezar. Los planes pagos se confirman
             luego desde el panel.
@@ -374,12 +368,9 @@ export function RegisterWizard() {
                   type="radio"
                   name="selected_plan"
                   value={plan.slug}
-                  checked={selectedPlan === plan.slug}
-                  onChange={() => {
-                    setSelectedPlan(plan.slug);
-                    setStepError(null);
-                  }}
+                  defaultChecked={plan.slug === "gratuito"}
                   className="mt-1"
+                  onChange={clearStepError}
                 />
                 <span>
                   <span className="block font-semibold text-stone-800">
@@ -395,10 +386,10 @@ export function RegisterWizard() {
               </label>
             ))}
           </div>
+          {step === 3 && stepError ? <StepError message={stepError} /> : null}
         </div>
 
         <div ref={errorRef}>
-          {stepError ? <StepError message={stepError} /> : null}
           {state.error ? <StepError message={state.error} /> : null}
         </div>
 

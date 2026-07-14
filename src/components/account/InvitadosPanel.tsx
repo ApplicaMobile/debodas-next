@@ -8,8 +8,15 @@ import {
 } from "@/lib/account/actions/content";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
+import {
+  canAddRsvpGuest,
+  formatPlanLimit,
+  getPlanLimits,
+  rsvpLimitMessage,
+} from "@/lib/plans/limits";
 
 interface InvitadosPanelProps {
+  plan: string;
   guests: Array<{
     id: string;
     name: string;
@@ -27,7 +34,14 @@ const statusLabels: Record<string, string> = {
 
 const initialState: FormState = {};
 
-export function InvitadosPanel({ guests }: InvitadosPanelProps) {
+export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
+  const limits = getPlanLimits(plan);
+  const atGuestLimit = !canAddRsvpGuest(plan, guests.length);
+  const guestLimitLabel =
+    limits.maxRsvpGuests === null
+      ? `${guests.length} invitados`
+      : `${guests.length} / ${formatPlanLimit(limits.maxRsvpGuests)} invitados`;
+
   const [addState, addAction, addPending] = useActionState(
     addRsvpGuestAction,
     initialState,
@@ -36,9 +50,15 @@ export function InvitadosPanel({ guests }: InvitadosPanelProps) {
   return (
     <div className="space-y-8">
       <section className="rounded-3xl bg-white p-8 shadow-sm">
-        <h3 className="text-lg font-semibold text-stone-800">
-          Lista de invitados
-        </h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="text-lg font-semibold text-stone-800">
+            Lista de invitados
+          </h3>
+          <p className="text-sm text-stone-500">{guestLimitLabel}</p>
+        </div>
+        {limits.maxRsvpGuests !== null ? (
+          <p className="mt-1 text-xs text-stone-500">{rsvpLimitMessage(plan)}</p>
+        ) : null}
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -111,17 +131,20 @@ export function InvitadosPanel({ guests }: InvitadosPanelProps) {
             required
             className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Nombre"
+            disabled={atGuestLimit}
           />
           <input
             name="email"
             type="email"
             className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Email (opcional)"
+            disabled={atGuestLimit}
           />
           <select
             name="status"
             defaultValue="pending"
             className="rounded-xl border border-stone-200 px-4 py-3"
+            disabled={atGuestLimit}
           >
             {Object.entries(statusLabels).map(([value, label]) => (
               <option key={value} value={value}>
@@ -133,15 +156,20 @@ export function InvitadosPanel({ guests }: InvitadosPanelProps) {
             name="notes"
             className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Notas (opcional)"
+            disabled={atGuestLimit}
           />
           <div className="sm:col-span-2">
             <FormAlert error={addState.error} success={addState.success} />
             <button
               type="submit"
-              disabled={addPending}
+              disabled={addPending || atGuestLimit}
               className="mt-2 rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
             >
-              {addPending ? "Agregando…" : "Agregar invitado"}
+              {atGuestLimit
+                ? "Límite de invitados alcanzado"
+                : addPending
+                  ? "Agregando…"
+                  : "Agregar invitado"}
             </button>
           </div>
         </form>

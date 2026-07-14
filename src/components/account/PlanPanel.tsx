@@ -9,16 +9,33 @@ import {
   normalizePlan,
 } from "@/lib/plans/features";
 import { FormAlert } from "@/components/account/FormAlert";
+import { PlanCheckoutButtons } from "@/components/account/PlanCheckoutButtons";
 
 interface PlanPanelProps {
   plan: string;
   showFaq: boolean;
   showDressCode: boolean;
+  mpConfigured: boolean;
+  paymentNotice?: string | null;
 }
 
 const initialState: FormState = {};
 
-export function PlanPanel({ plan, showFaq, showDressCode }: PlanPanelProps) {
+const PAYMENT_NOTICES: Record<string, string> = {
+  success:
+    "Pago recibido. Si tu plan no se actualizó aún, aguardá unos segundos mientras confirmamos con MercadoPago.",
+  pending:
+    "Tu pago está pendiente. Te avisaremos cuando MercadoPago lo confirme.",
+  failure: "El pago no se completó. Podés intentarlo nuevamente.",
+};
+
+export function PlanPanel({
+  plan,
+  showFaq,
+  showDressCode,
+  mpConfigured,
+  paymentNotice,
+}: PlanPanelProps) {
   const [state, formAction, isPending] = useActionState(
     updateOptionsAction,
     initialState,
@@ -26,6 +43,10 @@ export function PlanPanel({ plan, showFaq, showDressCode }: PlanPanelProps) {
   const normalized = normalizePlan(plan);
   const label = planLabels[plan] ?? planLabels[normalized];
   const features = planFeatures[normalized] ?? planFeatures.free;
+  const notice =
+    paymentNotice && PAYMENT_NOTICES[paymentNotice]
+      ? PAYMENT_NOTICES[paymentNotice]
+      : null;
 
   return (
     <div className="space-y-8">
@@ -41,9 +62,17 @@ export function PlanPanel({ plan, showFaq, showDressCode }: PlanPanelProps) {
             <li key={feature}>✓ {feature}</li>
           ))}
         </ul>
-        <p className="mt-6 rounded-xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
-          La facturación con MercadoPago se integrará en una próxima etapa.
-        </p>
+
+        {notice ? (
+          <p className="mt-6 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
+            {notice}
+          </p>
+        ) : null}
+
+        <PlanCheckoutButtons
+          currentPlan={plan}
+          mpConfigured={mpConfigured}
+        />
       </section>
 
       <section className="rounded-3xl bg-white p-8 shadow-sm">

@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:seed": "dotenv -e .env.local -- prisma db seed",
-    "db:studio": "dotenv -e .env.local -- prisma studio"
+    "db:studio": "dotenv -e .env.local -- prisma studio",
+    "share": "npm run build && next start"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

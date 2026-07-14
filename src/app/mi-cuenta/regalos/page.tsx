@@ -19,6 +19,7 @@ export default async function MiCuentaRegalosPage() {
         </p>
       </div>
       <GiftsPanel
+        plan={boda.plan}
         listTitle={boda.giftsListTitle ?? "Lista de regalos"}
         gifts={boda.gifts
           .sort((a, b) => a.sortOrder - b.sortOrder)

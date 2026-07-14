@@ -30,3 +30,23 @@ export async function getBodaBySlug(slug: string): Promise<Boda | null> {
 
   return getMockBodaBySlug(slug);
 }
+
+export async function getBodaRsvpCount(slug: string): Promise<number> {
+  if (!isDatabaseConfigured()) {
+    return 0;
+  }
+
+  try {
+    const boda = await prisma.boda.findUnique({
+      where: { slug },
+      select: {
+        _count: { select: { rsvpGuests: true } },
+      },
+    });
+
+    return boda?._count.rsvpGuests ?? 0;
+  } catch (error) {
+    console.error("[getBodaRsvpCount]", error);
+    return 0;
+  }
+}

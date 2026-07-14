@@ -13,9 +13,11 @@ import {
   ThemeSection,
 } from "@/components/themes/ThemeSection";
 import { useMicrositeTheme } from "@/components/themes/ThemeProvider";
+import { RsvpForm } from "@/components/microsite/RsvpForm";
 
 interface MicrositeDemoProps {
   boda: Boda;
+  rsvpOpen?: boolean;
 }
 
 function Countdown({ targetDate }: { targetDate: string }) {
@@ -71,12 +73,13 @@ function Countdown({ targetDate }: { targetDate: string }) {
   );
 }
 
-export function MicrositeDemo({ boda }: MicrositeDemoProps) {
+export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
   const { theme } = useMicrositeTheme();
   const coupleName = getCoupleDisplayName(boda.couple);
   const bannerUrl = getBannerUrl(boda);
   const story = String(boda.misc?.our_story ?? "");
   const gifts = boda.gifts_list?.gifts ?? [];
+  const giftsTitle = String(boda.gifts_list?.title ?? "Lista de regalos");
   const eventDate = String(boda.event?.date ?? "");
   const titleClass = theme.headingUppercase
     ? "microsite-section__title microsite-section__title--uppercase theme-heading"
@@ -122,21 +125,57 @@ export function MicrositeDemo({ boda }: MicrositeDemoProps) {
       <ThemeSection id="regalos">
         <div className="mx-auto max-w-5xl px-6">
           <MicrositeSectionTitle className={titleClass}>
-            Lista de regalos
+            {giftsTitle}
           </MicrositeSectionTitle>
-          <div className="microsite-gift-grid mt-10">
-            {gifts.map((gift, index) => (
-              <article key={`${gift.title}-${index}`} className="microsite-card">
-                <h3 className="text-lg font-semibold">{gift.title}</h3>
-                <p className="microsite-gift-price">
-                  {formatPrice(gift.price ?? 0)}
-                </p>
-                <button type="button" className="microsite-btn mt-5">
-                  Regalar (demo)
-                </button>
-              </article>
-            ))}
-          </div>
+          {gifts.length === 0 ? (
+            <p className="mt-8 text-center text-sm text-[var(--theme-text-muted)]">
+              La pareja aún no cargó regalos en su lista.
+            </p>
+          ) : (
+            <div className="microsite-gift-grid mt-10">
+              {gifts.map((gift, index) => {
+                const imageUrl =
+                  gift.image &&
+                  typeof gift.image === "object" &&
+                  "url" in gift.image
+                    ? String(gift.image.url ?? "")
+                    : "";
+
+                return (
+                  <article
+                    key={`${gift.title}-${index}`}
+                    className="microsite-card"
+                  >
+                    {imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={imageUrl}
+                        alt={gift.title ?? "Regalo"}
+                        className="mb-4 h-40 w-full rounded-xl object-cover"
+                      />
+                    ) : null}
+                    <h3 className="text-lg font-semibold">{gift.title}</h3>
+                    <p className="microsite-gift-price">
+                      {formatPrice(gift.price ?? 0)}
+                    </p>
+                    {gift.quantity && Number(gift.quantity) > 1 ? (
+                      <p className="mt-1 text-xs text-[var(--theme-text-muted)]">
+                        Cantidad sugerida: {gift.quantity}
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      disabled
+                      className="microsite-btn mt-5 opacity-60"
+                      title="Pagos online próximamente"
+                    >
+                      Regalar (próximamente)
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </div>
       </ThemeSection>
 
@@ -196,17 +235,11 @@ export function MicrositeDemo({ boda }: MicrositeDemoProps) {
 
       <ThemeSection soft id="rsvp">
         <div className="mx-auto max-w-xl px-6">
-          <div className="microsite-rsvp-box">
-            <MicrositeSectionTitle className={titleClass}>
-              RSVP
-            </MicrositeSectionTitle>
-            <p className="mt-3 text-sm text-[var(--theme-text-muted)]">
-              Confirmá tu asistencia. En esta demo el formulario es solo visual.
-            </p>
-            <button type="button" className="microsite-btn mt-6">
-              Confirmar asistencia
-            </button>
-          </div>
+          <RsvpForm
+            slug={String(boda.slug)}
+            rsvpOpen={rsvpOpen}
+            titleClass={titleClass}
+          />
         </div>
       </ThemeSection>
     </>

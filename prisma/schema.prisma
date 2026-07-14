@@ -43,6 +43,7 @@ model Boda {
   scheduleItems ScheduleItem[]
   faqItems      FaqItem[]
   rsvpGuests    RsvpGuest[]
+  payments      Payment[]
 
   @@map("bodas")
 }
@@ -124,4 +125,27 @@ model RsvpGuest {
 
   @@index([bodaId])
   @@map("rsvp_guests")
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  bodaId         String   @map("boda_id")
+  type           String
+  planTarget     String?  @map("plan_target")
+  amount         Decimal  @db.Decimal(12, 2)
+  currency       String   @default("ARS")
+  status         String   @default("pending")
+  mpPreferenceId String?  @map("mp_preference_id")
+  mpPaymentId    String?  @unique @map("mp_payment_id")
+  externalRef    String   @unique @map("external_ref")
+  payerEmail     String?  @map("payer_email")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  boda Boda @relation(fields: [bodaId], references: [id], onDelete: Cascade)
+
+  @@index([bodaId])
+  @@index([status])
+  @@map("payments")
 }

@@ -3,6 +3,10 @@
 import { requireOwnedBoda } from "@/lib/account/auth-boda";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
 import type { FormState } from "@/lib/account/form-state";
+import {
+  canAddRsvpGuest,
+  rsvpLimitError,
+} from "@/lib/plans/limits";
 import { prisma } from "@/lib/db/prisma";
 
 function parseOptions(value: unknown): Record<string, unknown> {
@@ -170,6 +174,11 @@ export async function addRsvpGuestAction(
 
   if (!name) {
     return { error: "El nombre es obligatorio." };
+  }
+
+  const count = await prisma.rsvpGuest.count({ where: { bodaId: boda.id } });
+  if (!canAddRsvpGuest(boda.plan, count)) {
+    return { error: rsvpLimitError(boda.plan) };
   }
 
   try {

@@ -19,6 +19,7 @@ export default async function MiCuentaInvitadosPage() {
         </p>
       </div>
       <InvitadosPanel
+        plan={boda.plan}
         guests={boda.rsvpGuests.map((guest) => ({
           id: guest.id,
           name: guest.name,

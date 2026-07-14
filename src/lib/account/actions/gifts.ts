@@ -3,6 +3,10 @@
 import { requireOwnedBoda } from "@/lib/account/auth-boda";
 import type { FormState } from "@/lib/account/form-state";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
+import {
+  canAddGift,
+  giftLimitError,
+} from "@/lib/plans/limits";
 import { prisma } from "@/lib/db/prisma";
 
 export async function updateGiftsListTitleAction(
@@ -50,6 +54,10 @@ export async function addGiftAction(
   }
 
   const count = await prisma.gift.count({ where: { bodaId: boda.id } });
+
+  if (!canAddGift(boda.plan, count)) {
+    return { error: giftLimitError(boda.plan) };
+  }
 
   try {
     await prisma.gift.create({

@@ -1,17 +1,25 @@
 import { notFound } from "next/navigation";
 import { PlanPanel } from "@/components/account/PlanPanel";
 import { getOwnedBoda } from "@/lib/account/require-boda";
+import { isMercadoPagoConfigured } from "@/lib/mercadopago/config";
 
 function optionEnabled(value: unknown): boolean {
   return value === 1 || value === true || value === "1";
 }
 
-export default async function MiCuentaPlanPage() {
+interface MiCuentaPlanPageProps {
+  searchParams: Promise<{ payment?: string }>;
+}
+
+export default async function MiCuentaPlanPage({
+  searchParams,
+}: MiCuentaPlanPageProps) {
   const boda = await getOwnedBoda();
   if (!boda) {
     notFound();
   }
 
+  const { payment } = await searchParams;
   const options = boda.options as Record<string, unknown>;
 
   return (
@@ -28,6 +36,8 @@ export default async function MiCuentaPlanPage() {
         plan={boda.plan}
         showFaq={optionEnabled(options.show_faq)}
         showDressCode={optionEnabled(options.show_dress_code)}
+        mpConfigured={isMercadoPagoConfigured()}
+        paymentNotice={payment ?? null}
       />
     </div>
   );
