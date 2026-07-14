@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  boda Boda?
+
+  @@map("users")
+}
+
+model Boda {
+  id               String   @id @default(cuid())
+  userId           String   @unique @map("user_id")
+  slug             String   @unique
+  title            String
+  plan             String   @default("free")
+  micrositeTheme   String   @default("base") @map("microsite_theme")
+  couple           Json
+  event            Json
+  banner           Json     @default("{}")
+  options          Json     @default("{}")
+  misc             Json     @default("{}")
+  giftsListTitle   String?  @map("gifts_list_title")
+  featuredImageUrl String?  @map("featured_image_url")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gifts         Gift[]
+  pictures      Picture[]
+  scheduleItems ScheduleItem[]
+  faqItems      FaqItem[]
+  rsvpGuests    RsvpGuest[]
+
+  @@map("bodas")
+}
+
+model Gift {
+  id        String   @id @default(cuid())
+  bodaId    String   @map("boda_id")
+  title     String
+  price     Decimal  @db.Decimal(12, 2)
+  quantity  Int      @default(1)
+  imageUrl  String?  @map("image_url")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  boda Boda @relation(fields: [bodaId], references: [id], onDelete: Cascade)
+
+  @@index([bodaId])
+  @@map("gifts")
+}
+
+model Picture {
+  id        String   @id @default(cuid())
+  bodaId    String   @map("boda_id")
+  url       String
+  alt       String?
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  boda Boda @relation(fields: [bodaId], references: [id], onDelete: Cascade)
+
+  @@index([bodaId])
+  @@map("pictures")
+}
+
+model ScheduleItem {
+  id          String   @id @default(cuid())
+  bodaId      String   @map("boda_id")
+  time        String
+  title       String
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  boda Boda @relation(fields: [bodaId], references: [id], onDelete: Cascade)
+
+  @@index([bodaId])
+  @@map("schedule_items")
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  bodaId    String   @map("boda_id")
+  question  String   @db.Text
+  answer    String   @db.Text
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  boda Boda @relation(fields: [bodaId], references: [id], onDelete: Cascade)
+
+  @@index([bodaId])
+  @@map("faq_items")
+}
+
+model RsvpGuest {
+  id        String   @id @default(cuid())
+  bodaId    String   @map("boda_id")
+  name      String
+  email     String?
+  status    String   @default("pending")
+  tableName String?  @map("table_name")
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  boda Boda @relation(fields: [bodaId], references: [id], onDelete: Cascade)
+
+  @@index([bodaId])
+  @@map("rsvp_guests")
+}

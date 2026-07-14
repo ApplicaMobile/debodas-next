@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DeBodas Web — Demo local React (sin WordPress)
 
-## Getting Started
+Frontend Next.js con **MariaDB local (XAMPP)** + fallback a datos mock.
 
-First, run the development server:
+**Agentes / LLMs:** leer [AGENTS.md](./AGENTS.md) antes de modificar el proyecto.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Levantar en local (con MariaDB)
+
+### 1. XAMPP — MySQL/MariaDB
+
+1. Iniciá **MySQL** en XAMPP.
+2. Creá la base `debodas_web` en phpMyAdmin, o ejecutá:
+
+```powershell
+Get-Content prisma\init.sql | C:\xampp\mysql\bin\mysql.exe -u root
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En **CMD** (no PowerShell) también funciona: `C:\xampp\mysql\bin\mysql.exe -u root < prisma\init.sql`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Variables de entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copiá `.env.example` → `.env.local` (o verificá que tenga):
 
-## Learn More
+```env
+DATABASE_URL="mysql://root:@localhost:3306/debodas_web"
+```
 
-To learn more about Next.js, take a look at the following resources:
+Si tu root tiene contraseña: `mysql://root:TU_CLAVE@localhost:3306/debodas_web`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Instalar, migrar y seed
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+cd C:\xampp\htdocs\debodas-web
+npm install
+npm run db:push
+npm run db:seed
+npm run dev
+```
 
-## Deploy on Vercel
+Abrí: **http://localhost:3000/bodas/demo**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Login:** http://localhost:3000/login  
+Usuario demo: `demo@debodas.local` / `demo1234` → redirige a `/mi-cuenta`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Sin MariaDB
+
+Si MySQL no está corriendo, la app sigue funcionando con datos mock en `src/data/bodas.ts`.
+
+## Levantar solo la demo (sin BD)
+
+```powershell
+npm install
+npm run dev
+```
+
+## Rutas disponibles
+
+| URL | Descripción |
+|-----|-------------|
+| `/` | Home estilo DeBodas (hero, pasos, planes, temas, testimonios) |
+| `/bodas/demo` | Micrositio demo — **barra superior para cambiar entre 9 temas** |
+| `/bodas/demo?theme=marco-verde` | Micrositio con tema específico |
+| `/registro` | Formulario de registro (visual) |
+| `/login` | Pantalla de login (visual) |
+
+## Build producción local
+
+```powershell
+npm run build
+npm run start
+```
+
+## Scripts de base de datos
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run db:push` | Sincroniza schema Prisma → MariaDB |
+| `npm run db:seed` | Carga boda demo + usuario |
+| `npm run db:studio` | UI visual de Prisma |
+
+## Temas del micrositio
+
+9 temas disponibles (como en producción):
+
+`base`, `hojas`, `flores`, `manantial`, `marfil`, `mariposas-azules`, `marco-verde`, `marco-blanco`, `marco-flores-inferiores`
+
+Configuración en `src/lib/themes/registry.ts`. Estilos en `src/styles/microsite-themes.css`.
+
+## Estructura
+
+```
+src/
+├── app/                     # Páginas Next.js
+├── components/
+│   ├── home/                # Secciones de la landing
+│   ├── layout/              # Header y footer
+│   └── microsite/           # Vista demo del micrositio
+├── data/                    # Mock fallback
+├── lib/
+│   ├── bodas/               # queries + mapper
+│   └── db/                  # Prisma client
+prisma/
+├── schema.prisma            # Modelos MariaDB
+└── seed.ts                  # Datos demo
+```
+
+## Datos
+
+- **Primario:** MariaDB vía Prisma (`getBodaBySlug` en `src/lib/bodas/queries.ts`).
+- **Fallback:** mock en `src/data/bodas.ts` si no hay `DATABASE_URL` o MySQL no responde.
+
+## Notas
+
+- Las imágenes del hero/planes usan URLs de `test.debodas.com.ar` (requiere internet).
+- Los SVG de temas están en `public/assets/img/themes/`.
+- WordPress **no es necesario** en runtime.
+
+## Próximos pasos
+
+1. Auth real (login con tabla `users`)
+2. Panel `/mi-cuenta`
+3. MercadoPago y planes

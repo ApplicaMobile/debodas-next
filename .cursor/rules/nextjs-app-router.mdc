@@ -1,0 +1,33 @@
+---
+description: Convenciones Next.js 16 App Router para debodas-web
+globs: src/app/**/*.{tsx,ts},src/lib/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Next.js App Router
+
+Docs: https://nextjs.org/docs — proyecto en v16.
+
+## Server vs Client
+
+- Server Components por defecto en `app/`.
+- `"use client"` solo con hooks, eventos, browser APIs o providers.
+- Pages async en server; fetching de datos preferentemente en server.
+
+## Params (Next 15+)
+
+```tsx
+const { slug } = await params;
+const { theme } = await searchParams;
+```
+
+## Datos
+
+- Hoy: `src/data/bodas.ts` / `getMockBodaBySlug()`.
+- Futuro: Supabase + ISR (`revalidate: 60`). No fetch a WP sin pedido explícito.
+- Alias `@/` para imports desde `src/`.
+
+## Rutas actuales
+
+- `/` landing · `/login` `/registro` UI · `/bodas/[slug]` micrositio
+- Query `?theme=` solo para preview de temas en demo

@@ -1,0 +1,395 @@
+.microsite-theme {
+  min-height: 100vh;
+  background: var(--theme-page);
+  color: var(--theme-text);
+  font-family: var(--theme-font-body);
+  position: relative;
+}
+
+.microsite-theme h1,
+.microsite-theme h2,
+.microsite-theme h3,
+.microsite-theme .theme-heading {
+  font-family: var(--theme-font-heading);
+  color: var(--theme-text);
+}
+
+.microsite-theme--full-bg {
+  background-image: var(--theme-full-bg);
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+}
+
+.microsite-theme--full-bg .microsite-section {
+  background: transparent;
+}
+
+.microsite-theme--unified-decor::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--theme-info-decor);
+  background-size: 100% auto;
+  background-position: var(--theme-frame-pos);
+  background-repeat: no-repeat;
+}
+
+.microsite-theme--unified-decor[data-theme="mariposas-azules"]::before {
+  background-size: cover;
+  background-position: center top;
+}
+
+.microsite-theme--full-bg .microsite-banner {
+  min-height: 72vh;
+}
+
+.microsite-theme--full-bg .microsite-banner__content {
+  min-height: 72vh;
+  justify-content: center;
+}
+
+.microsite-theme--unified-decor > * {
+  position: relative;
+  z-index: 1;
+}
+
+.microsite-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.microsite-banner--svg-hero,
+.microsite-banner--photo-overlay {
+  min-height: 72vh;
+}
+
+.microsite-banner--frame {
+  aspect-ratio: 1440 / 810;
+  max-height: 92vh;
+  width: 100%;
+  background-image: var(--theme-home-frame);
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: var(--theme-frame-pos);
+}
+
+.microsite-banner--frame.microsite-banner--has-photo {
+  background-image: none;
+}
+
+.microsite-banner__photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.microsite-banner__frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--theme-home-frame);
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: var(--theme-frame-pos);
+}
+
+.microsite-banner--photo-only .microsite-banner__frame {
+  display: none;
+}
+
+.microsite-banner--photo-only.microsite-banner--frame {
+  aspect-ratio: auto;
+  max-height: none;
+  min-height: 72vh;
+  background-image: none;
+}
+
+.microsite-banner__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.microsite-banner__svg-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--theme-home-frame);
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: center top;
+}
+
+.microsite-banner--svg-hero.microsite-banner--has-photo .microsite-banner__svg-bg,
+.microsite-banner--svg-hero:has(.microsite-banner__photo) .microsite-banner__svg-bg {
+  background-size: 100% auto;
+  background-position: center top;
+}
+
+.microsite-banner__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: inherit;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 7rem 1.5rem 2.5rem;
+  text-align: center;
+  color: var(--theme-banner-text);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="flores"] .microsite-banner__content,
+[data-theme="mariposas-azules"] .microsite-banner__content,
+[data-theme="marco-verde"] .microsite-banner__content,
+[data-theme="marco-blanco"] .microsite-banner__content,
+[data-theme="marco-flores-inferiores"] .microsite-banner__content {
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.75);
+}
+
+.microsite-banner--light-nav .microsite-banner__content {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.microsite-banner--frame .microsite-banner__content {
+  justify-content: flex-end;
+}
+
+.microsite-banner__eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.microsite-banner__title {
+  margin-top: 1rem;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: var(--theme-letter-spacing);
+}
+
+.microsite-banner__title--uppercase {
+  text-transform: uppercase;
+}
+
+.microsite-banner__meta {
+  margin-top: 1rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  opacity: 0.92;
+}
+
+.microsite-nav {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.microsite-nav a {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: inherit;
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.microsite-nav a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.microsite-section {
+  position: relative;
+  padding: 4rem 0;
+}
+
+.microsite-section--decor {
+  background-image: var(--theme-info-decor);
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  background-position: center top;
+}
+
+.microsite-theme--frame-section-decor .microsite-section {
+  background-image: var(--theme-info-decor);
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  background-position: var(--theme-frame-pos);
+}
+
+.microsite-theme--frame-bottom.microsite-theme--frame-section-decor .microsite-section {
+  background-position: center bottom;
+}
+
+.microsite-theme--unified-decor .microsite-section {
+  background-image: none;
+  background-color: transparent;
+}
+
+.microsite-separator {
+  display: block;
+  width: min(300px, 72%);
+  height: auto;
+  margin: 0.5rem auto 1.25rem;
+}
+
+.microsite-section--soft {
+  background: var(--theme-section-soft);
+}
+
+.microsite-section__title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  letter-spacing: var(--theme-letter-spacing);
+}
+
+.microsite-section__title--uppercase {
+  text-transform: uppercase;
+}
+
+.microsite-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .microsite-countdown-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.microsite-countdown-item {
+  border-radius: 1rem;
+  background: var(--theme-countdown-box);
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+
+.microsite-countdown-item strong {
+  display: block;
+  font-size: 2rem;
+  color: var(--theme-countdown-text);
+}
+
+.microsite-countdown-item span {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--theme-text-muted);
+}
+
+.microsite-card {
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 1.5rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+.microsite-theme--frame .microsite-card,
+.microsite-theme--unified-decor .microsite-card {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.microsite-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--theme-button);
+  color: var(--theme-button-text);
+  padding: 0.75rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.microsite-btn:hover {
+  background: var(--theme-accent-hover);
+}
+
+.microsite-story {
+  max-width: 42rem;
+  margin: 0 auto;
+  text-align: center;
+  line-height: 1.8;
+  color: var(--theme-text-muted);
+}
+
+.microsite-gift-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .microsite-gift-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.microsite-gift-price {
+  margin-top: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--theme-accent);
+}
+
+.microsite-schedule-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .microsite-schedule-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.microsite-faq details {
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 1rem 1.25rem;
+}
+
+.microsite-faq summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.microsite-faq p {
+  margin-top: 0.75rem;
+  line-height: 1.7;
+  color: var(--theme-text-muted);
+}
+
+.microsite-rsvp-box {
+  max-width: 32rem;
+  margin: 0 auto;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+

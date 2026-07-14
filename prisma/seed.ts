@@ -1,0 +1,158 @@
+import { config } from "dotenv";
+import { hash } from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
+
+config({ path: ".env.local" });
+config();
+
+const prisma = new PrismaClient();
+
+const DEMO_EMAIL = "demo@debodas.local";
+const DEMO_PASSWORD = "demo1234";
+
+async function main() {
+  const passwordHash = await hash(DEMO_PASSWORD, 10);
+
+  const user = await prisma.user.upsert({
+    where: { email: DEMO_EMAIL },
+    update: { name: "María y Juan", passwordHash },
+    create: {
+      email: DEMO_EMAIL,
+      name: "María y Juan",
+      passwordHash,
+    },
+  });
+
+  await prisma.boda.upsert({
+    where: { slug: "demo" },
+    update: {},
+    create: {
+      userId: user.id,
+      slug: "demo",
+      title: "María & Juan",
+      plan: "premium",
+      micrositeTheme: "marfil",
+      featuredImageUrl:
+        "https://test.debodas.com.ar/wp-content/uploads/2026/06/1-3.jpg",
+      couple: {
+        bride_name: "María",
+        groom_name: "Juan",
+      },
+      event: {
+        date: "15/11/2026",
+        time: "19:30",
+        place: "Estancia La Paz, Pilar",
+      },
+      banner: {
+        image: {
+          url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/5-2.jpg",
+        },
+      },
+      options: {
+        show_faq: 1,
+        show_dress_code: 1,
+      },
+      misc: {
+        our_story:
+          "Nos conocimos en 2019 y desde entonces compartimos viajes, risas y muchos mates. Queremos celebrar este nuevo capítulo con quienes formaron parte de nuestra historia.",
+        spotify_url: "",
+      },
+      gifts: {
+        create: [
+          { title: "Set de ollas", price: 85000, quantity: 1, sortOrder: 0 },
+          {
+            title: "Aporte viaje de bodas",
+            price: 50000,
+            quantity: 1,
+            sortOrder: 1,
+          },
+          {
+            title: "Cena romántica",
+            price: 120000,
+            quantity: 1,
+            sortOrder: 2,
+          },
+          { title: "Licuadora", price: 65000, quantity: 1, sortOrder: 3 },
+        ],
+      },
+      pictures: {
+        create: [
+          {
+            url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/2-3.jpg",
+            sortOrder: 0,
+          },
+          {
+            url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/3-1.jpg",
+            sortOrder: 1,
+          },
+          {
+            url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/4-2.jpg",
+            sortOrder: 2,
+          },
+        ],
+      },
+      scheduleItems: {
+        create: [
+          {
+            time: "18:00",
+            title: "Ceremonia",
+            description: "Capilla principal",
+            sortOrder: 0,
+          },
+          {
+            time: "19:30",
+            title: "Recepción",
+            description: "Salón central",
+            sortOrder: 1,
+          },
+          {
+            time: "21:00",
+            title: "Cena y brindis",
+            description: "Terraza",
+            sortOrder: 2,
+          },
+          {
+            time: "00:00",
+            title: "Fiesta",
+            description: "Pista de baile",
+            sortOrder: 3,
+          },
+        ],
+      },
+      faqItems: {
+        create: [
+          {
+            question: "¿Puedo llevar niños?",
+            answer:
+              "Preferimos una celebración solo adultos. Gracias por entender.",
+            sortOrder: 0,
+          },
+          {
+            question: "¿Hay estacionamiento?",
+            answer: "Sí, hay estacionamiento gratuito dentro de la estancia.",
+            sortOrder: 1,
+          },
+          {
+            question: "¿Cómo confirmo asistencia?",
+            answer: "Completá el formulario RSVP en esta misma página.",
+            sortOrder: 2,
+          },
+        ],
+      },
+    },
+  });
+
+  console.log("Seed OK:");
+  console.log(`  Usuario: ${DEMO_EMAIL}`);
+  console.log(`  Password: ${DEMO_PASSWORD}`);
+  console.log("  Boda: /bodas/demo");
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

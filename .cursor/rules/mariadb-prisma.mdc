@@ -1,0 +1,17 @@
+---
+description: Prisma y MariaDB local para debodas-web
+globs: prisma/**/*,src/lib/db/**/*,src/lib/bodas/**/*
+alwaysApply: false
+---
+
+# MariaDB + Prisma
+
+Ver **AGENTS.md** § MariaDB local.
+
+- Provider `mysql` (MariaDB/XAMPP compatible).
+- Cliente singleton: `src/lib/db/prisma.ts`.
+- Leer bodas: `getBodaBySlug()` en `src/lib/bodas/queries.ts`.
+- Mapear filas: `mapBodaFromDb()` en `src/lib/bodas/mapper.ts`.
+- Cambios de schema: editar `prisma/schema.prisma` → `npm run db:push`.
+- Datos demo: `npm run db:seed`.
+- No commitear `.env.local`.

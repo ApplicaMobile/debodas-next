@@ -1,0 +1,37 @@
+---
+description: Sistema de temas del micrositio DeBodas
+globs: src/lib/themes/**/*,src/components/themes/**/*,src/components/microsite/**/*,src/styles/microsite-themes.css
+alwaysApply: false
+---
+
+# Temas del micrositio
+
+Fuente de verdad: `src/lib/themes/registry.ts`. Ver **AGENTS.md** § Sistema de temas.
+
+## Reglas
+
+- Validar slugs con `isThemeSlug()` / `getTheme()`.
+- Nuevo tema → SVGs en `public/assets/img/themes/` + entrada en `registry.ts` + CSS si aplica.
+- Referencia PHP: `debodas/inc/functions/debodas-themes.php`.
+
+## Componentes (orden)
+
+```
+ThemeProvider
+  └── ThemeSwitcher (demo; DENTRO del provider)
+  └── ThemeBanner
+  └── ThemeSection + MicrositeSectionTitle
+```
+
+## Banner
+
+| Modo | Regla |
+|------|-------|
+| `svg-hero` | SVG siempre; foto debajo si existe |
+| `frame-overlay` | `hideBannerFrameWithPhoto`: sin marco si hay foto |
+| `full-background` | marfil — fondo fijo en body |
+
+## Assets
+
+- `{slug}-home.svg`, `{slug}-informacion.svg`, `separator_{slug}.svg`
+- Variables CSS vía `getThemeCssVariables()` en `ThemeProvider`

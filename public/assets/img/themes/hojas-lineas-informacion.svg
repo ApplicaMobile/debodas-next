@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="576" viewBox="0 0 18 576">
+  <g id="hojas-lineas-informacion" transform="translate(-704.892 -217.068)">
+    <line id="Línea_3" data-name="Línea 3" y2="168" transform="translate(714.392 234.568)" fill="none" stroke="#b9b9b9" stroke-width="1"/>
+    <line id="Línea_4" data-name="Línea 4" y2="169.5" transform="translate(714.392 420.068)" fill="none" stroke="#b9b9b9" stroke-width="1"/>
+    <line id="Línea_5" data-name="Línea 5" y2="168" transform="translate(714.392 606.568)" fill="none" stroke="#b9b9b9" stroke-width="1"/>
+    <g id="Elipse_4" data-name="Elipse 4">
+      <circle id="Elipse_57" data-name="Elipse 57" cx="9" cy="9" r="9" transform="translate(704.892 217.068)" fill="#fff"/>
+      <circle id="Elipse_58" data-name="Elipse 58" cx="8.5" cy="8.5" r="8.5" transform="translate(705.392 217.568)" fill="none" stroke="#b9b9b9" stroke-width="1"/>
+    </g>
+    <g id="Elipse_8" data-name="Elipse 8">
+      <circle id="Elipse_59" data-name="Elipse 59" cx="9" cy="9" r="9" transform="translate(704.892 402.068)" fill="#fff"/>
+      <circle id="Elipse_60" data-name="Elipse 60" cx="8.5" cy="8.5" r="8.5" transform="translate(705.392 402.568)" fill="none" stroke="#b9b9b9" stroke-width="1"/>
+    </g>
+    <g id="Elipse_9" data-name="Elipse 9">
+      <circle id="Elipse_61" data-name="Elipse 61" cx="9" cy="9" r="9" transform="translate(704.892 588.568)" fill="#fff"/>
+      <circle id="Elipse_62" data-name="Elipse 62" cx="8.5" cy="8.5" r="8.5" transform="translate(705.392 589.068)" fill="none" stroke="#b9b9b9" stroke-width="1"/>
+    </g>
+    <g id="Elipse_10" data-name="Elipse 10">
+      <circle id="Elipse_63" data-name="Elipse 63" cx="9" cy="9" r="9" transform="translate(704.892 775.068)" fill="#fff"/>
+      <circle id="Elipse_64" data-name="Elipse 64" cx="8.5" cy="8.5" r="8.5" transform="translate(705.392 775.568)" fill="none" stroke="#b9b9b9" stroke-width="1"/>
+    </g>
+  </g>
+</svg>
