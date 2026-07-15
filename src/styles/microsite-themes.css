@@ -621,8 +621,14 @@
   white-space: pre-line;
 }
 
+.microsite-dress-code__palettes {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .microsite-dress-code__palette {
-  margin-top: 1.75rem;
+  margin-top: 0;
 }
 
 .microsite-dress-code__palette-label {

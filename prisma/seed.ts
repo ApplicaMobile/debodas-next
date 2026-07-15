@@ -30,7 +30,12 @@ async function main() {
     dress_code: {
       caballeros: "Traje formal oscuro o smoking",
       damas: "Vestido de cóctel o largo elegante",
-      colors: [
+      colors_caballeros: [
+        { hex: "#1C1C1C", name: "Negro" },
+        { hex: "#2F4F4F", name: "Verde oscuro" },
+        { hex: "#4A5568", name: "Gris" },
+      ],
+      colors_damas: [
         { hex: "#C4A484", name: "Champagne" },
         { hex: "#8B7355", name: "Taupe" },
         { hex: "#5C4033", name: "Marrón" },

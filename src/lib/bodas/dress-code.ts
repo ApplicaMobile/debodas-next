@@ -6,13 +6,15 @@ export interface DressCodeColor {
 export interface DressCodeContent {
   caballeros: string;
   damas: string;
-  colors: DressCodeColor[];
+  colors_damas: DressCodeColor[];
+  colors_caballeros: DressCodeColor[];
 }
 
 const EMPTY: DressCodeContent = {
   caballeros: "",
   damas: "",
-  colors: [],
+  colors_damas: [],
+  colors_caballeros: [],
 };
 
 function isHexColor(value: string): boolean {
@@ -34,38 +36,62 @@ export function normalizeDressCodeColor(
   return { hex, name: name || hex };
 }
 
+function parseColorList(raw: unknown): DressCodeColor[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw
+    .map(normalizeDressCodeColor)
+    .filter((c): c is DressCodeColor => c !== null);
+}
+
 export function getDressCode(
   misc: Record<string, unknown> | null | undefined,
 ): DressCodeContent {
   const raw = misc?.dress_code;
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-    return { ...EMPTY, colors: [] };
+    return {
+      ...EMPTY,
+      colors_damas: [],
+      colors_caballeros: [],
+    };
   }
 
   const data = raw as Record<string, unknown>;
-  const colorsRaw = Array.isArray(data.colors) ? data.colors : [];
-  const colors = colorsRaw
-    .map(normalizeDressCodeColor)
-    .filter((c): c is DressCodeColor => c !== null);
+
+  // Compat: `colors` antiguo → damas
+  const colorsDamas = parseColorList(
+    data.colors_damas ?? data.colors,
+  );
+  const colorsCaballeros = parseColorList(data.colors_caballeros);
 
   return {
     caballeros: String(data.caballeros ?? "").trim(),
     damas: String(data.damas ?? "").trim(),
-    colors,
+    colors_damas: colorsDamas,
+    colors_caballeros: colorsCaballeros,
   };
 }
 
 export function hasDressCodeContent(dressCode: DressCodeContent): boolean {
   return Boolean(
-    dressCode.caballeros || dressCode.damas || dressCode.colors.length,
+    dressCode.caballeros ||
+      dressCode.damas ||
+      dressCode.colors_damas.length ||
+      dressCode.colors_caballeros.length,
   );
 }
 
-export function parseDressCodeFromForm(formData: FormData): DressCodeContent {
+function parseColorsFromForm(
+  formData: FormData,
+  prefix: "damas" | "caballeros",
+): DressCodeColor[] {
   const colors: DressCodeColor[] = [];
   for (let i = 0; i < 12; i++) {
-    const hex = String(formData.get(`color_hex_${i}`) ?? "").trim();
-    const name = String(formData.get(`color_name_${i}`) ?? "").trim();
+    const hex = String(formData.get(`${prefix}_color_hex_${i}`) ?? "").trim();
+    const name = String(
+      formData.get(`${prefix}_color_name_${i}`) ?? "",
+    ).trim();
     if (!hex) {
       continue;
     }
@@ -75,10 +101,14 @@ export function parseDressCodeFromForm(formData: FormData): DressCodeContent {
     }
     colors.push({ hex: normalized, name: name || normalized });
   }
+  return colors;
+}
 
+export function parseDressCodeFromForm(formData: FormData): DressCodeContent {
   return {
     caballeros: String(formData.get("caballeros") ?? "").trim(),
     damas: String(formData.get("damas") ?? "").trim(),
-    colors,
+    colors_damas: parseColorsFromForm(formData, "damas"),
+    colors_caballeros: parseColorsFromForm(formData, "caballeros"),
   };
 }
