@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getCoupleDisplayName } from "@/data/bodas";
+import { getBannerUrl, getCoupleDisplayName } from "@/data/bodas";
 import { getBodaBySlug, getBodaRsvpCount } from "@/lib/bodas/queries";
 import { canAddRsvpGuest } from "@/lib/plans/limits";
 import { getTheme, isThemeSlug } from "@/lib/themes/registry";
@@ -12,6 +12,16 @@ import "@/styles/microsite-themes.css";
 interface BodaPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ theme?: string }>;
+}
+
+function shouldShowThemeSwitcher(slug: string, themeParam?: string) {
+  if (themeParam && isThemeSlug(themeParam)) {
+    return true;
+  }
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+  return slug === "demo";
 }
 
 export async function generateMetadata({
@@ -28,10 +38,42 @@ export async function generateMetadata({
 
   const theme = getTheme(themeParam ?? boda.microsite_theme);
   const coupleName = getCoupleDisplayName(boda.couple);
+  const bannerUrl = getBannerUrl(boda);
+  const eventPlace = String(boda.event?.place ?? "").trim();
+  const eventDate = String(boda.event?.date ?? "").trim();
+  const descriptionParts = [
+    `Micrositio de casamiento de ${coupleName}`,
+    eventDate ? `el ${eventDate}` : null,
+    eventPlace ? `en ${eventPlace}` : null,
+  ].filter(Boolean);
 
   return {
-    title: `${coupleName} · ${theme.label} | DeBodas`,
-    description: `Micrositio demo de ${coupleName} con tema ${theme.label}`,
+    title: `${coupleName} | DeBodas`,
+    description: descriptionParts.join(" "),
+    openGraph: {
+      title: `${coupleName} | DeBodas`,
+      description: descriptionParts.join(" "),
+      type: "website",
+      ...(bannerUrl
+        ? {
+            images: [
+              {
+                url: bannerUrl,
+                alt: `Banner de ${coupleName}`,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${coupleName} | DeBodas`,
+      description: descriptionParts.join(" "),
+      ...(bannerUrl ? { images: [bannerUrl] } : {}),
+    },
+    other: {
+      "theme-color": theme.colors.accent,
+    },
   };
 }
 
@@ -53,10 +95,11 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
 
   const rsvpCount = await getBodaRsvpCount(slug);
   const rsvpOpen = canAddRsvpGuest(boda.plan, rsvpCount);
+  const showThemeSwitcher = shouldShowThemeSwitcher(slug, themeParam);
 
   return (
     <ThemeProvider slug={resolvedTheme}>
-      <ThemeSwitcher weddingSlug={slug} />
+      {showThemeSwitcher ? <ThemeSwitcher weddingSlug={slug} /> : null}
       <MicrositeDemo boda={boda} rsvpOpen={rsvpOpen} />
     </ThemeProvider>
   );

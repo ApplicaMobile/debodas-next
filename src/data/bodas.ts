@@ -28,28 +28,58 @@ export const demoBoda: Boda = {
     our_story:
       "Nos conocimos en 2019 y desde entonces compartimos viajes, risas y muchos mates. Queremos celebrar este nuevo capítulo con quienes formaron parte de nuestra historia.",
     spotify_url: "",
+    dress_code: {
+      caballeros: "Traje formal oscuro o smoking",
+      damas: "Vestido de cóctel o largo elegante",
+      colors: [
+        { hex: "#C4A484", name: "Champagne" },
+        { hex: "#8B7355", name: "Taupe" },
+        { hex: "#5C4033", name: "Marrón" },
+        { hex: "#2F4F4F", name: "Verde oscuro" },
+      ],
+    },
+    payment_settings: {
+      bank_account: {
+        bank: "Banco Demo",
+        cbu: "0170001540000000000000",
+        owner: "María y Juan",
+        alias: "demo.debodas",
+      },
+      mp_alias_cvu: {
+        owner_mp: "María y Juan",
+        alias_cvu_mp: "demo.mp.debodas",
+      },
+    },
   },
   gifts_list: {
     gifts: [
       {
+        id: "mock-gift-1",
         title: "Set de ollas",
         price: 85000,
         quantity: 1,
+        image: { url: "/assets/img/gift-placeholder.jpg" },
       },
       {
+        id: "mock-gift-2",
         title: "Aporte viaje de bodas",
         price: 50000,
         quantity: 1,
+        image: { url: "/assets/img/gift-placeholder.jpg" },
       },
       {
+        id: "mock-gift-3",
         title: "Cena romántica",
         price: 120000,
         quantity: 1,
+        image: { url: "/assets/img/gift-placeholder.jpg" },
       },
       {
+        id: "mock-gift-4",
         title: "Licuadora",
         price: 65000,
         quantity: 1,
+        image: { url: "/assets/img/gift-placeholder.jpg" },
       },
     ],
   },
@@ -65,10 +95,30 @@ export const demoBoda: Boda = {
     },
   ],
   schedule: [
-    { time: "18:00", title: "Ceremonia", description: "Capilla principal" },
-    { time: "19:30", title: "Recepción", description: "Salón central" },
-    { time: "21:00", title: "Cena y brindis", description: "Terraza" },
-    { time: "00:00", title: "Fiesta", description: "Pista de baile" },
+    {
+      time: "18:00",
+      title: "Ceremonia",
+      description: "Capilla principal",
+      icon: "anillos",
+    },
+    {
+      time: "19:30",
+      title: "Recepción",
+      description: "Salón central",
+      icon: "plato",
+    },
+    {
+      time: "21:00",
+      title: "Cena y brindis",
+      description: "Terraza",
+      icon: "copas",
+    },
+    {
+      time: "00:00",
+      title: "Fiesta",
+      description: "Pista de baile",
+      icon: "musica",
+    },
   ],
   faq_items: [
     {

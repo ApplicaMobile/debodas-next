@@ -12,14 +12,20 @@ export default async function MiCuentaPage() {
       })
     : null;
 
+  const pendingGiftsCount = user?.boda
+    ? await prisma.confirmedGift.count({
+        where: { bodaId: user.boda.id, confirmed: false },
+      })
+    : 0;
+
   const editableSections = accountSections.filter(
     (item) => !item.exact && item.available,
   );
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+        <h2 className="font-serif text-xl font-semibold text-stone-800 sm:text-2xl">
           Bienvenido{user?.name ? `, ${user.name}` : ""}
         </h2>
         <p className="mt-2 text-stone-600">
@@ -27,7 +33,7 @@ export default async function MiCuentaPage() {
           sitio público al guardar.
         </p>
         {user?.boda ? (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl bg-stone-50 p-4">
               <p className="text-xs uppercase tracking-wide text-stone-500">
                 Plan
@@ -44,11 +50,27 @@ export default async function MiCuentaPage() {
                 {user.boda.micrositeTheme}
               </p>
             </div>
+            <div className="rounded-2xl bg-stone-50 p-4">
+              <p className="text-xs uppercase tracking-wide text-stone-500">
+                Regalos pendientes
+              </p>
+              <p className="mt-1 font-semibold text-stone-800">
+                {pendingGiftsCount}
+              </p>
+              {pendingGiftsCount > 0 ? (
+                <Link
+                  href="/mi-cuenta/regalos-recibidos"
+                  className="mt-2 inline-block text-sm font-medium text-[#556B2F] hover:underline"
+                >
+                  Revisar →
+                </Link>
+              ) : null}
+            </div>
           </div>
         ) : null}
       </section>
 
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <h3 className="text-lg font-semibold text-stone-800">Secciones</h3>
         <ul className="mt-4 divide-y divide-stone-100">
           {editableSections.map((item) => (
@@ -61,6 +83,10 @@ export default async function MiCuentaPage() {
                 className="font-medium text-[#556B2F] hover:underline"
               >
                 {item.label}
+                {item.href === "/mi-cuenta/regalos-recibidos" &&
+                pendingGiftsCount > 0
+                  ? ` (${pendingGiftsCount})`
+                  : ""}
               </Link>
               <span className="text-xs text-stone-400">Editar →</span>
             </li>

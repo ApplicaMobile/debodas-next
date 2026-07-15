@@ -28,6 +28,7 @@ interface CreatePreferenceInput {
   };
   notificationUrl: string;
   metadata?: Record<string, string>;
+  accessToken?: string | null;
 }
 
 export interface MercadoPagoPreferenceResult {
@@ -47,8 +48,9 @@ export interface MercadoPagoPaymentResult {
 async function mercadoPagoFetch<T>(
   path: string,
   init?: RequestInit,
+  accessTokenOverride?: string | null,
 ): Promise<T> {
-  const accessToken = getMercadoPagoAccessToken();
+  const accessToken = accessTokenOverride ?? getMercadoPagoAccessToken();
   if (!accessToken) {
     throw new MercadoPagoApiError(
       "MercadoPago no está configurado. Agregá MERCADOPAGO_ACCESS_TOKEN.",
@@ -103,10 +105,14 @@ export async function createMercadoPagoPreference(
     id?: string;
     init_point?: string;
     sandbox_init_point?: string;
-  }>("/checkout/preferences", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  }>(
+    "/checkout/preferences",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+    input.accessToken,
+  );
 
   if (!result.id) {
     throw new MercadoPagoApiError("MercadoPago no devolvió un ID de preferencia.");
@@ -125,6 +131,11 @@ export async function createMercadoPagoPreference(
 
 export async function getMercadoPagoPayment(
   paymentId: string,
+  accessToken?: string | null,
 ): Promise<MercadoPagoPaymentResult> {
-  return mercadoPagoFetch<MercadoPagoPaymentResult>(`/v1/payments/${paymentId}`);
+  return mercadoPagoFetch<MercadoPagoPaymentResult>(
+    `/v1/payments/${paymentId}`,
+    undefined,
+    accessToken,
+  );
 }

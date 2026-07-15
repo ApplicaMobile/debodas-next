@@ -23,7 +23,7 @@ export function ThemePanel({ currentTheme, userPlan, slug }: ThemePanelProps) {
   );
 
   return (
-    <section className="rounded-3xl bg-white p-8 shadow-sm">
+    <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
       <p className="text-sm text-stone-600">
         Elegí el tema visual de tu micrositio. Podés previsualizarlo antes de
         guardar.

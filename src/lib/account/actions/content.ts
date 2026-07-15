@@ -7,6 +7,8 @@ import {
   canAddRsvpGuest,
   rsvpLimitError,
 } from "@/lib/plans/limits";
+import { sanitizeRsvpMenu } from "@/lib/rsvp/menu";
+import { sanitizeScheduleIcon } from "@/lib/schedule/icons";
 import { prisma } from "@/lib/db/prisma";
 
 function parseOptions(value: unknown): Record<string, unknown> {
@@ -28,6 +30,7 @@ export async function addScheduleItemAction(
   const time = String(formData.get("time") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
+  const icon = sanitizeScheduleIcon(String(formData.get("icon") ?? "anillos"));
 
   if (!time || !title) {
     return { error: "Completá hora y título." };
@@ -42,6 +45,7 @@ export async function addScheduleItemAction(
         time,
         title,
         description: description || null,
+        icon,
         sortOrder: count,
       },
     });
@@ -171,6 +175,7 @@ export async function addRsvpGuestAction(
   const email = String(formData.get("email") ?? "").trim();
   const status = String(formData.get("status") ?? "pending").trim();
   const notes = String(formData.get("notes") ?? "").trim();
+  const menu = sanitizeRsvpMenu(String(formData.get("menu") ?? "general"));
 
   if (!name) {
     return { error: "El nombre es obligatorio." };
@@ -188,6 +193,7 @@ export async function addRsvpGuestAction(
         name,
         email: email || null,
         status: status || "pending",
+        menu,
         notes: notes || null,
       },
     });

@@ -30,6 +30,7 @@ export function mapBodaFromDb(row: BodaWithRelations): Boda {
   const gifts: BodaGift[] = row.gifts
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((gift) => ({
+      id: gift.id,
       title: gift.title,
       price: Number(gift.price),
       quantity: gift.quantity,
@@ -49,6 +50,7 @@ export function mapBodaFromDb(row: BodaWithRelations): Boda {
       time: item.time,
       title: item.title,
       description: item.description ?? undefined,
+      icon: item.icon,
     }));
 
   const faq_items = row.faqItems

@@ -40,7 +40,7 @@ export function BannerPanel({
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
         <h3 className="text-lg font-semibold text-stone-800">
           Imagen del banner
         </h3>
@@ -64,7 +64,7 @@ export function BannerPanel({
           <button
             type="submit"
             disabled={uploadBannerPending}
-            className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+            className="w-full rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
           >
             {uploadBannerPending ? "Subiendo…" : "Subir banner"}
           </button>
@@ -93,14 +93,14 @@ export function BannerPanel({
           <button
             type="submit"
             disabled={bannerPending}
-            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60"
+            className="w-full rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60 sm:w-auto"
           >
             {bannerPending ? "Guardando…" : "Guardar URLs"}
           </button>
         </form>
       </section>
 
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
         <h3 className="text-lg font-semibold text-stone-800">Galería</h3>
         <ul className="mt-4 space-y-3">
           {pictures.length === 0 ? (
@@ -150,7 +150,7 @@ export function BannerPanel({
           <button
             type="submit"
             disabled={uploadGalleryPending}
-            className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+            className="w-full rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
           >
             {uploadGalleryPending ? "Subiendo…" : "Subir imagen"}
           </button>
@@ -165,7 +165,7 @@ export function BannerPanel({
           <button
             type="submit"
             disabled={addPending}
-            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60"
+            className="w-full rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60 sm:w-auto"
           >
             {addPending ? "Agregando…" : "Agregar URL"}
           </button>

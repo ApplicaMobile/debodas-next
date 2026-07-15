@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import type { Boda } from "@/types/boda";
 import {
-  formatPrice,
   getBannerUrl,
   getCoupleDisplayName,
 } from "@/data/bodas";
@@ -14,6 +13,17 @@ import {
 } from "@/components/themes/ThemeSection";
 import { useMicrositeTheme } from "@/components/themes/ThemeProvider";
 import { RsvpForm } from "@/components/microsite/RsvpForm";
+import { GiftSection } from "@/components/microsite/GiftSection";
+import { DressCodeSection } from "@/components/microsite/DressCodeSection";
+import {
+  getPaymentSettings,
+  getPublicPaymentOptions,
+} from "@/lib/bodas/payment-settings";
+import {
+  getDressCode,
+  hasDressCodeContent,
+} from "@/lib/bodas/dress-code";
+import { getScheduleIconUrl } from "@/lib/schedule/icons";
 
 interface MicrositeDemoProps {
   boda: Boda;
@@ -90,6 +100,14 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
     theme.bannerMode === "svg-hero";
   const showFaq =
     boda.options?.show_faq !== 0 && boda.options?.show_faq !== false;
+  const showDressCode =
+    boda.options?.show_dress_code !== 0 &&
+    boda.options?.show_dress_code !== false;
+  const dressCode = getDressCode(boda.misc);
+  const paymentOptions = getPublicPaymentOptions(
+    getPaymentSettings(boda.misc),
+    String(boda.plan ?? "free"),
+  );
 
   return (
     <>
@@ -98,6 +116,12 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
         eventDate={eventDate}
         eventPlace={String(boda.event?.place ?? "")}
         bannerPhotoUrl={bannerUrl}
+        showSchedule={Boolean(boda.schedule?.length)}
+        showFaq={Boolean(showFaq && boda.faq_items?.length)}
+        showDressCode={Boolean(
+          showDressCode && hasDressCodeContent(dressCode),
+        )}
+        showRsvp={rsvpOpen}
       />
 
       <ThemeSection>
@@ -124,58 +148,13 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
 
       <ThemeSection id="regalos">
         <div className="mx-auto max-w-5xl px-6">
-          <MicrositeSectionTitle className={titleClass}>
-            {giftsTitle}
-          </MicrositeSectionTitle>
-          {gifts.length === 0 ? (
-            <p className="mt-8 text-center text-sm text-[var(--theme-text-muted)]">
-              La pareja aún no cargó regalos en su lista.
-            </p>
-          ) : (
-            <div className="microsite-gift-grid mt-10">
-              {gifts.map((gift, index) => {
-                const imageUrl =
-                  gift.image &&
-                  typeof gift.image === "object" &&
-                  "url" in gift.image
-                    ? String(gift.image.url ?? "")
-                    : "";
-
-                return (
-                  <article
-                    key={`${gift.title}-${index}`}
-                    className="microsite-card"
-                  >
-                    {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imageUrl}
-                        alt={gift.title ?? "Regalo"}
-                        className="mb-4 h-40 w-full rounded-xl object-cover"
-                      />
-                    ) : null}
-                    <h3 className="text-lg font-semibold">{gift.title}</h3>
-                    <p className="microsite-gift-price">
-                      {formatPrice(gift.price ?? 0)}
-                    </p>
-                    {gift.quantity && Number(gift.quantity) > 1 ? (
-                      <p className="mt-1 text-xs text-[var(--theme-text-muted)]">
-                        Cantidad sugerida: {gift.quantity}
-                      </p>
-                    ) : null}
-                    <button
-                      type="button"
-                      disabled
-                      className="microsite-btn mt-5 opacity-60"
-                      title="Pagos online próximamente"
-                    >
-                      Regalar (próximamente)
-                    </button>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+          <GiftSection
+            slug={String(boda.slug)}
+            giftsTitle={giftsTitle}
+            gifts={gifts}
+            paymentOptions={paymentOptions}
+            titleClass={titleClass}
+          />
         </div>
       </ThemeSection>
 
@@ -191,26 +170,46 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
                   time?: string;
                   title?: string;
                   description?: string;
+                  icon?: string;
                 };
+                const iconUrl = getScheduleIconUrl(theme.slug, entry.icon);
+                const iconOnRight = index % 2 === 0;
+
                 return (
                   <div
                     key={`${entry.time}-${index}`}
-                    className="microsite-schedule-item"
+                    className={`microsite-schedule-item ${
+                      iconOnRight
+                        ? "microsite-schedule-item--icon-right"
+                        : "microsite-schedule-item--icon-left"
+                    }`}
                   >
-                    <div>
+                    <div className="microsite-schedule-item__text">
                       <p className="text-sm font-semibold text-[var(--theme-accent)]">
                         {entry.time}
                       </p>
                       <h3 className="text-lg font-semibold">{entry.title}</h3>
+                      {entry.description ? (
+                        <p className="mt-1 text-sm text-[var(--theme-text-muted)]">
+                          {entry.description}
+                        </p>
+                      ) : null}
                     </div>
-                    <p className="text-sm text-[var(--theme-text-muted)]">
-                      {entry.description}
-                    </p>
+                    <div className="microsite-schedule-item__icon">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={iconUrl} alt="" aria-hidden="true" />
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
+        </ThemeSection>
+      ) : null}
+
+      {showDressCode && hasDressCodeContent(dressCode) ? (
+        <ThemeSection soft decor={usesInfoDecor} id="dress-code">
+          <DressCodeSection dressCode={dressCode} titleClass={titleClass} />
         </ThemeSection>
       ) : null}
 
@@ -237,6 +236,7 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
         <div className="mx-auto max-w-xl px-6">
           <RsvpForm
             slug={String(boda.slug)}
+            plan={boda.plan}
             rsvpOpen={rsvpOpen}
             titleClass={titleClass}
           />

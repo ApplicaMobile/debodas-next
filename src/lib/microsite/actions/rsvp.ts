@@ -6,6 +6,10 @@ import {
   canAddRsvpGuest,
   rsvpLimitError,
 } from "@/lib/plans/limits";
+import {
+  canChooseRsvpMenu,
+  sanitizeRsvpMenu,
+} from "@/lib/rsvp/menu";
 import { prisma } from "@/lib/db/prisma";
 
 const PUBLIC_RSVP_STATUSES = new Set(["confirmed", "declined"]);
@@ -19,6 +23,7 @@ export async function submitPublicRsvpAction(
   const email = String(formData.get("email") ?? "").trim();
   const status = String(formData.get("status") ?? "confirmed").trim();
   const notes = String(formData.get("notes") ?? "").trim();
+  const menuRaw = String(formData.get("menu") ?? "general").trim();
 
   if (!slug) {
     return { error: "No encontramos esta boda." };
@@ -55,12 +60,18 @@ export async function submitPublicRsvpAction(
       return { error: rsvpLimitError(boda.plan) };
     }
 
+    const menu =
+      status === "confirmed" && canChooseRsvpMenu(boda.plan)
+        ? sanitizeRsvpMenu(menuRaw)
+        : "general";
+
     await prisma.rsvpGuest.create({
       data: {
         bodaId: boda.id,
         name,
         email: email || null,
         status,
+        menu,
         notes: notes || null,
       },
     });

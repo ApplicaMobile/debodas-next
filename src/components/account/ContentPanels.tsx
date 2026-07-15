@@ -9,6 +9,10 @@ import {
 } from "@/lib/account/actions/content";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
+import {
+  SCHEDULE_ICON_OPTIONS,
+  scheduleIconLabel,
+} from "@/lib/schedule/icons";
 
 interface CronogramaPanelProps {
   items: Array<{
@@ -16,6 +20,7 @@ interface CronogramaPanelProps {
     time: string;
     title: string;
     description: string | null;
+    icon: string;
   }>;
 }
 
@@ -29,7 +34,7 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <ul className="divide-y divide-stone-100">
           {items.map((item) => (
             <li
@@ -41,6 +46,9 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
                   {item.time}
                 </p>
                 <p className="font-medium text-stone-800">{item.title}</p>
+                <p className="text-xs text-stone-400">
+                  {scheduleIconLabel(item.icon)}
+                </p>
                 {item.description ? (
                   <p className="text-sm text-stone-500">{item.description}</p>
                 ) : null}
@@ -71,10 +79,21 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
             className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Ceremonia"
           />
+          <select
+            name="icon"
+            defaultValue="anillos"
+            className="rounded-xl border border-stone-200 px-4 py-3"
+          >
+            {SCHEDULE_ICON_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <input
             name="description"
-            className="rounded-xl border border-stone-200 px-4 py-3 sm:col-span-2"
-            placeholder="Descripción (opcional)"
+            className="rounded-xl border border-stone-200 px-4 py-3"
+            placeholder="Lugar / detalle (opcional)"
           />
           <div className="sm:col-span-2">
             <FormAlert error={addState.error} success={addState.success} />
@@ -104,25 +123,26 @@ export function FaqPanel({
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <ul className="divide-y divide-stone-100">
           {items.map((item) => (
-            <li key={item.id} className="py-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-medium text-stone-800">{item.question}</p>
-                  <p className="mt-1 text-sm text-stone-600">{item.answer}</p>
-                </div>
-                <form action={deleteFaqItemAction}>
-                  <input type="hidden" name="item_id" value={item.id} />
-                  <button
-                    type="submit"
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    Eliminar
-                  </button>
-                </form>
+            <li
+              key={item.id}
+              className="flex items-start justify-between gap-4 py-4"
+            >
+              <div>
+                <p className="font-medium text-stone-800">{item.question}</p>
+                <p className="mt-1 text-sm text-stone-500">{item.answer}</p>
               </div>
+              <form action={deleteFaqItemAction}>
+                <input type="hidden" name="item_id" value={item.id} />
+                <button
+                  type="submit"
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Eliminar
+                </button>
+              </form>
             </li>
           ))}
         </ul>
@@ -147,7 +167,7 @@ export function FaqPanel({
             disabled={addPending}
             className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white"
           >
-            Agregar pregunta
+            {addPending ? "Agregando…" : "Agregar FAQ"}
           </button>
         </form>
       </section>

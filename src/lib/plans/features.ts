@@ -38,5 +38,6 @@ export const planFeatures: Record<string, string[]> = {
     "Invitaciones digitales",
     "Regalo monto libre",
     "Gestión de mesas",
+    "Menú especial en RSVP",
   ],
 };

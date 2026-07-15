@@ -27,6 +27,7 @@ export interface BodaOptions {
 }
 
 export interface BodaGift {
+  id?: string;
   title?: string;
   price?: number | string;
   image?: number | BodaImage;

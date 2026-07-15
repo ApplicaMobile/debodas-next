@@ -97,7 +97,7 @@ export async function createPlanCheckoutAction(
         failure: `${baseUrl}/mi-cuenta/plan?payment=failure`,
         pending: `${baseUrl}/mi-cuenta/plan?payment=pending`,
       },
-      notificationUrl: getMercadoPagoWebhookUrl(),
+      notificationUrl: getMercadoPagoWebhookUrl(boda.id),
       metadata: {
         payment_id: payment.id,
         boda_id: boda.id,

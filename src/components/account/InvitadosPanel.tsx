@@ -14,6 +14,11 @@ import {
   getPlanLimits,
   rsvpLimitMessage,
 } from "@/lib/plans/limits";
+import {
+  canChooseRsvpMenu,
+  RSVP_MENU_OPTIONS,
+  rsvpMenuLabel,
+} from "@/lib/rsvp/menu";
 
 interface InvitadosPanelProps {
   plan: string;
@@ -22,6 +27,7 @@ interface InvitadosPanelProps {
     name: string;
     email: string | null;
     status: string;
+    menu: string;
     notes: string | null;
   }>;
 }
@@ -37,6 +43,7 @@ const initialState: FormState = {};
 export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
   const limits = getPlanLimits(plan);
   const atGuestLimit = !canAddRsvpGuest(plan, guests.length);
+  const menuEnabled = canChooseRsvpMenu(plan);
   const guestLimitLabel =
     limits.maxRsvpGuests === null
       ? `${guests.length} invitados`
@@ -49,7 +56,7 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="text-lg font-semibold text-stone-800">
             Lista de invitados
@@ -65,6 +72,7 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
               <tr className="border-b border-stone-100 text-left text-stone-500">
                 <th className="py-2 pr-4">Nombre</th>
                 <th className="py-2 pr-4">Email</th>
+                <th className="py-2 pr-4">Menú</th>
                 <th className="py-2 pr-4">Estado</th>
                 <th className="py-2">Acciones</th>
               </tr>
@@ -72,7 +80,7 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
             <tbody>
               {guests.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-4 text-stone-500">
+                  <td colSpan={5} className="py-4 text-stone-500">
                     No hay invitados cargados.
                   </td>
                 </tr>
@@ -84,6 +92,9 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                     </td>
                     <td className="py-3 pr-4 text-stone-600">
                       {guest.email ?? "—"}
+                    </td>
+                    <td className="py-3 pr-4 text-stone-600">
+                      {rsvpMenuLabel(guest.menu)}
                     </td>
                     <td className="py-3 pr-4">
                       <form action={updateRsvpStatusAction} className="inline">
@@ -121,7 +132,7 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <h3 className="text-lg font-semibold text-stone-800">
           Agregar invitado
         </h3>
@@ -152,9 +163,25 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
               </option>
             ))}
           </select>
+          {menuEnabled ? (
+            <select
+              name="menu"
+              defaultValue="general"
+              className="rounded-xl border border-stone-200 px-4 py-3"
+              disabled={atGuestLimit}
+            >
+              {RSVP_MENU_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input type="hidden" name="menu" value="general" />
+          )}
           <input
             name="notes"
-            className="rounded-xl border border-stone-200 px-4 py-3"
+            className="rounded-xl border border-stone-200 px-4 py-3 sm:col-span-2"
             placeholder="Notas (opcional)"
             disabled={atGuestLimit}
           />

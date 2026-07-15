@@ -23,9 +23,40 @@ async function main() {
     },
   });
 
-  await prisma.boda.upsert({
+  const demoMisc = {
+    our_story:
+      "Nos conocimos en 2019 y desde entonces compartimos viajes, risas y muchos mates. Queremos celebrar este nuevo capítulo con quienes formaran parte de nuestra historia.",
+    spotify_url: "",
+    dress_code: {
+      caballeros: "Traje formal oscuro o smoking",
+      damas: "Vestido de cóctel o largo elegante",
+      colors: [
+        { hex: "#C4A484", name: "Champagne" },
+        { hex: "#8B7355", name: "Taupe" },
+        { hex: "#5C4033", name: "Marrón" },
+        { hex: "#2F4F4F", name: "Verde oscuro" },
+      ],
+    },
+    payment_settings: {
+      bank_account: {
+        bank: "Banco Demo",
+        cbu: "0170001540000000000000",
+        owner: "María y Juan",
+        alias: "demo.debodas",
+      },
+      mp_alias_cvu: {
+        owner_mp: "María y Juan",
+        alias_cvu_mp: "demo.mp.debodas",
+      },
+    },
+  };
+
+  const boda = await prisma.boda.upsert({
     where: { slug: "demo" },
-    update: {},
+    update: {
+      misc: demoMisc,
+      plan: "premium",
+    },
     create: {
       userId: user.id,
       slug: "demo",
@@ -52,27 +83,37 @@ async function main() {
         show_faq: 1,
         show_dress_code: 1,
       },
-      misc: {
-        our_story:
-          "Nos conocimos en 2019 y desde entonces compartimos viajes, risas y muchos mates. Queremos celebrar este nuevo capítulo con quienes formaron parte de nuestra historia.",
-        spotify_url: "",
-      },
+      misc: demoMisc,
       gifts: {
         create: [
-          { title: "Set de ollas", price: 85000, quantity: 1, sortOrder: 0 },
+          {
+            title: "Set de ollas",
+            price: 85000,
+            quantity: 1,
+            imageUrl: "/assets/img/gift-placeholder.jpg",
+            sortOrder: 0,
+          },
           {
             title: "Aporte viaje de bodas",
             price: 50000,
             quantity: 1,
+            imageUrl: "/assets/img/gift-placeholder.jpg",
             sortOrder: 1,
           },
           {
             title: "Cena romántica",
             price: 120000,
             quantity: 1,
+            imageUrl: "/assets/img/gift-placeholder.jpg",
             sortOrder: 2,
           },
-          { title: "Licuadora", price: 65000, quantity: 1, sortOrder: 3 },
+          {
+            title: "Licuadora",
+            price: 65000,
+            quantity: 1,
+            imageUrl: "/assets/img/gift-placeholder.jpg",
+            sortOrder: 3,
+          },
         ],
       },
       pictures: {
@@ -97,24 +138,28 @@ async function main() {
             time: "18:00",
             title: "Ceremonia",
             description: "Capilla principal",
+            icon: "anillos",
             sortOrder: 0,
           },
           {
             time: "19:30",
             title: "Recepción",
             description: "Salón central",
+            icon: "plato",
             sortOrder: 1,
           },
           {
             time: "21:00",
             title: "Cena y brindis",
             description: "Terraza",
+            icon: "copas",
             sortOrder: 2,
           },
           {
             time: "00:00",
             title: "Fiesta",
             description: "Pista de baile",
+            icon: "musica",
             sortOrder: 3,
           },
         ],
@@ -140,6 +185,84 @@ async function main() {
         ],
       },
     },
+  });
+
+  const scheduleSeed = [
+    {
+      time: "18:00",
+      title: "Ceremonia",
+      description: "Capilla principal",
+      icon: "anillos",
+      sortOrder: 0,
+    },
+    {
+      time: "19:30",
+      title: "Recepción",
+      description: "Salón central",
+      icon: "plato",
+      sortOrder: 1,
+    },
+    {
+      time: "21:00",
+      title: "Cena y brindis",
+      description: "Terraza",
+      icon: "copas",
+      sortOrder: 2,
+    },
+    {
+      time: "00:00",
+      title: "Fiesta",
+      description: "Pista de baile",
+      icon: "musica",
+      sortOrder: 3,
+    },
+  ] as const;
+
+  await prisma.scheduleItem.deleteMany({ where: { bodaId: boda.id } });
+  await prisma.scheduleItem.createMany({
+    data: scheduleSeed.map((item) => ({
+      bodaId: boda.id,
+      ...item,
+    })),
+  });
+
+  const giftsSeed = [
+    {
+      title: "Set de ollas",
+      price: 85000,
+      quantity: 1,
+      imageUrl: "/assets/img/gift-placeholder.jpg",
+      sortOrder: 0,
+    },
+    {
+      title: "Aporte viaje de bodas",
+      price: 50000,
+      quantity: 1,
+      imageUrl: "/assets/img/gift-placeholder.jpg",
+      sortOrder: 1,
+    },
+    {
+      title: "Cena romántica",
+      price: 120000,
+      quantity: 1,
+      imageUrl: "/assets/img/gift-placeholder.jpg",
+      sortOrder: 2,
+    },
+    {
+      title: "Licuadora",
+      price: 65000,
+      quantity: 1,
+      imageUrl: "/assets/img/gift-placeholder.jpg",
+      sortOrder: 3,
+    },
+  ];
+
+  await prisma.gift.deleteMany({ where: { bodaId: boda.id } });
+  await prisma.gift.createMany({
+    data: giftsSeed.map((item) => ({
+      bodaId: boda.id,
+      ...item,
+    })),
   });
 
   console.log("Seed OK:");

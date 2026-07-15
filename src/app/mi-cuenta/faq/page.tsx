@@ -11,7 +11,7 @@ export default async function MiCuentaFaqPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">FAQ</h2>
+        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">FAQ</h2>
         <p className="mt-2 text-sm text-stone-600">
           Preguntas frecuentes para tus invitados.
         </p>

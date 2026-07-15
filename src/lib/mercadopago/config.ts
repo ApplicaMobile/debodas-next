@@ -32,6 +32,10 @@ export function getAppBaseUrl(): string {
   return "http://localhost:3000";
 }
 
-export function getMercadoPagoWebhookUrl(): string {
-  return `${getAppBaseUrl()}/api/webhooks/mercadopago`;
+export function getMercadoPagoWebhookUrl(bodaId?: string): string {
+  const base = `${getAppBaseUrl()}/api/webhooks/mercadopago`;
+  if (!bodaId) {
+    return base;
+  }
+  return `${base}?bodaId=${encodeURIComponent(bodaId)}`;
 }

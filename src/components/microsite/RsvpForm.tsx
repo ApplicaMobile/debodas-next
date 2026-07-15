@@ -1,24 +1,36 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { submitPublicRsvpAction } from "@/lib/microsite/actions/rsvp";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
 import { MicrositeSectionTitle } from "@/components/themes/ThemeSection";
+import {
+  canChooseRsvpMenu,
+  RSVP_MENU_OPTIONS,
+} from "@/lib/rsvp/menu";
 
 interface RsvpFormProps {
   slug: string;
+  plan?: string | null;
   rsvpOpen: boolean;
   titleClass?: string;
 }
 
 const initialState: FormState = {};
 
-export function RsvpForm({ slug, rsvpOpen, titleClass }: RsvpFormProps) {
+export function RsvpForm({
+  slug,
+  plan,
+  rsvpOpen,
+  titleClass,
+}: RsvpFormProps) {
   const [state, formAction, isPending] = useActionState(
     submitPublicRsvpAction,
     initialState,
   );
+  const [status, setStatus] = useState<"confirmed" | "declined">("confirmed");
+  const showMenu = canChooseRsvpMenu(plan) && status === "confirmed";
 
   if (state.success) {
     return (
@@ -81,16 +93,43 @@ export function RsvpForm({ slug, rsvpOpen, titleClass }: RsvpFormProps) {
               type="radio"
               name="status"
               value="confirmed"
-              defaultChecked
+              checked={status === "confirmed"}
+              onChange={() => setStatus("confirmed")}
               required
             />
             Sí, asistiré
           </label>
           <label className="flex items-center gap-2 text-sm text-stone-700">
-            <input type="radio" name="status" value="declined" required />
+            <input
+              type="radio"
+              name="status"
+              value="declined"
+              checked={status === "declined"}
+              onChange={() => setStatus("declined")}
+              required
+            />
             No podré asistir
           </label>
         </fieldset>
+
+        {showMenu ? (
+          <label className="block text-sm font-medium text-stone-700">
+            ¿Necesitás menú especial?
+            <select
+              name="menu"
+              defaultValue="general"
+              className="mt-2 w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-sm font-normal text-stone-800"
+            >
+              {RSVP_MENU_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <input type="hidden" name="menu" value="general" />
+        )}
 
         <textarea
           name="notes"

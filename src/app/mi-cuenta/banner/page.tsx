@@ -14,7 +14,7 @@ export default async function MiCuentaBannerPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
+        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
           Banner y galería
         </h2>
         <p className="mt-2 text-sm text-stone-600">

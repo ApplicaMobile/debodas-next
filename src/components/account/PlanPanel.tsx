@@ -3,19 +3,17 @@
 import { useActionState } from "react";
 import { updateOptionsAction } from "@/lib/account/actions/content";
 import type { FormState } from "@/lib/account/form-state";
-import {
-  planFeatures,
-  planLabels,
-  normalizePlan,
-} from "@/lib/plans/features";
+import { planLabels, normalizePlan } from "@/lib/plans/features";
+import { getCurrentPlanFeatures } from "@/lib/plans/comparison";
 import { FormAlert } from "@/components/account/FormAlert";
-import { PlanCheckoutButtons } from "@/components/account/PlanCheckoutButtons";
+import { PlanComparison } from "@/components/account/PlanComparison";
 
 interface PlanPanelProps {
   plan: string;
   showFaq: boolean;
   showDressCode: boolean;
   mpConfigured: boolean;
+  demoPlanSwitch: boolean;
   paymentNotice?: string | null;
 }
 
@@ -34,6 +32,7 @@ export function PlanPanel({
   showFaq,
   showDressCode,
   mpConfigured,
+  demoPlanSwitch,
   paymentNotice,
 }: PlanPanelProps) {
   const [state, formAction, isPending] = useActionState(
@@ -42,7 +41,7 @@ export function PlanPanel({
   );
   const normalized = normalizePlan(plan);
   const label = planLabels[plan] ?? planLabels[normalized];
-  const features = planFeatures[normalized] ?? planFeatures.free;
+  const features = getCurrentPlanFeatures(plan);
   const notice =
     paymentNotice && PAYMENT_NOTICES[paymentNotice]
       ? PAYMENT_NOTICES[paymentNotice]
@@ -50,7 +49,7 @@ export function PlanPanel({
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <p className="text-xs uppercase tracking-wide text-stone-500">
           Plan actual
         </p>
@@ -68,14 +67,15 @@ export function PlanPanel({
             {notice}
           </p>
         ) : null}
-
-        <PlanCheckoutButtons
-          currentPlan={plan}
-          mpConfigured={mpConfigured}
-        />
       </section>
 
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <PlanComparison
+        currentPlan={plan}
+        mpConfigured={mpConfigured}
+        demoPlanSwitch={demoPlanSwitch}
+      />
+
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <h3 className="text-lg font-semibold text-stone-800">
           Opciones del micrositio
         </h3>
@@ -96,7 +96,7 @@ export function PlanPanel({
               defaultChecked={showDressCode}
               className="h-4 w-4 rounded border-stone-300"
             />
-            Mostrar dress code (cuando esté implementado)
+            Mostrar sección Dress Code en el micrositio
           </label>
           <FormAlert error={state.error} success={state.success} />
           <button

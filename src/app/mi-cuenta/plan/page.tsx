@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PlanPanel } from "@/components/account/PlanPanel";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 import { isMercadoPagoConfigured } from "@/lib/mercadopago/config";
+import { isDemoPlanSwitchEnabled } from "@/lib/plans/demo";
 
 function optionEnabled(value: unknown): boolean {
   return value === 1 || value === true || value === "1";
@@ -25,11 +26,11 @@ export default async function MiCuentaPlanPage({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
+        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
           Plan y facturación
         </h2>
         <p className="mt-2 text-sm text-stone-600">
-          Tu plan actual y opciones del micrositio.
+          Compará planes, mejorá el tuyo y configurá opciones del micrositio.
         </p>
       </div>
       <PlanPanel
@@ -37,6 +38,7 @@ export default async function MiCuentaPlanPage({
         showFaq={optionEnabled(options.show_faq)}
         showDressCode={optionEnabled(options.show_dress_code)}
         mpConfigured={isMercadoPagoConfigured()}
+        demoPlanSwitch={isDemoPlanSwitchEnabled()}
         paymentNotice={payment ?? null}
       />
     </div>

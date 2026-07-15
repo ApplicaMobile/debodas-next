@@ -114,9 +114,26 @@ prisma/
 - Las imágenes del hero/planes usan URLs de `test.debodas.com.ar` (requiere internet).
 - Los SVG de temas están en `public/assets/img/themes/`.
 - WordPress **no es necesario** en runtime.
+- Uploads locales en `public/uploads/` (ignorados por git).
+- `ThemeSwitcher` solo en desarrollo, slug `demo`, o con `?theme=...`.
+
+## Regalos y pagos
+
+1. En `/mi-cuenta/pagos` configurá transferencia y/o credenciales MP de la pareja.
+2. En el micrositio, los invitados agregan regalos al carrito y pagan (MP checkout o transferencia).
+3. Los novios ven y confirman regalos en `/mi-cuenta/regalos-recibidos`.
+4. Webhook MP: `/api/webhooks/mercadopago?bodaId=...` (requiere `NEXT_PUBLIC_APP_URL` pública en prod).
+5. Upgrade de plan: `/mi-cuenta/plan` usa `MERCADOPAGO_ACCESS_TOKEN` de la app.
+
+Tras cambios al schema Prisma:
+
+```powershell
+npm run db:push
+npm run db:seed
+```
 
 ## Próximos pasos
 
-1. Auth real (login con tabla `users`)
-2. Panel `/mi-cuenta`
-3. MercadoPago y planes
+1. Storage cloud para uploads (Vercel no persiste `public/uploads`)
+2. Deploy + emails (RSVP / regalos / plan)
+3. Migración de datos desde WordPress (si aplica)

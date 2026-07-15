@@ -22,7 +22,7 @@ export default async function MiCuentaBodaPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="font-serif text-2xl font-semibold text-stone-800">
+          <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
             Datos de la boda
           </h2>
           <p className="mt-2 text-sm text-stone-600">
@@ -39,7 +39,7 @@ export default async function MiCuentaBodaPage() {
         </Link>
       </div>
 
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
         <BodaForm
           initialValues={{
             title: boda.title,

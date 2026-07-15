@@ -11,7 +11,7 @@ export default async function MiCuentaCronogramaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
+        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
           Cronograma
         </h2>
         <p className="mt-2 text-sm text-stone-600">
@@ -26,6 +26,7 @@ export default async function MiCuentaCronogramaPage() {
             time: item.time,
             title: item.title,
             description: item.description,
+            icon: item.icon,
           }))}
       />
     </div>
