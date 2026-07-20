@@ -8,6 +8,7 @@ export async function verifyCredentials(
   id: string;
   email: string;
   name: string | null;
+  role: string;
   bodaSlug: string | null;
 } | null> {
   const normalizedEmail = email.trim().toLowerCase();
@@ -33,6 +34,7 @@ export async function verifyCredentials(
     id: user.id,
     email: user.email,
     name: user.name,
+    role: user.role,
     bodaSlug: user.boda?.slug ?? null,
   };
 }

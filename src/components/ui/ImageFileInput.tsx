@@ -92,7 +92,7 @@ export function ImageFileInput({
 
         <label
           htmlFor={inputId}
-          className="flex min-h-[7.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-center transition hover:border-[#556B2F] hover:bg-[#556B2F]/5"
+          className="flex min-h-[7.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-center transition hover:border-[#e6dac7] hover:bg-[#e6dac7]/5"
         >
           {fileName ? (
             <>
@@ -105,7 +105,7 @@ export function ImageFileInput({
             </>
           ) : (
             <>
-              <span className="rounded-full bg-[#556B2F] px-4 py-2 text-sm font-semibold text-white">
+              <span className="rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800">
                 Elegir archivo
               </span>
               <span className="text-sm text-stone-600">

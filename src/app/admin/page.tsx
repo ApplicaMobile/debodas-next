@@ -1,0 +1,159 @@
+import Link from "next/link";
+import { requireAdmin } from "@/lib/admin/require-admin";
+import { prisma } from "@/lib/db/prisma";
+
+export default async function AdminDashboardPage() {
+  await requireAdmin();
+
+  const [
+    bodasCount,
+    usersCount,
+    pendingRatings,
+    approvedRatings,
+    paymentsCount,
+    pendingGifts,
+    planGroups,
+    recentBodas,
+  ] = await Promise.all([
+    prisma.boda.count(),
+    prisma.user.count(),
+    prisma.rating.count({ where: { status: "pending" } }),
+    prisma.rating.count({ where: { status: "approved" } }),
+    prisma.payment.count(),
+    prisma.confirmedGift.count({ where: { confirmed: false } }),
+    prisma.boda.groupBy({
+      by: ["plan"],
+      _count: { plan: true },
+    }),
+    prisma.boda.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        plan: true,
+        createdAt: true,
+        user: { select: { email: true } },
+      },
+    }),
+  ]);
+
+  const cards = [
+    { label: "Bodas", value: bodasCount, href: "/admin/bodas" },
+    { label: "Usuarios", value: usersCount, href: "/admin/usuarios" },
+    {
+      label: "Ratings pendientes",
+      value: pendingRatings,
+      href: "/admin/calificaciones?status=pending",
+    },
+    {
+      label: "Ratings aprobados",
+      value: approvedRatings,
+      href: "/admin/calificaciones?status=approved",
+    },
+    { label: "Pagos registrados", value: paymentsCount, href: "/admin/pagos" },
+    {
+      label: "Regalos por confirmar",
+      value: pendingGifts,
+      href: "/admin/pagos",
+    },
+  ];
+
+  const planMap = Object.fromEntries(
+    planGroups.map((g) => [g.plan, g._count.plan]),
+  );
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
+        <h2 className="font-serif text-2xl font-semibold text-stone-800">
+          Resumen
+        </h2>
+        <p className="mt-2 text-stone-600">
+          Operación interna de DeBodas (reemplazo del admin de WordPress).
+        </p>
+        <Link
+          href="/admin/estadisticas"
+          className="mt-4 inline-flex text-sm font-medium text-[#e6dac7] hover:underline"
+        >
+          Ver estadísticas de bodas →
+        </Link>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((card) => (
+          <Link
+            key={card.label}
+            href={card.href}
+            className="rounded-3xl bg-white p-5 shadow-sm transition hover:bg-stone-50"
+          >
+            <p className="text-xs uppercase tracking-wide text-stone-500">
+              {card.label}
+            </p>
+            <p className="mt-2 text-3xl font-semibold text-stone-800">
+              {card.value}
+            </p>
+          </Link>
+        ))}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-stone-800">
+            Bodas por plan
+          </h3>
+          <ul className="mt-4 space-y-2 text-sm">
+            {["free", "basico", "premium"].map((plan) => (
+              <li
+                key={plan}
+                className="flex items-center justify-between rounded-xl bg-stone-50 px-4 py-3"
+              >
+                <span className="capitalize text-stone-700">{plan}</span>
+                <span className="font-semibold text-stone-800">
+                  {planMap[plan] ?? 0}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-stone-800">
+              Últimas altas
+            </h3>
+            <Link
+              href="/admin/bodas"
+              className="text-sm font-medium text-[#e6dac7] hover:underline"
+            >
+              Ver todas
+            </Link>
+          </div>
+          <ul className="mt-4 divide-y divide-stone-100">
+            {recentBodas.map((boda) => (
+              <li key={boda.id} className="flex items-center justify-between py-3 text-sm">
+                <div>
+                  <Link
+                    href={`/admin/bodas/${boda.id}`}
+                    className="font-medium text-stone-800 hover:underline"
+                  >
+                    {boda.title}
+                  </Link>
+                  <p className="text-xs text-stone-500">{boda.user.email}</p>
+                </div>
+                <div className="text-right text-xs text-stone-500">
+                  <p className="capitalize">{boda.plan}</p>
+                  <p>{boda.createdAt.toLocaleDateString("es-AR")}</p>
+                </div>
+              </li>
+            ))}
+            {recentBodas.length === 0 ? (
+              <li className="py-4 text-stone-500">Sin bodas todavía.</li>
+            ) : null}
+          </ul>
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -9,6 +9,7 @@ import {
 } from "@/lib/account/actions/content";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
+import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import {
   SCHEDULE_ICON_OPTIONS,
   scheduleIconLabel,
@@ -35,36 +36,50 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
   return (
     <div className="space-y-8">
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <ul className="divide-y divide-stone-100">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-start justify-between gap-4 py-4"
-            >
-              <div>
-                <p className="text-sm font-semibold text-[#556B2F]">
-                  {item.time}
-                </p>
-                <p className="font-medium text-stone-800">{item.title}</p>
-                <p className="text-xs text-stone-400">
-                  {scheduleIconLabel(item.icon)}
-                </p>
-                {item.description ? (
-                  <p className="text-sm text-stone-500">{item.description}</p>
-                ) : null}
-              </div>
-              <form action={deleteScheduleItemAction}>
-                <input type="hidden" name="item_id" value={item.id} />
-                <button
-                  type="submit"
-                  className="text-sm text-red-600 hover:underline"
+        {items.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
+            <p className="font-medium text-stone-700">
+              Todavía no hay momentos en el cronograma
+            </p>
+            <p className="mt-1 text-sm text-stone-500">
+              Agregá ceremonia, recepción u otros hitos del día.
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-stone-100">
+            {items.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-start justify-between gap-4 py-4"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-[#e6dac7]">
+                    {item.time}
+                  </p>
+                  <p className="font-medium text-stone-800">{item.title}</p>
+                  <p className="text-xs text-stone-400">
+                    {scheduleIconLabel(item.icon)}
+                  </p>
+                  {item.description ? (
+                    <p className="text-sm text-stone-500">{item.description}</p>
+                  ) : null}
+                </div>
+                <ConfirmDeleteForm
+                  action={deleteScheduleItemAction}
+                  message="¿Eliminar este ítem del cronograma?"
                 >
-                  Eliminar
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
+                  <input type="hidden" name="item_id" value={item.id} />
+                  <button
+                    type="submit"
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Eliminar
+                  </button>
+                </ConfirmDeleteForm>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <form action={addAction} className="mt-6 grid gap-3 sm:grid-cols-2">
           <input
@@ -100,7 +115,7 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
             <button
               type="submit"
               disabled={addPending}
-              className="mt-2 rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white"
+              className="mt-2 rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
             >
               Agregar al cronograma
             </button>
@@ -124,28 +139,40 @@ export function FaqPanel({
   return (
     <div className="space-y-8">
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <ul className="divide-y divide-stone-100">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-start justify-between gap-4 py-4"
-            >
-              <div>
-                <p className="font-medium text-stone-800">{item.question}</p>
-                <p className="mt-1 text-sm text-stone-500">{item.answer}</p>
-              </div>
-              <form action={deleteFaqItemAction}>
-                <input type="hidden" name="item_id" value={item.id} />
-                <button
-                  type="submit"
-                  className="text-sm text-red-600 hover:underline"
+        {items.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
+            <p className="font-medium text-stone-700">Todavía no hay FAQs</p>
+            <p className="mt-1 text-sm text-stone-500">
+              Respondé las dudas frecuentes de tus invitados.
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-stone-100">
+            {items.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-start justify-between gap-4 py-4"
+              >
+                <div>
+                  <p className="font-medium text-stone-800">{item.question}</p>
+                  <p className="mt-1 text-sm text-stone-500">{item.answer}</p>
+                </div>
+                <ConfirmDeleteForm
+                  action={deleteFaqItemAction}
+                  message="¿Eliminar esta pregunta?"
                 >
-                  Eliminar
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
+                  <input type="hidden" name="item_id" value={item.id} />
+                  <button
+                    type="submit"
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Eliminar
+                  </button>
+                </ConfirmDeleteForm>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <form action={addAction} className="mt-6 space-y-3">
           <input
@@ -165,7 +192,7 @@ export function FaqPanel({
           <button
             type="submit"
             disabled={addPending}
-            className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white"
+            className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
           >
             {addPending ? "Agregando…" : "Agregar FAQ"}
           </button>

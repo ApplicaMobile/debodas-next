@@ -3,7 +3,11 @@
 import { requireOwnedBoda } from "@/lib/account/auth-boda";
 import type { FormState } from "@/lib/account/form-state";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
-import type { BodaPaymentSettings } from "@/lib/bodas/payment-settings";
+import {
+  encryptPaymentSettings,
+  getPaymentSettings,
+  type BodaPaymentSettings,
+} from "@/lib/bodas/payment-settings";
 import { prisma } from "@/lib/db/prisma";
 
 function readPaymentSettings(formData: FormData): BodaPaymentSettings {
@@ -43,8 +47,12 @@ export async function updatePaymentSettingsAction(
     return { error: error ?? "No encontramos tu boda." };
   }
 
-  const paymentSettings = readPaymentSettings(formData);
   const misc = (boda.misc as Record<string, unknown>) ?? {};
+  const previous = getPaymentSettings(misc);
+  const paymentSettings = encryptPaymentSettings(
+    readPaymentSettings(formData),
+    previous,
+  );
 
   try {
     await prisma.boda.update({

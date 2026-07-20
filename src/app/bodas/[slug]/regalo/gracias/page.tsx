@@ -89,7 +89,7 @@ export default async function GiftThankYouPage({
         <p className="mt-4 text-sm leading-relaxed text-stone-600">{message}</p>
         <Link
           href={`/bodas/${slug}`}
-          className="mt-8 inline-flex rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white"
+          className="mt-8 inline-flex rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
         >
           Volver al micrositio
         </Link>

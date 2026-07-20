@@ -4,12 +4,18 @@ Este documento define **contexto, arquitectura y reglas** para cualquier agente 
 
 ## Qué es este proyecto
 
-- **Frontend nuevo** de DeBodas: micrositios de bodas, landing, auth y (futuro) panel de novios.
-- **Stack:** Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS 4.
+- **Frontend nuevo** de DeBodas: micrositios de bodas, landing, auth, panel de novios, pagos, RSVP, calificaciones e Instagram.
+- **Stack:** Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS 4 + **Prisma + MariaDB**.
 - **Sin WordPress en runtime.** No depender del tema PHP `C:\xampp\htdocs\debodas` ni del plugin API para funcionar.
-- **Estado actual:** demo con **MariaDB local (Prisma)** + fallback mock en `src/data/`.
+- **Estado actual:** app funcional local con MariaDB; fallback mock en `src/data/` si MySQL no responde.
 
 Referencia visual/comportamiento de producción: tema WordPress en `debodas/` (ACF, CPT `boda`, ~70 endpoints AJAX). Usarlo solo como **especificación**, no como dependencia.
+
+## Alcance del cutover (go-live)
+
+**Incluye:** micrositio + panel `/mi-cuenta` + pagos (MP/transferencia) + RSVP + temas + planes + calificaciones + Instagram + emails transaccionales.
+
+**Fuera de v1:** carritos abandonados y extras WooCommerce.
 
 ## Comandos
 
@@ -39,37 +45,47 @@ npm run db:studio
 
 ```
 src/
-├── app/                    # App Router (páginas y layouts)
-│   ├── page.tsx            # Landing marketing
-│   ├── login/ registro/    # UI sin backend aún
-│   └── bodas/[slug]/       # Micrositio público
+├── app/
+│   ├── page.tsx                 # Landing
+│   ├── login/ registro/
+│   ├── calificar/               # Formulario público de calificaciones
+│   ├── mi-cuenta/               # Panel novios (protegido)
+│   ├── bodas/[slug]/            # Micrositio + gracias regalos
+│   └── api/
+│       ├── webhooks/mercadopago/
+│       └── cron/rating-emails/  # Cron diario (CRON_SECRET)
 ├── components/
-│   ├── home/               # Secciones landing
-│   ├── layout/             # Header, footer
-│   ├── microsite/          # MicrositeDemo (secciones del micrositio)
-│   └── themes/             # ThemeProvider, ThemeBanner, ThemeSection, ThemeSwitcher
-│   ├── api/                # Cliente HTTP legacy WP
-│   ├── bodas/              # queries, mapper
-│   ├── db/                 # Prisma client
-│   └── themes/             # registry.ts, types.ts
-├── data/                   # Mock fallback: home.ts, bodas.ts
-├── styles/
-│   └── microsite-themes.css
-└── types/
-    └── boda.ts             # Shape de datos de una boda
+│   ├── home/                    # Hero, planes, temas, reviews, Instagram
+│   ├── layout/
+│   ├── microsite/
+│   ├── account/
+│   ├── auth/
+│   └── themes/
+├── lib/
+│   ├── email/                   # Resend + templates + notifiers
+│   ├── auth/ bodas/ account/ admin/ payments/ mercadopago/
+│   ├── ratings/ upload/         # local o Vercel Blob
+│   └── db/prisma.ts
+├── data/                        # Mock fallback + social.ts
+└── types/boda.ts
 
-public/assets/img/themes/   # SVGs de temas (home, informacion, separator)
+prisma/schema.prisma
+public/assets/img/themes/
+public/uploads/                  # Solo local; en prod → storage cloud
 ```
 
 ## Rutas
 
 | Ruta | Tipo | Notas |
 |------|------|-------|
-| `/` | Static | Home marketing |
-| `/login` | Dynamic | Auth con MariaDB |
-| `/mi-cuenta` | Dynamic | Panel (protegido por sesión) |
+| `/` | Dynamic | Home: reviews desde BD + CTA Instagram (perfil) |
+| `/login` `/registro` | Dynamic | Auth MariaDB |
+| `/mi-cuenta/*` | Dynamic | Panel novios (sesión JWT) |
+| `/admin/*` | Dynamic | Panel interno (solo `role=admin`) |
 | `/bodas/[slug]` | Dynamic | Micrositio; demo en `/bodas/demo` |
-| `/bodas/[slug]?theme=flores` | Query | Override de tema (solo demo/preview) |
+| `/calificar?bodaId=` | Dynamic | Calificación post-boda |
+| `/api/webhooks/mercadopago` | Route | Pagos regalos/plan |
+| `/api/cron/rating-emails` | Route | Solicitar calificación (Bearer `CRON_SECRET`) |
 
 ## Reglas Next.js (App Router)
 
@@ -78,47 +94,36 @@ Documentación oficial: [Next.js Docs](https://nextjs.org/docs) — versión del
 ### Server vs Client Components
 
 - **Por defecto:** Server Components en `app/` y componentes sin interactividad.
-- **`"use client"`** solo cuando hace falta: hooks (`useState`, `useEffect`, `useContext`), event handlers, APIs del browser, context providers.
-- **Patrón actual del micrositio:** `page.tsx` (server) → `ThemeProvider` + `MicrositeDemo` (client).
+- **`"use client"`** solo cuando hace falta: hooks, event handlers, APIs del browser, context providers.
+- **Patrón micrositio:** `page.tsx` (server) → `ThemeProvider` + `MicrositeDemo` (client).
 
 ### Params y searchParams (Next.js 15+)
 
-En route handlers y pages, `params` y `searchParams` son **Promises**. Siempre await:
-
-```tsx
-interface PageProps {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ theme?: string }>;
-}
-
-export default async function Page({ params, searchParams }: PageProps) {
-  const { slug } = await params;
-  const { theme } = await searchParams;
-}
-```
+`params` y `searchParams` son **Promises**. Siempre await.
 
 ### Datos
 
-- **Primario:** `getBodaBySlug()` → Prisma/MariaDB.
-- **Fallback:** `getMockBodaBySlug()` en `src/data/bodas.ts`.
-- Preferir **ISR** (`revalidate: 60`) al escalar; Server Actions para `/mi-cuenta`.
-- No fetch a WordPress salvo pedido explícito del usuario.
+- **Primario:** Prisma/MariaDB.
+- **Fallback:** mock en `src/data/` si no hay BD.
+- Server Actions para mutaciones; emails fire-and-forget (no bloquear UX si falla el mail).
+- No fetch a WordPress salvo pedido explícito.
 
-### Imports y alias
+### Imports
 
-- Usar alias `@/` → `src/` (configurado en `tsconfig.json`).
-- Importar temas desde `@/lib/themes` o `@/lib/themes/registry`.
+- Alias `@/` → `src/`.
+- Temas desde `@/lib/themes`.
+- Emails desde `@/lib/email`.
 
 ### Estilos
 
-- **Landing:** Tailwind en componentes + `globals.css`.
-- **Micrositio:** variables CSS por tema en `microsite-themes.css`; colores/fuentes inyectados vía `getThemeCssVariables()` en `ThemeProvider`.
-- No mezclar lógica de negocio dentro de CSS; la configuración vive en `registry.ts`.
+- Landing: Tailwind + `globals.css`.
+- Micrositio: `microsite-themes.css` + variables vía `ThemeProvider`.
 
-### Imágenes
+### Imágenes / uploads
 
 - SVGs de temas en `/public/assets/img/themes/`.
-- Fotos demo pueden ser URLs externas (`test.debodas.com.ar`). Para fotos de usuario futuro: Supabase Storage + `next/image` cuando aplique.
+- Uploads: `src/lib/upload/local.ts` — local `public/uploads/` o Vercel Blob si `BLOB_READ_WRITE_TOKEN` está definido.
+- Deploy: ver `docs/DEPLOY.md`.
 
 ## Sistema de temas del micrositio
 
@@ -128,52 +133,44 @@ export default async function Page({ params, searchParams }: PageProps) {
 
 `base`, `hojas`, `flores`, `manantial`, `marfil`, `mariposas-azules`, `marco-verde`, `marco-blanco`, `marco-flores-inferiores`
 
-Validar con `isThemeSlug()` / `getTheme()`. Nunca hardcodear strings sueltos sin validar.
+Validar con `isThemeSlug()` / `getTheme()`.
 
 ### Modos de banner (`bannerMode`)
 
 | Modo | Comportamiento |
 |------|----------------|
-| `svg-hero` | SVG `{slug}-home.svg`; con foto: foto debajo + SVG encima (como WP) |
-| `frame-overlay` | Marco SVG; algunos temas ocultan marco si hay foto (`hideBannerFrameWithPhoto`) |
-| `full-background` | Fondo fijo en todo el sitio (marfil) |
-
-### Flags importantes en `MicrositeTheme`
-
-- `unifiedDecor` — decoración fija en body (`::before`) para mariposas/marcos verdes/blancos
-- `hideBannerFrameWithPhoto` — mariposas, marco-verde, marco-blanco
-- `showSeparator` — `separator_{slug}.svg` bajo títulos (marfil: false)
-- `bannerPhotoOverlay` — opacidad sobre foto; `false` en flores
+| `svg-hero` | SVG `{slug}-home.svg`; con foto: foto debajo + SVG encima |
+| `frame-overlay` | Marco SVG; algunos ocultan marco si hay foto |
+| `full-background` | Fondo fijo (marfil) |
 
 ### Componentes de tema (orden obligatorio)
 
 ```
-ThemeProvider (envuelve todo el micrositio)
-  └── ThemeSwitcher (solo demo; dentro del provider)
+ThemeProvider
+  └── ThemeSwitcher (solo demo/dev; dentro del provider)
   └── ThemeBanner
   └── ThemeSection / MicrositeSectionTitle
 ```
 
-**Error conocido:** `ThemeSwitcher` usa `useMicrositeTheme()` → debe estar **dentro** de `ThemeProvider`, no fuera.
+## Emails (Resend)
 
-### Assets por tema
+- Cliente: `src/lib/email/client.ts` — si falta `RESEND_API_KEY`, loguea y no rompe.
+- Templates: `src/lib/email/templates.ts`
+- Notifiers: `src/lib/email/notify.ts`
+- Triggers: RSVP (`submitPublicRsvpAction`), regalo transferencia / MP aprobado, plan aprobado, solicitud/agradecimiento de calificación.
 
-- `{slug}-home.svg` — banner / hero
-- `{slug}-informacion.svg` — decoración de secciones (opcional)
-- `separator_{slug}.svg` — separador bajo títulos (opcional)
+## Calificaciones
 
-Al agregar un tema nuevo: copiar SVGs a `public/assets/img/themes/`, registrar en `registry.ts`, añadir estilos si hace falta en `microsite-themes.css`. Referencia PHP: `debodas/inc/functions/debodas-themes.php`.
+- Modelo Prisma `Rating` (ligado a `Boda`).
+- Público: `/calificar?bodaId=...` (solo después de la fecha del evento).
+- Home: ratings con `status=approved` (fallback a mock si no hay).
+- Cron: `/api/cron/rating-emails` marca `ratingEmailSentAt` en la boda.
 
-## Modelo de datos (`Boda`)
+## Instagram / redes
 
-Definido en `src/types/boda.ts`. Campos clave:
-
-- `slug`, `couple`, `event`, `banner`, `microsite_theme`, `plan`
-- `gifts_list.gifts`, `schedule`, `faq_items`, `misc.our_story`
-
-Helpers en `src/data/bodas.ts`: `getCoupleDisplayName()`, `getBannerUrl()`, `formatPrice()`.
-
-Al conectar backend, mantener compatibilidad con este shape o migrar con un mapper explícito en `src/lib/`.
+- URLs fijas en `src/data/social.ts` (como ACF `options_social_networks` en WP).
+- Home: CTA a perfil (`InstagramSection`). Footer: links IG + Facebook.
+- **No** se usa Instagram Graph API ni Smash Balloon.
 
 ## Qué NO hacer
 
@@ -182,39 +179,67 @@ Al conectar backend, mantener compatibilidad con este shape o migrar con un mapp
 - No crear commits ni push salvo que el usuario lo pida.
 - No expandir scope: cambios mínimos y enfocados.
 - No poner `ThemeSwitcher` fuera de `ThemeProvider`.
-- No usar Pages Router (`pages/`) — solo App Router.
+- No usar Pages Router — solo App Router.
 - No agregar dependencias pesadas sin necesidad clara.
+- No bloquear mutaciones críticas si falla el envío de email.
 
 ## Principios de código
 
 1. **Scope mínimo** — diff pequeño y correcto.
 2. **Convenciones existentes** — leer código circundante antes de escribir.
 3. **Comentarios** — solo para lógica de negocio no obvia.
-4. **Tests** — solo si el usuario lo pide o aportan valor real.
-5. **Idioma UI** — español (Argentina): "Regalos", "Confirmá", etc.
+4. **Tests** — solo si el usuario lo pide.
+5. **Idioma UI** — español (Argentina).
 
-## Roadmap (orden sugerido)
+## Roadmap
 
-1. ~~Demo + temas visuales~~ (hecho)
-2. Git + deploy Vercel; ocultar ThemeSwitcher en producción
-3. Supabase: auth, tabla `bodas`, lectura en `/bodas/[slug]`
-4. Panel `/mi-cuenta` (CRUD boda, regalos, RSVP)
-5. Planes, MercadoPago, emails
+1. ~~Demo + temas visuales~~
+2. ~~Auth JWT + MariaDB/Prisma~~
+3. ~~Panel `/mi-cuenta` (CRUD boda, regalos, RSVP, tema, etc.)~~
+4. ~~Planes + MercadoPago (regalos y upgrade)~~
+5. ~~Emails transaccionales (Resend)~~
+6. ~~Calificaciones + cron~~
+7. ~~Instagram en home~~
+8. ~~Panel admin interno (`/admin`)~~
+9. ~~Storage cloud listo (Vercel Blob vía `BLOB_READ_WRITE_TOKEN`)~~
+10. Deploy (Vercel) + dominio + secrets prod — ver `docs/DEPLOY.md`
+11. Migración de datos desde WordPress
+12. Cutover DNS; WP solo-lectura / apagado
 
 ## Variables de entorno
 
 ```env
 DATABASE_URL=mysql://root:@localhost:3306/debodas_web
-AUTH_SECRET=...              # JWT sesión (mín. 16 chars)
-NEXT_PUBLIC_API_URL=...   # legacy, opcional
+AUTH_SECRET=...                    # JWT (mín. 16 chars)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+MERCADOPAGO_ACCESS_TOKEN=
+MERCADOPAGO_SANDBOX=true
+PLAN_BASICO_PRICE_ARS=50000
+PLAN_PREMIUM_PRICE_ARS=90000
+
+RESEND_API_KEY=
+EMAIL_FROM="DeBodas <noreply@debodas.com.ar>"
+EMAIL_ADMIN=hola@debodas.com.ar
+
+CRON_SECRET=...                    # Bearer para /api/cron/*
+BLOB_READ_WRITE_TOKEN=...          # Vercel Blob; si falta, uploads locales
+
+NEXT_PUBLIC_API_URL=...            # legacy WP, opcional
 ```
+
+Redes: editar `src/data/social.ts` (no van en `.env`).
+Deploy: ver `docs/DEPLOY.md`.
 
 ## Auth
 
-- Login: `src/lib/auth/actions.ts` + `verifyCredentials()` → tabla `users`.
+- Login: `src/lib/auth/actions.ts` + `verifyCredentials()` → `users`.
 - Sesión: cookie httpOnly `debodas_session` (JWT con `jose`).
-- Protección de `/mi-cuenta`: redirect en `src/app/mi-cuenta/layout.tsx`.
-- Demo: `demo@debodas.local` / `demo1234`.
+- Roles: `couple` (default) | `admin` (`User.role`).
+- Protección `/mi-cuenta`: layout de cuenta.
+- Protección `/admin`: `requireAdmin()` — solo `role=admin`.
+- Demo pareja: `demo@debodas.local` / `demo1234`.
+- Demo admin: `admin@debodas.local` / `admin1234` → `/admin`.
 
 ## Checklist antes de terminar una tarea
 
@@ -222,13 +247,12 @@ NEXT_PUBLIC_API_URL=...   # legacy, opcional
 - [ ] Server/Client boundaries respetados
 - [ ] Temas nuevos registrados en `registry.ts` + assets en `public/`
 - [ ] Sin secretos en el diff
+- [ ] Emails no bloquean el flujo principal
 - [ ] Cambios alineados con este documento
 
 ## Referencias
 
 - [Next.js Docs](https://nextjs.org/docs)
-- [Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
-- [Dynamic Routes](https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes)
-- [Fetching Data / ISR](https://nextjs.org/docs/app/building-your-application/data-fetching)
-- [Authentication (guía)](https://nextjs.org/docs/app/guides/authentication)
+- [Resend](https://resend.com/docs)
 - Tema WP legacy: `C:\xampp\htdocs\debodas\inc\functions\debodas-themes.php`
+- Calificaciones WP: `debodas/inc/functions/calificaciones.php`

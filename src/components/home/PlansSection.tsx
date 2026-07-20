@@ -56,7 +56,7 @@ export function PlansSection() {
                 <div className="mt-auto pt-8">
                   <Link
                     href="/registro"
-                    className="block rounded-full bg-[#556B2F] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#465A27]"
+                    className="block rounded-full bg-[#e6dac7] px-5 py-3 text-center text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
                   >
                     {plan.cta}
                   </Link>

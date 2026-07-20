@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { GiftsPanel } from "@/components/account/GiftsPanel";
+import { LocalUploadsNotice } from "@/components/account/LocalUploadsNotice";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 
 export default async function MiCuentaRegalosPage() {
@@ -18,6 +19,7 @@ export default async function MiCuentaRegalosPage() {
           Administrá los regalos que ven tus invitados.
         </p>
       </div>
+      <LocalUploadsNotice />
       <GiftsPanel
         plan={boda.plan}
         listTitle={boda.giftsListTitle ?? "Lista de regalos"}

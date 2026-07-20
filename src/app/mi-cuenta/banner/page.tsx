@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { BannerPanel } from "@/components/account/BannerPanel";
+import { LocalUploadsNotice } from "@/components/account/LocalUploadsNotice";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 
 export default async function MiCuentaBannerPage() {
@@ -21,6 +22,7 @@ export default async function MiCuentaBannerPage() {
           Imagen principal del encabezado y fotos de la galería.
         </p>
       </div>
+      <LocalUploadsNotice />
       <BannerPanel
         bannerUrl={bannerUrl}
         featuredUrl={boda.featuredImageUrl ?? ""}

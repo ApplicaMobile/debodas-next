@@ -15,6 +15,7 @@ export interface BodaFormValues {
   eventPlace: string;
   ourStory: string;
   slug: string;
+  password: string;
 }
 
 interface BodaFormProps {
@@ -131,6 +132,24 @@ export function BodaForm({ initialValues }: BodaFormProps) {
         />
       </div>
 
+      <div>
+        <label className="mb-2 block text-sm font-medium text-stone-700">
+          Contraseña del micrositio
+        </label>
+        <input
+          name="password"
+          type="text"
+          defaultValue={initialValues.password}
+          className="w-full rounded-xl border border-stone-200 px-4 py-3"
+          placeholder="Opcional — dejá vacío para acceso público"
+          autoComplete="off"
+        />
+        <p className="mt-2 text-xs text-stone-500">
+          Si la completás, los invitados deberán ingresarla antes de ver el
+          micrositio.
+        </p>
+      </div>
+
       {state.error ? (
         <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.error}
@@ -145,7 +164,7 @@ export function BodaForm({ initialValues }: BodaFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-full bg-[#556B2F] px-6 py-3 text-sm font-semibold text-white disabled:opacity-60"
+        className="rounded-full bg-[#e6dac7] px-6 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
       >
         {isPending ? "Guardando…" : "Guardar cambios"}
       </button>

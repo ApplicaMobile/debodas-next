@@ -8,6 +8,14 @@ import {
 } from "@/lib/account/require-boda";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
 import { prisma } from "@/lib/db/prisma";
+
+function parseOptions(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object") {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
 export interface BodaFormState {
   error?: string;
   success?: string;
@@ -29,6 +37,7 @@ export async function updateBodaAction(
   const eventTime = String(formData.get("event_time") ?? "").trim();
   const eventPlace = String(formData.get("event_place") ?? "").trim();
   const ourStory = String(formData.get("our_story") ?? "").trim();
+  const password = String(formData.get("password") ?? "").trim();
 
   if (!title || !brideName || !groomName || !eventDate) {
     return { error: "Completá título, nombres y fecha del evento." };
@@ -52,6 +61,11 @@ export async function updateBodaAction(
     our_story: ourStory,
   };
 
+  const options = {
+    ...parseOptions(boda.options),
+    password,
+  };
+
   try {
     await prisma.boda.update({
       where: { id: boda.id },
@@ -60,6 +74,7 @@ export async function updateBodaAction(
         couple,
         event,
         misc,
+        options,
       },
     });
 

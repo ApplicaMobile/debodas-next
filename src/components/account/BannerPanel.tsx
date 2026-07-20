@@ -10,6 +10,7 @@ import {
 } from "@/lib/account/actions/banner";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
+import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
 
 interface BannerPanelProps {
@@ -64,7 +65,7 @@ export function BannerPanel({
           <button
             type="submit"
             disabled={uploadBannerPending}
-            className="w-full rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
+            className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
           >
             {uploadBannerPending ? "Subiendo…" : "Subir banner"}
           </button>
@@ -104,7 +105,14 @@ export function BannerPanel({
         <h3 className="text-lg font-semibold text-stone-800">Galería</h3>
         <ul className="mt-4 space-y-3">
           {pictures.length === 0 ? (
-            <li className="text-sm text-stone-500">No hay imágenes todavía.</li>
+            <li className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
+              <p className="font-medium text-stone-700">
+                Todavía no hay fotos en la galería
+              </p>
+              <p className="mt-1 text-sm text-stone-500">
+                Subí la primera imagen con el formulario de abajo.
+              </p>
+            </li>
           ) : (
             pictures.map((picture) => (
               <li
@@ -120,7 +128,10 @@ export function BannerPanel({
                 <p className="min-w-0 flex-1 truncate text-sm text-stone-600">
                   {picture.url}
                 </p>
-                <form action={deletePictureAction}>
+                <ConfirmDeleteForm
+                  action={deletePictureAction}
+                  message="¿Eliminar esta imagen de la galería?"
+                >
                   <input type="hidden" name="picture_id" value={picture.id} />
                   <button
                     type="submit"
@@ -128,7 +139,7 @@ export function BannerPanel({
                   >
                     Eliminar
                   </button>
-                </form>
+                </ConfirmDeleteForm>
               </li>
             ))
           )}
@@ -150,7 +161,7 @@ export function BannerPanel({
           <button
             type="submit"
             disabled={uploadGalleryPending}
-            className="w-full rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
+            className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
           >
             {uploadGalleryPending ? "Subiendo…" : "Subir imagen"}
           </button>

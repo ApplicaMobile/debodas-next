@@ -4,7 +4,7 @@ import {
   getMercadoPagoAccessToken,
   isMercadoPagoConfigured,
 } from "@/lib/mercadopago/config";
-import { getPaymentSettings } from "@/lib/bodas/payment-settings";
+import { getDecryptedPaymentSettings } from "@/lib/bodas/payment-settings";
 import { processMercadoPagoPaymentNotification } from "@/lib/payments/process-payment";
 import { prisma } from "@/lib/db/prisma";
 
@@ -15,7 +15,9 @@ async function resolveAccessToken(bodaId: string | null): Promise<string | null>
       select: { misc: true },
     });
     if (boda) {
-      const settings = getPaymentSettings(boda.misc as Record<string, unknown>);
+      const settings = getDecryptedPaymentSettings(
+        boda.misc as Record<string, unknown>,
+      );
       const token = settings.mp_tokens?.access_token?.trim();
       if (token) {
         return token;

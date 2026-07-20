@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/rating-emails",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}

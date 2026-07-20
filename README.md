@@ -40,7 +40,8 @@ npm run dev
 Abrí: **http://localhost:3000/bodas/demo**
 
 **Login:** http://localhost:3000/login  
-Usuario demo: `demo@debodas.local` / `demo1234` → redirige a `/mi-cuenta`
+Usuario demo: `demo@debodas.local` / `demo1234` → `/mi-cuenta`  
+Usuario admin: `admin@debodas.local` / `admin1234` → `/admin`
 
 ### Sin MariaDB
 
@@ -63,12 +64,27 @@ npm run dev
 | `/registro` | Formulario de registro (visual) |
 | `/login` | Pantalla de login (visual) |
 
-## Build producción local
+## Migración desde WordPress (dump SQL)
+
+1. Importá el dump Hostinger en MySQL local como `debodas_wp` (ver pasos en el chat / phpMyAdmin).
+2. En `.env.local`:
+
+```env
+WP_DATABASE_URL="mysql://root:@localhost:3306/debodas_wp"
+WP_TABLE_PREFIX=wp_
+```
+
+3. Corré:
 
 ```powershell
-npm run build
-npm run start
+npm run db:import-wp -- --dry-run --limit=5
+npm run db:import-wp
 ```
+
+Opciones: `--dry-run`, `--limit=N`, `--slug=mi-slug`.
+
+Importa bodas, usuarios, regalos, RSVP, regalos confirmados, galería, cronograma, FAQ y calificaciones. Las imágenes quedan con URL de Hostinger/`debodas.com.ar`. Usuarios con hash WP viejo (`$P$`) deben usar `/recuperar`.
+
 
 ## Scripts de base de datos
 
@@ -77,6 +93,7 @@ npm run start
 | `npm run db:push` | Sincroniza schema Prisma → MariaDB |
 | `npm run db:seed` | Carga boda demo + usuario |
 | `npm run db:studio` | UI visual de Prisma |
+| `npm run db:import-wp` | Migra dump WP (`debodas_wp`) → Prisma |
 
 ## Temas del micrositio
 
@@ -134,6 +151,19 @@ npm run db:seed
 
 ## Próximos pasos
 
-1. Storage cloud para uploads (Vercel no persiste `public/uploads`)
-2. Deploy + emails (RSVP / regalos / plan)
-3. Migración de datos desde WordPress (si aplica)
+1. Deploy + secrets prod — checklist en [`docs/DEPLOY.md`](./docs/DEPLOY.md)
+2. Migración de datos desde WordPress
+3. Cutover DNS
+
+## Emails, calificaciones e Instagram
+
+- **Emails:** Resend (`RESEND_API_KEY`). Sin key, se loguea y no rompe. Triggers: RSVP, regalos, plan, calificación.
+- **Calificar:** `/calificar?bodaId=...` (solo post-fecha). Cron diario: `/api/cron/rating-emails` con `Authorization: Bearer CRON_SECRET`.
+- **Instagram/Facebook:** URLs en `src/data/social.ts` (perfil público, sin Graph API).
+- **Uploads:** local `public/uploads/` o Vercel Blob si hay `BLOB_READ_WRITE_TOKEN`.
+- Aprobar ratings en BD (`status = approved`) o desde `/admin/calificaciones` para la home.
+
+## Panel admin
+
+- URL: `/admin` — login `admin@debodas.local` / `admin1234`
+- Bodas (filtro, detalle, CSV, plan, pedido de calificación), calificaciones, usuarios (roles), pagos/regalos

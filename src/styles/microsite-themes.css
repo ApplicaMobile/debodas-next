@@ -321,7 +321,7 @@
 
 .microsite-nav__link--primary {
   border-color: transparent;
-  background: var(--theme-accent, #556b2f);
+  background: var(--theme-accent, #e6dac7);
   color: #fff;
   font-weight: 600;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
@@ -329,7 +329,7 @@
 
 .microsite-nav__link--primary:hover {
   filter: brightness(1.06);
-  background: var(--theme-accent, #556b2f);
+  background: var(--theme-accent, #e6dac7);
   border-color: transparent;
   transform: translateY(-1px);
 }
@@ -346,7 +346,7 @@
 
 .microsite-banner:not(.microsite-banner--with-photo) .microsite-nav__link--primary {
   border-color: transparent;
-  background: var(--theme-accent, #556b2f);
+  background: var(--theme-accent, #e6dac7);
   color: #fff;
 }
 

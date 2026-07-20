@@ -54,7 +54,7 @@ function MpUpgradeButton({
       <button
         type="submit"
         disabled={disabled || isPending}
-        className="w-full rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
       >
         {isPending ? "Redirigiendo a MercadoPago…" : label}
       </button>
@@ -81,7 +81,7 @@ function DemoPlanButton({
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-full border border-[#556B2F] bg-white px-5 py-2.5 text-sm font-semibold text-[#556B2F] disabled:opacity-60"
+        className="w-full rounded-full border border-[#e6dac7] bg-white px-5 py-2.5 text-sm font-semibold text-[#e6dac7] disabled:opacity-60"
       >
         {isPending ? "Actualizando…" : label}
       </button>
@@ -139,7 +139,7 @@ export function PlanComparison({
               key={card.id}
               className={`flex flex-col rounded-2xl border bg-white p-5 shadow-sm ${
                 isCurrent
-                  ? "border-[#556B2F] ring-2 ring-[#556B2F]/20"
+                  ? "border-[#e6dac7] ring-2 ring-[#e6dac7]/20"
                   : "border-stone-200"
               }`}
             >
@@ -153,13 +153,13 @@ export function PlanComparison({
                   </h4>
                 </div>
                 {isCurrent ? (
-                  <span className="rounded-full bg-[#556B2F]/10 px-3 py-1 text-xs font-semibold text-[#465A27]">
+                  <span className="rounded-full bg-[#e6dac7]/10 px-3 py-1 text-xs font-semibold text-[#d4c4a8]">
                     Tu plan
                   </span>
                 ) : null}
               </div>
 
-              <p className="mt-4 text-3xl font-semibold text-[#556B2F]">
+              <p className="mt-4 text-3xl font-semibold text-[#e6dac7]">
                 {card.priceLabel}
               </p>
               {card.priceNote ? (
@@ -169,7 +169,7 @@ export function PlanComparison({
               <ul className="mt-5 space-y-2 text-sm text-stone-600">
                 {card.features.map((feature) => (
                   <li key={feature} className="flex gap-2">
-                    <span className="text-[#556B2F]">✓</span>
+                    <span className="text-[#e6dac7]">✓</span>
                     <span>{feature}</span>
                   </li>
                 ))}

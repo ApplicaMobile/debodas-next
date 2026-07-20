@@ -1,3 +1,4 @@
+import { put, del } from "@vercel/blob";
 import { randomUUID } from "crypto";
 import { mkdir, unlink, writeFile } from "fs/promises";
 import path from "path";
@@ -18,17 +19,6 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/gif": "gif",
 };
 
-export function isLocalUpload(url: string): boolean {
-  return url.startsWith("/uploads/");
-}
-
-export function getUploadErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return "No se pudo subir la imagen.";
-}
-
 const ALLOWED_VOUCHER_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -42,6 +32,68 @@ const VOUCHER_EXT_BY_MIME: Record<string, string> = {
   "image/webp": "webp",
   "application/pdf": "pdf",
 };
+
+export function usesCloudStorage(): boolean {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
+}
+
+export function isManagedUpload(url: string): boolean {
+  return (
+    url.startsWith("/uploads/") ||
+    url.includes(".public.blob.vercel-storage.com") ||
+    url.includes("blob.vercel-storage.com")
+  );
+}
+
+/** @deprecated use isManagedUpload */
+export function isLocalUpload(url: string): boolean {
+  return url.startsWith("/uploads/");
+}
+
+export function getUploadErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "No se pudo subir la imagen.";
+}
+
+async function saveToLocal(
+  buffer: Buffer,
+  safeSubdir: string,
+  filename: string,
+): Promise<string> {
+  const uploadDir = path.join(process.cwd(), "public", "uploads", safeSubdir);
+  await mkdir(uploadDir, { recursive: true });
+  await writeFile(path.join(uploadDir, filename), buffer);
+  return `/uploads/${safeSubdir}/${filename}`.replace(/\/+/g, "/");
+}
+
+async function saveToBlob(
+  buffer: Buffer,
+  safeSubdir: string,
+  filename: string,
+  contentType: string,
+): Promise<string> {
+  const pathname = `uploads/${safeSubdir}/${filename}`.replace(/\/+/g, "/");
+  const blob = await put(pathname, buffer, {
+    access: "public",
+    contentType,
+    addRandomSuffix: false,
+  });
+  return blob.url;
+}
+
+async function persistFile(
+  buffer: Buffer,
+  safeSubdir: string,
+  filename: string,
+  contentType: string,
+): Promise<string> {
+  if (usesCloudStorage()) {
+    return saveToBlob(buffer, safeSubdir, filename, contentType);
+  }
+  return saveToLocal(buffer, safeSubdir, filename);
+}
 
 export async function saveUploadedVoucher(
   file: File,
@@ -62,13 +114,9 @@ export async function saveUploadedVoucher(
   const ext = VOUCHER_EXT_BY_MIME[file.type];
   const filename = `${randomUUID()}.${ext}`;
   const safeSubdir = subdir.replace(/[^a-zA-Z0-9/_-]/g, "");
-  const uploadDir = path.join(process.cwd(), "public", "uploads", safeSubdir);
-  await mkdir(uploadDir, { recursive: true });
-
   const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(uploadDir, filename), buffer);
 
-  return `/uploads/${safeSubdir}/${filename}`.replace(/\/+/g, "/");
+  return persistFile(buffer, safeSubdir, filename, file.type);
 }
 
 export async function saveUploadedImage(
@@ -90,26 +138,32 @@ export async function saveUploadedImage(
   const ext = EXT_BY_MIME[file.type];
   const filename = `${randomUUID()}.${ext}`;
   const safeSubdir = subdir.replace(/[^a-zA-Z0-9/_-]/g, "");
-  const uploadDir = path.join(process.cwd(), "public", "uploads", safeSubdir);
-  await mkdir(uploadDir, { recursive: true });
-
   const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(uploadDir, filename), buffer);
 
-  return `/uploads/${safeSubdir}/${filename}`.replace(/\/+/g, "/");
+  return persistFile(buffer, safeSubdir, filename, file.type);
 }
 
 export async function deleteLocalUpload(url: string): Promise<void> {
-  if (!isLocalUpload(url)) {
+  if (!isManagedUpload(url)) {
     return;
   }
 
-  const relativePath = url.replace(/^\/+/, "");
-  const filePath = path.join(process.cwd(), "public", relativePath);
+  if (url.startsWith("/uploads/")) {
+    const relativePath = url.replace(/^\/+/, "");
+    const filePath = path.join(process.cwd(), "public", relativePath);
+    try {
+      await unlink(filePath);
+    } catch {
+      // ignore missing file
+    }
+    return;
+  }
 
-  try {
-    await unlink(filePath);
-  } catch {
-    // El archivo puede no existir si ya fue borrado manualmente.
+  if (usesCloudStorage()) {
+    try {
+      await del(url);
+    } catch {
+      // ignore
+    }
   }
 }

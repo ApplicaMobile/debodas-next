@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
         hostname: "debodas.com.ar",
         pathname: "/wp-content/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
     ],
   },
 };

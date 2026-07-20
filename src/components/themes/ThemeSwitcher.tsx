@@ -36,7 +36,7 @@ export function ThemeSwitcher({ weddingSlug }: ThemeSwitcherProps) {
                 href={`/bodas/${weddingSlug}?theme=${theme.slug}`}
                 className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
                   isActive
-                    ? "bg-[#556B2F] text-white"
+                    ? "bg-[#e6dac7] text-stone-800"
                     : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                 }`}
               >

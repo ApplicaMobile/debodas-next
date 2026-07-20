@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   getAvailableGiftPaymentMethods,
-  getPaymentSettings,
+  getDecryptedPaymentSettings,
   hasMpCheckout,
 } from "@/lib/bodas/payment-settings";
 import { GIFT_PAYMENT_METHODS } from "@/lib/payments/constants";
@@ -18,6 +18,7 @@ import {
 } from "@/lib/mercadopago/api";
 import { getAppBaseUrl, getMercadoPagoWebhookUrl } from "@/lib/mercadopago/config";
 import { prisma } from "@/lib/db/prisma";
+import { notifyNoviosGift, queueEmail } from "@/lib/email/notify";
 import {
   getUploadErrorMessage,
   saveUploadedVoucher,
@@ -140,7 +141,9 @@ export async function createGiftCheckoutAction(
       return { error: "No encontramos esta boda." };
     }
 
-    const settings = getPaymentSettings(boda.misc as Record<string, unknown>);
+    const settings = getDecryptedPaymentSettings(
+      boda.misc as Record<string, unknown>,
+    );
     const availableMethods = getAvailableGiftPaymentMethods(settings, boda.plan);
     if (!availableMethods.includes(GIFT_PAYMENT_METHODS.MP_CHECKOUT)) {
       return {
@@ -259,7 +262,9 @@ export async function submitGiftTransferAction(
       return { error: "No encontramos esta boda." };
     }
 
-    const settings = getPaymentSettings(boda.misc as Record<string, unknown>);
+    const settings = getDecryptedPaymentSettings(
+      boda.misc as Record<string, unknown>,
+    );
     const availableMethods = getAvailableGiftPaymentMethods(settings, boda.plan);
     if (!availableMethods.includes(fields.method)) {
       return { error: "Este método de pago no está disponible." };
@@ -296,6 +301,19 @@ export async function submitGiftTransferAction(
         confirmed: false,
       },
     });
+
+    queueEmail(() =>
+      notifyNoviosGift({
+        bodaId: boda.id,
+        participants: fields.participants,
+        amount,
+        currency:
+          fields.method === GIFT_PAYMENT_METHODS.BANK_TRANSFER_USD ? "USD" : "ARS",
+        method: fields.method,
+        pending: true,
+        items: cartLines,
+      }),
+    );
 
     revalidatePath("/mi-cuenta/regalos-recibidos");
     revalidatePath(`/bodas/${boda.slug}/regalo/gracias`);

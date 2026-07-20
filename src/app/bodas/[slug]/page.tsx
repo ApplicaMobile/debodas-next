@@ -2,12 +2,29 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getBannerUrl, getCoupleDisplayName } from "@/data/bodas";
 import { getBodaBySlug, getBodaRsvpCount } from "@/lib/bodas/queries";
+import { getAppUrl } from "@/lib/email/client";
+import {
+  getMicrositePassword,
+  isMicrositeUnlocked,
+} from "@/lib/microsite/password";
 import { canAddRsvpGuest } from "@/lib/plans/limits";
 import { getTheme, isThemeSlug } from "@/lib/themes/registry";
 import { MicrositeDemo } from "@/components/microsite/MicrositeDemo";
+import { PasswordGate } from "@/components/microsite/PasswordGate";
 import { ThemeProvider } from "@/components/themes/ThemeProvider";
 import { ThemeSwitcher } from "@/components/themes/ThemeSwitcher";
 import "@/styles/microsite-themes.css";
+
+function toAbsoluteUrl(url: string | null): string | null {
+  if (!url) {
+    return null;
+  }
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const base = getAppUrl();
+  return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
+}
 
 interface BodaPageProps {
   params: Promise<{ slug: string }>;
@@ -38,7 +55,8 @@ export async function generateMetadata({
 
   const theme = getTheme(themeParam ?? boda.microsite_theme);
   const coupleName = getCoupleDisplayName(boda.couple);
-  const bannerUrl = getBannerUrl(boda);
+  const bannerUrl = toAbsoluteUrl(getBannerUrl(boda));
+  const pageUrl = `${getAppUrl()}/bodas/${slug}`;
   const eventPlace = String(boda.event?.place ?? "").trim();
   const eventDate = String(boda.event?.date ?? "").trim();
   const descriptionParts = [
@@ -46,14 +64,19 @@ export async function generateMetadata({
     eventDate ? `el ${eventDate}` : null,
     eventPlace ? `en ${eventPlace}` : null,
   ].filter(Boolean);
+  const description = descriptionParts.join(" ");
 
   return {
     title: `${coupleName} | DeBodas`,
-    description: descriptionParts.join(" "),
+    description,
+    alternates: { canonical: pageUrl },
     openGraph: {
       title: `${coupleName} | DeBodas`,
-      description: descriptionParts.join(" "),
+      description,
       type: "website",
+      url: pageUrl,
+      siteName: "DeBodas",
+      locale: "es_AR",
       ...(bannerUrl
         ? {
             images: [
@@ -68,7 +91,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: `${coupleName} | DeBodas`,
-      description: descriptionParts.join(" "),
+      description,
       ...(bannerUrl ? { images: [bannerUrl] } : {}),
     },
     other: {
@@ -92,6 +115,17 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
       : isThemeSlug(boda.microsite_theme)
         ? boda.microsite_theme
         : "marfil";
+
+  const password = getMicrositePassword(boda.options);
+  const unlocked = await isMicrositeUnlocked(slug, password);
+  if (password && !unlocked) {
+    return (
+      <PasswordGate
+        slug={slug}
+        coupleName={getCoupleDisplayName(boda.couple)}
+      />
+    );
+  }
 
   const rsvpCount = await getBodaRsvpCount(slug);
   const rsvpOpen = canAddRsvpGuest(boda.plan, rsvpCount);

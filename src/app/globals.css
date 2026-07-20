@@ -3,7 +3,9 @@
 :root {
   --background: #ebebeb;
   --foreground: #2d2d2d;
-  --debodas-accent: #556b2f;
+  --debodas-accent: #e6dac7;
+  --debodas-accent-hover: #d4c4a8;
+  --debodas-accent-fg: #3f3a32;
   --debodas-green: #6cc39e;
   --debodas-cream: #ded4c5;
   --debodas-dark: #06263a;

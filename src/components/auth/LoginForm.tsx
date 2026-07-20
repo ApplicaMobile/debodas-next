@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useActionState, useEffect } from "react";
 import { loginAction, type LoginState } from "@/lib/auth/actions";
 
@@ -34,7 +35,6 @@ export function LoginForm({ nextPath = "/mi-cuenta" }: LoginFormProps) {
         type="email"
         autoComplete="email"
         required
-        defaultValue="demo@debodas.local"
       />
       <input
         name="password"
@@ -52,10 +52,18 @@ export function LoginForm({ nextPath = "/mi-cuenta" }: LoginFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-full bg-[#556B2F] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+        className="w-full rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
       >
         {isPending ? "Ingresando…" : "Ingresar"}
       </button>
+      <p className="text-center text-sm">
+        <Link
+          href="/recuperar"
+          className="font-medium text-stone-500 hover:text-[#e6dac7]"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </p>
     </form>
   );
 }

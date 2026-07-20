@@ -2,6 +2,11 @@ import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type { MercadoPagoPaymentResult } from "@/lib/mercadopago/api";
+import {
+  notifyNoviosGift,
+  notifyPlanConfirmed,
+  queueEmail,
+} from "@/lib/email/notify";
 
 const APPROVED_STATUSES = new Set(["approved"]);
 const REJECTED_STATUSES = new Set([
@@ -110,6 +115,14 @@ export async function processMercadoPagoPaymentNotification(
       data: { plan: payment.planTarget },
     });
 
+    queueEmail(() =>
+      notifyPlanConfirmed({
+        bodaId: payment.bodaId,
+        planTarget: payment.planTarget!,
+        amount: updatedPayment.amount.toString(),
+      }),
+    );
+
     revalidatePath("/mi-cuenta/plan");
     revalidatePath("/mi-cuenta");
     revalidatePath(`/bodas/${payment.boda.slug}`);
@@ -122,6 +135,18 @@ export async function processMercadoPagoPaymentNotification(
 
   if (nextStatus === "approved" && payment.type === "gift") {
     await createConfirmedGiftFromPayment(updatedPayment);
+
+    const meta = (updatedPayment.metadata ?? {}) as GiftPaymentMetadata;
+    queueEmail(() =>
+      notifyNoviosGift({
+        bodaId: payment.bodaId,
+        participants: meta.participants ?? "Invitado",
+        amount: updatedPayment.amount.toString(),
+        method: meta.method ?? "mp_checkout",
+        pending: false,
+        items: Array.isArray(meta.items) ? meta.items : [],
+      }),
+    );
 
     revalidatePath(`/bodas/${payment.boda.slug}`);
     revalidatePath("/mi-cuenta/regalos-recibidos");

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { footerLinks } from "@/data/home";
+import { socialLinks } from "@/data/social";
 
 export function SiteFooter() {
   return (
@@ -23,10 +24,23 @@ export function SiteFooter() {
           <p className="text-sm uppercase tracking-widest text-white/70">
             Redes sociales
           </p>
-          <div className="mt-4 flex gap-3 text-sm text-white/80">
-            <span>Instagram</span>
-            <span>Facebook</span>
-            <span>WhatsApp</span>
+          <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/80">
+            <a
+              href={socialLinks.instagram.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition hover:text-white"
+            >
+              {socialLinks.instagram.label}
+            </a>
+            <a
+              href={socialLinks.facebook.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition hover:text-white"
+            >
+              {socialLinks.facebook.label}
+            </a>
           </div>
           <Link href="/" className="mt-8">
             <Image
@@ -43,7 +57,7 @@ export function SiteFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-5 text-sm text-white/70 md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} DeBodas. Todos los derechos reservados.</p>
-          <p>Demo local React · Sin WordPress</p>
+          <p>Micrositios de boda · Lista de regalos · RSVP</p>
         </div>
       </div>
     </footer>

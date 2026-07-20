@@ -201,9 +201,9 @@ export function RegisterWizard() {
               key={label}
               className={`flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold sm:text-sm ${
                 isActive
-                  ? "bg-[#556B2F] text-white"
+                  ? "bg-[#e6dac7] text-stone-800"
                   : isDone
-                    ? "bg-[#556B2F]/15 text-[#556B2F]"
+                    ? "bg-[#e6dac7]/40 text-stone-700"
                     : "bg-stone-100 text-stone-500"
               }`}
             >
@@ -362,7 +362,7 @@ export function RegisterWizard() {
             {REGISTER_PLANS.map((plan) => (
               <label
                 key={plan.slug}
-                className="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 p-4 transition hover:border-[#556B2F]/40 has-checked:border-[#556B2F] has-checked:bg-[#556B2F]/5"
+                className="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 p-4 transition hover:border-[#e6dac7]/40 has-checked:border-[#e6dac7] has-checked:bg-[#e6dac7]/5"
               >
                 <input
                   type="radio"
@@ -411,7 +411,7 @@ export function RegisterWizard() {
             <button
               type="button"
               onClick={handleNext}
-              className="rounded-full bg-[#556B2F] px-5 py-3 text-sm font-semibold text-white"
+              className="rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800"
             >
               Siguiente
             </button>
@@ -419,7 +419,7 @@ export function RegisterWizard() {
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-full bg-[#556B2F] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
             >
               {isPending ? "Creando cuenta…" : "Crear cuenta"}
             </button>

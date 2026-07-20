@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireOwnedBoda } from "@/lib/account/auth-boda";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
 import type { FormState } from "@/lib/account/form-state";
@@ -141,20 +142,23 @@ export async function updateOptionsAction(
 
   const showFaq = formData.get("show_faq") === "on" ? 1 : 0;
   const showDressCode = formData.get("show_dress_code") === "on" ? 1 : 0;
+  const isOnline = formData.get("is_online") === "on";
 
   const options = {
     ...parseOptions(boda.options),
     show_faq: showFaq,
     show_dress_code: showDressCode,
+    is_online: isOnline ? 1 : 0,
   };
 
   try {
     await prisma.boda.update({
       where: { id: boda.id },
-      data: { options },
+      data: { options, isOnline },
     });
 
     revalidateBodaPaths(boda.slug, ["/mi-cuenta/plan"]);
+    revalidatePath("/admin/estadisticas");
     return { success: "Opciones guardadas." };
   } catch (err) {
     console.error("[updateOptionsAction]", err);

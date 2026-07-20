@@ -1,8 +1,10 @@
 "use server";
 
 import { hash } from "bcryptjs";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyCredentials } from "@/lib/auth/credentials";
+import { isAdminRole } from "@/lib/auth/roles";
 import {
   buildCoupleTitle,
   buildPlanValue,
@@ -11,6 +13,10 @@ import {
 import { generateUniqueSlug } from "@/lib/auth/slug";
 import { createSession, deleteSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import {
+  checkRateLimit,
+  clientIpFromHeaders,
+} from "@/lib/security/rate-limit";
 import {
   getUploadErrorMessage,
   saveUploadedImage,
@@ -38,6 +44,15 @@ export async function loginAction(
       : "/mi-cuenta";
 
   try {
+    const headerStore = await headers();
+    const ip = clientIpFromHeaders(headerStore);
+    const limited = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
+    if (!limited.ok) {
+      return {
+        error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,
+      };
+    }
+
     const user = await verifyCredentials(email, password);
     if (!user) {
       return { error: "Email o contraseña incorrectos." };
@@ -45,7 +60,17 @@ export async function loginAction(
 
     await createSession({ userId: user.id, email: user.email });
 
-    return { success: true, redirectTo: safeNext };
+    let redirectTo = safeNext;
+    if (safeNext.startsWith("/admin") && !isAdminRole(user.role)) {
+      redirectTo = "/acceso-denegado?from=admin";
+    } else if (
+      isAdminRole(user.role) &&
+      (safeNext === "/mi-cuenta" || safeNext.startsWith("/mi-cuenta"))
+    ) {
+      redirectTo = "/admin";
+    }
+
+    return { success: true, redirectTo };
   } catch (error) {
     console.error("[loginAction]", error);
     return {
@@ -67,6 +92,15 @@ export async function registerAction(
   const validation = validateRegisterInput(formData);
   if (!validation.ok) {
     return { error: validation.error };
+  }
+
+  const headerStore = await headers();
+  const ip = clientIpFromHeaders(headerStore);
+  const limited = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
+  if (!limited.ok) {
+    return {
+      error: `Demasiados registros desde esta red. Probá en ${limited.retryAfterSec}s.`,
+    };
   }
 
   const {
@@ -120,6 +154,7 @@ export async function registerAction(
           email,
           passwordHash,
           name: title,
+          role: "couple",
         },
       });
 

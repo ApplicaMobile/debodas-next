@@ -217,7 +217,7 @@ export function DressCodePanel({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
         >
           {isPending ? "Guardando…" : "Guardar dress code"}
         </button>

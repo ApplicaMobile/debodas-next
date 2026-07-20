@@ -53,7 +53,7 @@ export default async function MiCuentaLayout({
             </span>
             <Link
               href={`/bodas/${user.boda.slug}`}
-              className="shrink-0 font-medium text-[#556B2F] hover:underline"
+              className="shrink-0 font-medium text-[#e6dac7] hover:underline"
               target="_blank"
             >
               <span className="sm:hidden">Ver sitio ↗</span>

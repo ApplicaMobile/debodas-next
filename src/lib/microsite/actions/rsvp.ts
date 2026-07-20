@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import type { FormState } from "@/lib/account/form-state";
 import {
@@ -11,6 +12,11 @@ import {
   sanitizeRsvpMenu,
 } from "@/lib/rsvp/menu";
 import { prisma } from "@/lib/db/prisma";
+import { notifyNoviosRsvp, queueEmail } from "@/lib/email/notify";
+import {
+  checkRateLimit,
+  clientIpFromHeaders,
+} from "@/lib/security/rate-limit";
 
 const PUBLIC_RSVP_STATUSES = new Set(["confirmed", "declined"]);
 
@@ -42,6 +48,15 @@ export async function submitPublicRsvpAction(
   }
 
   try {
+    const headerStore = await headers();
+    const ip = clientIpFromHeaders(headerStore);
+    const limited = checkRateLimit(`rsvp:${slug}:${ip}`, 8, 15 * 60 * 1000);
+    if (!limited.ok) {
+      return {
+        error: `Demasiados envíos. Probá en ${limited.retryAfterSec}s.`,
+      };
+    }
+
     const boda = await prisma.boda.findUnique({
       where: { slug },
       select: {
@@ -75,6 +90,17 @@ export async function submitPublicRsvpAction(
         notes: notes || null,
       },
     });
+
+    queueEmail(() =>
+      notifyNoviosRsvp({
+        bodaId: boda.id,
+        guestName: name,
+        status,
+        menu,
+        notes: notes || null,
+        guestEmail: email || null,
+      }),
+    );
 
     revalidatePath(`/bodas/${boda.slug}`);
     revalidatePath("/mi-cuenta/invitados");

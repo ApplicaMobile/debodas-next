@@ -3,23 +3,39 @@ import { redirect } from "next/navigation";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
+import { prisma } from "@/lib/db/prisma";
 
 interface LoginPageProps {
   searchParams: Promise<{ next?: string }>;
 }
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const session = await getSession();
-  if (session) {
-    redirect("/mi-cuenta");
+function safeNextPath(next: string | undefined): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    return next;
   }
+  return "/mi-cuenta";
+}
 
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next } = await searchParams;
-  const nextPath =
-    next && next.startsWith("/") && !next.startsWith("//")
-      ? next
-      : "/mi-cuenta";
+  const nextPath = safeNextPath(next);
+  const session = await getSession();
+
+  if (session) {
+    if (nextPath.startsWith("/admin")) {
+      const user = await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { role: true },
+      });
+      if (user && isAdminRole(user.role)) {
+        redirect(nextPath);
+      }
+      redirect("/acceso-denegado?from=admin");
+    }
+    redirect(nextPath);
+  }
 
   return (
     <>
@@ -35,17 +51,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           <LoginForm nextPath={nextPath} />
 
-          <p className="mt-6 text-center text-sm text-stone-500">
-            Demo local:{" "}
-            <span className="font-medium text-stone-700">
-              demo@debodas.local
-            </span>{" "}
-            /{" "}
-            <span className="font-medium text-stone-700">demo1234</span>
-          </p>
+          {process.env.NODE_ENV === "development" ? (
+            <p className="mt-6 text-center text-xs text-stone-400">
+              Dev: demo@debodas.local / demo1234 · admin@debodas.local /
+              admin1234
+            </p>
+          ) : null}
 
           <p className="mt-4 text-center text-sm text-stone-500">
-            <Link href="/registro" className="font-medium text-[#556B2F]">
+            <Link href="/registro" className="font-medium text-[#e6dac7]">
               Crear cuenta
             </Link>
           </p>

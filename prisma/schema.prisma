@@ -12,41 +12,99 @@ model User {
   email        String   @unique
   passwordHash String   @map("password_hash")
   name         String?
+  role         String   @default("couple")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  boda Boda?
+  boda               Boda?
+  passwordResetTokens PasswordResetToken[]
 
+  @@index([role])
   @@map("users")
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  usedAt    DateTime? @map("used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model EmailLog {
+  id         String   @id @default(cuid())
+  toAddress  String   @map("to_address")
+  subject    String
+  status     String
+  providerId String?  @map("provider_id")
+  error      String?  @db.Text
+  meta       Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_logs")
+}
+
 model Boda {
-  id               String   @id @default(cuid())
-  userId           String   @unique @map("user_id")
-  slug             String   @unique
+  id               String    @id @default(cuid())
+  userId           String    @unique @map("user_id")
+  slug             String    @unique
   title            String
-  plan             String   @default("free")
-  micrositeTheme   String   @default("base") @map("microsite_theme")
+  plan             String    @default("free")
+  micrositeTheme   String    @default("base") @map("microsite_theme")
   couple           Json
   event            Json
-  banner           Json     @default("{}")
-  options          Json     @default("{}")
-  misc             Json     @default("{}")
-  giftsListTitle   String?  @map("gifts_list_title")
-  featuredImageUrl String?  @map("featured_image_url")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  banner           Json      @default("{}")
+  options          Json      @default("{}")
+  misc             Json      @default("{}")
+  giftsListTitle   String?   @map("gifts_list_title")
+  featuredImageUrl String?   @map("featured_image_url")
+  isOnline         Boolean   @default(false) @map("is_online")
+  ratingEmailSentAt DateTime? @map("rating_email_sent_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gifts         Gift[]
-  pictures      Picture[]
-  scheduleItems ScheduleItem[]
-  faqItems      FaqItem[]
-  rsvpGuests    RsvpGuest[]
-  payments      Payment[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gifts          Gift[]
+  pictures       Picture[]
+  scheduleItems  ScheduleItem[]
+  faqItems       FaqItem[]
+  rsvpGuests     RsvpGuest[]
+  payments       Payment[]
   confirmedGifts ConfirmedGift[]
+  ratings        Rating[]
 
+  @@index([isOnline])
+  @@index([createdAt])
+  @@index([plan])
   @@map("bodas")
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  bodaId    String   @map("boda_id")
+  name      String
+  email     String
+  score     Int
+  comment   String?  @db.Text
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  boda Boda @relation(fields: [bodaId], references: [id], onDelete: Cascade)
+
+  @@unique([bodaId, email])
+  @@index([bodaId])
+  @@index([status])
+  @@map("ratings")
 }
 
 model Gift {

@@ -28,7 +28,7 @@ export function AccountSidebar() {
           onChange={(event) => {
             router.push(event.target.value);
           }}
-          className="w-full rounded-xl border border-stone-200 bg-white px-3 py-3 text-sm font-medium text-stone-800 shadow-sm focus:border-[#556B2F] focus:outline-none focus:ring-2 focus:ring-[#556B2F]/20"
+          className="w-full rounded-xl border border-stone-200 bg-white px-3 py-3 text-sm font-medium text-stone-800 shadow-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/20"
         >
           {accountSections.map((section) => (
             <option
@@ -54,7 +54,7 @@ export function AccountSidebar() {
               section.exact,
             );
             const className = active
-              ? "bg-[#556B2F]/10 font-semibold text-[#465A27]"
+              ? "bg-[#e6dac7]/25 font-semibold text-stone-800"
               : section.available
                 ? "text-stone-700 hover:bg-stone-50"
                 : "text-stone-400";

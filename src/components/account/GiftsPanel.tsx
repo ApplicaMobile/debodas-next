@@ -10,11 +10,12 @@ import {
 } from "@/lib/account/actions/gifts";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
+import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
+import { PlanUsageMeter } from "@/components/account/PlanUsageMeter";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
 import { resolveGiftImageUrl } from "@/lib/gifts/image";
 import {
   canAddGift,
-  formatPlanLimit,
   getPlanLimits,
   giftLimitMessage,
 } from "@/lib/plans/limits";
@@ -113,7 +114,7 @@ function GiftEditor({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
         >
           {isPending ? "Guardando…" : "Guardar cambios"}
         </button>
@@ -132,10 +133,6 @@ function GiftEditor({
 export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
   const limits = getPlanLimits(plan);
   const atGiftLimit = !canAddGift(plan, gifts.length);
-  const giftLimitLabel =
-    limits.maxGifts === null
-      ? `${gifts.length} regalos`
-      : `${gifts.length} / ${formatPlanLimit(limits.maxGifts)} regalos`;
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [titleState, titleAction, titlePending] = useActionState(
@@ -174,63 +171,79 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="text-lg font-semibold text-stone-800">Regalos</h3>
-          <p className="text-sm text-stone-500">{giftLimitLabel}</p>
         </div>
+        <PlanUsageMeter
+          label="regalos"
+          current={gifts.length}
+          max={limits.maxGifts}
+        />
         {limits.maxGifts !== null ? (
           <p className="mt-1 text-xs text-stone-500">{giftLimitMessage(plan)}</p>
         ) : null}
-        <ul className="mt-4 divide-y divide-stone-100">
-          {gifts.map((gift) => (
-            <li key={gift.id} className="py-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={resolveGiftImageUrl(gift.imageUrl)}
-                    alt=""
-                    className="h-12 w-12 shrink-0 rounded-full object-cover"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-stone-800">
-                      {gift.title}
-                    </p>
-                    <p className="text-sm text-stone-500">
-                      {formatPrice(gift.price)} · Cant: {gift.quantity}
-                    </p>
+        {gifts.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
+            <p className="font-medium text-stone-700">Todavía no hay regalos</p>
+            <p className="mt-1 text-sm text-stone-500">
+              Agregá el primero con el formulario de abajo.
+            </p>
+          </div>
+        ) : (
+          <ul className="mt-4 divide-y divide-stone-100">
+            {gifts.map((gift) => (
+              <li key={gift.id} className="py-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={resolveGiftImageUrl(gift.imageUrl)}
+                      alt=""
+                      className="h-12 w-12 shrink-0 rounded-full object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-stone-800">
+                        {gift.title}
+                      </p>
+                      <p className="text-sm text-stone-500">
+                        {formatPrice(gift.price)} · Cant: {gift.quantity}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingId((current) =>
+                          current === gift.id ? null : gift.id,
+                        )
+                      }
+                      className="text-sm font-medium text-[#e6dac7] hover:underline"
+                    >
+                      {editingId === gift.id ? "Cerrar" : "Editar"}
+                    </button>
+                    <ConfirmDeleteForm
+                      action={deleteGiftAction}
+                      message="¿Eliminar este regalo?"
+                    >
+                      <input type="hidden" name="gift_id" value={gift.id} />
+                      <button
+                        type="submit"
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Eliminar
+                      </button>
+                    </ConfirmDeleteForm>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEditingId((current) =>
-                        current === gift.id ? null : gift.id,
-                      )
-                    }
-                    className="text-sm font-medium text-[#556B2F] hover:underline"
-                  >
-                    {editingId === gift.id ? "Cerrar" : "Editar"}
-                  </button>
-                  <form action={deleteGiftAction}>
-                    <input type="hidden" name="gift_id" value={gift.id} />
-                    <button
-                      type="submit"
-                      className="text-sm text-red-600 hover:underline"
-                    >
-                      Eliminar
-                    </button>
-                  </form>
-                </div>
-              </div>
-              {editingId === gift.id ? (
-                <GiftEditor
-                  gift={gift}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : null}
-            </li>
-          ))}
-        </ul>
+                {editingId === gift.id ? (
+                  <GiftEditor
+                    gift={gift}
+                    onCancel={() => setEditingId(null)}
+                  />
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
 
         <form action={addAction} className="mt-6 grid gap-3 sm:grid-cols-4">
           <input
@@ -278,7 +291,7 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
             <button
               type="submit"
               disabled={addPending || atGiftLimit}
-              className="mt-2 w-full rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
+              className="mt-2 w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
             >
               {atGiftLimit
                 ? "Límite de regalos alcanzado"

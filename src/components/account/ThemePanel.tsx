@@ -38,7 +38,7 @@ export function ThemePanel({ currentTheme, userPlan, slug }: ThemePanelProps) {
                 key={theme.slug}
                 className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
                   currentTheme === theme.slug
-                    ? "border-[#556B2F] bg-[#556B2F]/5"
+                    ? "border-[#e6dac7] bg-[#e6dac7]/5"
                     : "border-stone-200 hover:border-stone-300"
                 } ${!allowed ? "opacity-50" : ""}`}
               >
@@ -61,7 +61,7 @@ export function ThemePanel({ currentTheme, userPlan, slug }: ThemePanelProps) {
                   <Link
                     href={`/bodas/${slug}?theme=${theme.slug}`}
                     target="_blank"
-                    className="mt-1 inline-block text-xs font-medium text-[#556B2F] hover:underline"
+                    className="mt-1 inline-block text-xs font-medium text-[#e6dac7] hover:underline"
                     onClick={(event) => event.stopPropagation()}
                   >
                     Vista previa ↗
@@ -76,7 +76,7 @@ export function ThemePanel({ currentTheme, userPlan, slug }: ThemePanelProps) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
         >
           {isPending ? "Guardando…" : "Aplicar tema"}
         </button>

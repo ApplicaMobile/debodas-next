@@ -60,7 +60,7 @@ export default async function MiCuentaPage() {
               {pendingGiftsCount > 0 ? (
                 <Link
                   href="/mi-cuenta/regalos-recibidos"
-                  className="mt-2 inline-block text-sm font-medium text-[#556B2F] hover:underline"
+                  className="mt-2 inline-block text-sm font-medium text-[#e6dac7] hover:underline"
                 >
                   Revisar →
                 </Link>
@@ -80,7 +80,7 @@ export default async function MiCuentaPage() {
             >
               <Link
                 href={item.href}
-                className="font-medium text-[#556B2F] hover:underline"
+                className="font-medium text-[#e6dac7] hover:underline"
               >
                 {item.label}
                 {item.href === "/mi-cuenta/regalos-recibidos" &&
@@ -95,7 +95,7 @@ export default async function MiCuentaPage() {
         {user?.boda ? (
           <Link
             href={`/bodas/${user.boda.slug}`}
-            className="mt-6 inline-flex rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white"
+            className="mt-6 inline-flex rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
           >
             Ver micrositio
           </Link>

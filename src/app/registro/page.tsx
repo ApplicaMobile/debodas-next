@@ -17,7 +17,7 @@ export default async function RegistroPage() {
       <main className="min-h-screen bg-[#EBEBEB] pt-28">
         <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl md:grid-cols-2">
           <div className="p-8 sm:p-12">
-            <p className="text-sm font-medium uppercase tracking-widest text-[#556B2F]">
+            <p className="text-sm font-medium uppercase tracking-widest text-[#e6dac7]">
               Registro
             </p>
             <h1 className="mt-3 font-serif text-4xl font-semibold text-stone-800">
@@ -32,7 +32,7 @@ export default async function RegistroPage() {
 
             <p className="mt-6 text-sm text-stone-500">
               ¿Ya tenés cuenta?{" "}
-              <Link href="/login" className="font-medium text-[#556B2F]">
+              <Link href="/login" className="font-medium text-[#e6dac7]">
                 Ingresar
               </Link>
             </p>

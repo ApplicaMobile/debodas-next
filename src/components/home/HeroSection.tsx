@@ -23,7 +23,7 @@ export function HeroSection() {
         <div className="mt-10 flex flex-wrap gap-4">
           <Link
             href={heroContent.ctaHref}
-            className="rounded-full bg-[#556B2F] px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-[#465A27]"
+            className="rounded-full bg-[#e6dac7] px-8 py-4 text-base font-semibold text-stone-800 shadow-lg transition hover:bg-[#d4c4a8]"
           >
             {heroContent.ctaLabel}
           </Link>

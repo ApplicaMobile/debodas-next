@@ -55,7 +55,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           </Link>
           <Link
             href="/registro"
-            className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#465A27]"
+            className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-[#d4c4a8]"
           >
             Crear sitio
           </Link>

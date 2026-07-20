@@ -37,9 +37,12 @@ export default async function MiCuentaPlanPage({
         plan={boda.plan}
         showFaq={optionEnabled(options.show_faq)}
         showDressCode={optionEnabled(options.show_dress_code)}
+        isOnline={boda.isOnline}
         mpConfigured={isMercadoPagoConfigured()}
         demoPlanSwitch={isDemoPlanSwitchEnabled()}
         paymentNotice={payment ?? null}
+        giftCount={boda.gifts.length}
+        guestCount={boda.rsvpGuests.length}
       />
     </div>
   );

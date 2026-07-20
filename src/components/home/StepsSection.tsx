@@ -14,7 +14,7 @@ export function StepsSection() {
               key={step.number}
               className="rounded-2xl bg-white p-6 shadow-[0_8px_40px_rgba(0,0,0,0.05)]"
             >
-              <p className="text-sm font-semibold tracking-widest text-[#556B2F]">
+              <p className="text-sm font-semibold tracking-widest text-[#e6dac7]">
                 {step.number}
               </p>
               <h3 className="mt-3 text-xl font-semibold text-stone-800">

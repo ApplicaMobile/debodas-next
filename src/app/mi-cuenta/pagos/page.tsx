@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { PaymentSettingsPanel } from "@/components/account/PaymentSettingsPanel";
 import { getOwnedBoda, parseMisc } from "@/lib/account/require-boda";
-import { getPaymentSettings } from "@/lib/bodas/payment-settings";
+import { getPaymentSettingsForForm } from "@/lib/bodas/payment-settings";
 
 export default async function MiCuentaPagosPage() {
   const boda = await getOwnedBoda();
@@ -9,7 +9,7 @@ export default async function MiCuentaPagosPage() {
     notFound();
   }
 
-  const settings = getPaymentSettings(parseMisc(boda.misc));
+  const settings = getPaymentSettingsForForm(parseMisc(boda.misc));
 
   return (
     <div className="space-y-6">
@@ -18,7 +18,8 @@ export default async function MiCuentaPagosPage() {
           Métodos de pago
         </h2>
         <p className="mt-2 text-sm text-stone-600">
-          Configurá cómo pueden pagarte tus invitados al regalar.
+          Configurá cómo pueden pagarte tus invitados al regalar. El Access
+          Token de Mercado Pago se guarda cifrado.
         </p>
       </div>
       <PaymentSettingsPanel plan={boda.plan} settings={settings} />

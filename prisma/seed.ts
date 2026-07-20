@@ -9,17 +9,36 @@ const prisma = new PrismaClient();
 
 const DEMO_EMAIL = "demo@debodas.local";
 const DEMO_PASSWORD = "demo1234";
+const ADMIN_EMAIL = "admin@debodas.local";
+const ADMIN_PASSWORD = "admin1234";
 
 async function main() {
   const passwordHash = await hash(DEMO_PASSWORD, 10);
+  const adminPasswordHash = await hash(ADMIN_PASSWORD, 10);
+
+  await prisma.user.upsert({
+    where: { email: ADMIN_EMAIL },
+    update: {
+      name: "Admin DeBodas",
+      passwordHash: adminPasswordHash,
+      role: "admin",
+    },
+    create: {
+      email: ADMIN_EMAIL,
+      name: "Admin DeBodas",
+      passwordHash: adminPasswordHash,
+      role: "admin",
+    },
+  });
 
   const user = await prisma.user.upsert({
     where: { email: DEMO_EMAIL },
-    update: { name: "María y Juan", passwordHash },
+    update: { name: "María y Juan", passwordHash, role: "couple" },
     create: {
       email: DEMO_EMAIL,
       name: "María y Juan",
       passwordHash,
+      role: "couple",
     },
   });
 
@@ -27,6 +46,8 @@ async function main() {
     our_story:
       "Nos conocimos en 2019 y desde entonces compartimos viajes, risas y muchos mates. Queremos celebrar este nuevo capítulo con quienes formaran parte de nuestra historia.",
     spotify_url: "",
+    site_source: "search",
+    site_source_other: "",
     dress_code: {
       caballeros: "Traje formal oscuro o smoking",
       damas: "Vestido de cóctel o largo elegante",
@@ -61,6 +82,7 @@ async function main() {
     update: {
       misc: demoMisc,
       plan: "premium",
+      isOnline: true,
     },
     create: {
       userId: user.id,
@@ -68,6 +90,7 @@ async function main() {
       title: "María & Juan",
       plan: "premium",
       micrositeTheme: "marfil",
+      isOnline: true,
       featuredImageUrl:
         "https://test.debodas.com.ar/wp-content/uploads/2026/06/1-3.jpg",
       couple: {
@@ -270,10 +293,37 @@ async function main() {
     })),
   });
 
+  await prisma.rating.deleteMany({
+    where: { email: { in: ["camila@example.com", "lucas@example.com"] } },
+  });
+  await prisma.rating.createMany({
+    data: [
+      {
+        bodaId: boda.id,
+        name: "Camila R.",
+        email: "camila@example.com",
+        score: 5,
+        comment:
+          "Armamos el micrositio en una tarde. Los invitados pudieron confirmar y regalar sin problemas.",
+        status: "approved",
+      },
+      {
+        bodaId: boda.id,
+        name: "Lucas & Sofía",
+        email: "lucas@example.com",
+        score: 5,
+        comment:
+          "Los diseños son hermosos y la lista de regalos nos simplificó muchísimo la organización.",
+        status: "approved",
+      },
+    ],
+  });
+
   console.log("Seed OK:");
-  console.log(`  Usuario: ${DEMO_EMAIL}`);
-  console.log(`  Password: ${DEMO_PASSWORD}`);
+  console.log(`  Usuario pareja: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+  console.log(`  Usuario admin:  ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
   console.log("  Boda: /bodas/demo");
+  console.log("  Admin: /admin");
 }
 
 main()

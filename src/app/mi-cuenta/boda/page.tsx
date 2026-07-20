@@ -17,6 +17,9 @@ export default async function MiCuentaBodaPage() {
   const couple = parseCouple(boda.couple);
   const event = parseEvent(boda.event);
   const misc = parseMisc(boda.misc);
+  const options = (boda.options ?? {}) as Record<string, unknown>;
+  const password =
+    typeof options.password === "string" ? options.password : "";
 
   return (
     <div className="space-y-6">
@@ -50,6 +53,7 @@ export default async function MiCuentaBodaPage() {
             eventPlace: String(event.place ?? ""),
             ourStory: String(misc.our_story ?? ""),
             slug: boda.slug,
+            password,
           }}
         />
       </section>

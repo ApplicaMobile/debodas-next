@@ -7,7 +7,12 @@ import {
   canAddGift,
   giftLimitError,
 } from "@/lib/plans/limits";
-import { deleteLocalUpload, getUploadErrorMessage, isLocalUpload, saveUploadedImage } from "@/lib/upload/local";
+import {
+  deleteLocalUpload,
+  getUploadErrorMessage,
+  isManagedUpload,
+  saveUploadedImage,
+} from "@/lib/upload/local";
 import { prisma } from "@/lib/db/prisma";
 
 function parseImageUrl(raw: string): string | null {
@@ -184,7 +189,7 @@ export async function updateGiftAction(
       nextImageUrl !== undefined &&
       gift.imageUrl &&
       gift.imageUrl !== nextImageUrl &&
-      isLocalUpload(gift.imageUrl)
+      isManagedUpload(gift.imageUrl)
     ) {
       await deleteLocalUpload(gift.imageUrl);
     }
@@ -217,7 +222,7 @@ export async function deleteGiftAction(formData: FormData): Promise<void> {
     where: { id: giftId, bodaId: boda.id },
   });
 
-  if (gift?.imageUrl && isLocalUpload(gift.imageUrl)) {
+  if (gift?.imageUrl && isManagedUpload(gift.imageUrl)) {
     await deleteLocalUpload(gift.imageUrl);
   }
 

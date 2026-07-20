@@ -71,7 +71,17 @@ export function PaymentSettingsPanel({
             label="Access Token"
             name="mp_access_token"
             defaultValue={settings.mp_tokens?.access_token}
+            placeholder={
+              (settings as { mp_access_token_saved?: boolean })
+                .mp_access_token_saved
+                ? "Dejá los puntos para mantener el token guardado"
+                : undefined
+            }
           />
+          <p className="sm:col-span-2 text-xs text-stone-500">
+            El Access Token se cifra en la base. Si ya está guardado, dejá el
+            campo enmascarado o pegá uno nuevo para reemplazarlo.
+          </p>
         </div>
       </section>
 
@@ -171,7 +181,7 @@ export function PaymentSettingsPanel({
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-full bg-[#556B2F] px-5 py-2.5 text-sm font-semibold text-white"
+        className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
       >
         {isPending ? "Guardando…" : "Guardar métodos de pago"}
       </button>

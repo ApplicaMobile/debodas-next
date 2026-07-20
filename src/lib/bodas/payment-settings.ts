@@ -1,4 +1,10 @@
 import { normalizePlan } from "@/lib/plans/features";
+import {
+  decryptSecret,
+  encryptSecret,
+  isEncryptedSecret,
+  maskSecret,
+} from "@/lib/security/secrets";
 
 export interface MpTokens {
   public_key?: string;
@@ -40,10 +46,74 @@ export function getPaymentSettings(
   return raw as BodaPaymentSettings;
 }
 
+/** Settings con access_token descifrado (uso server-side / MP API). */
+export function getDecryptedPaymentSettings(
+  misc: Record<string, unknown> | null | undefined,
+): BodaPaymentSettings {
+  const settings = getPaymentSettings(misc);
+  const token = settings.mp_tokens?.access_token;
+  if (!token) {
+    return settings;
+  }
+  return {
+    ...settings,
+    mp_tokens: {
+      ...settings.mp_tokens,
+      access_token: decryptSecret(token),
+    },
+  };
+}
+
+/** Settings para formularios: token enmascarado, no se reexpone el secreto. */
+export function getPaymentSettingsForForm(
+  misc: Record<string, unknown> | null | undefined,
+): BodaPaymentSettings & { mp_access_token_saved?: boolean } {
+  const settings = getPaymentSettings(misc);
+  const token = settings.mp_tokens?.access_token?.trim() ?? "";
+  const saved = Boolean(token);
+  return {
+    ...settings,
+    mp_tokens: {
+      public_key: settings.mp_tokens?.public_key,
+      access_token: saved ? maskSecret(token) : "",
+    },
+    mp_access_token_saved: saved,
+  };
+}
+
+export function encryptPaymentSettings(
+  settings: BodaPaymentSettings,
+  previous?: BodaPaymentSettings,
+): BodaPaymentSettings {
+  const incoming = settings.mp_tokens?.access_token?.trim() ?? "";
+  const previousToken = previous?.mp_tokens?.access_token?.trim() ?? "";
+
+  let accessToken = previousToken;
+  if (incoming && !incoming.includes("•") && !isEncryptedSecret(incoming)) {
+    accessToken = encryptSecret(incoming);
+  } else if (incoming && isEncryptedSecret(incoming)) {
+    accessToken = incoming;
+  } else if (previousToken && !isEncryptedSecret(previousToken)) {
+    accessToken = encryptSecret(previousToken);
+  }
+
+  return {
+    ...settings,
+    mp_tokens: {
+      public_key: settings.mp_tokens?.public_key?.trim() || previous?.mp_tokens?.public_key,
+      access_token: accessToken || undefined,
+    },
+  };
+}
+
 export function hasMpCheckout(settings: BodaPaymentSettings): boolean {
   const publicKey = settings.mp_tokens?.public_key?.trim();
   const accessToken = settings.mp_tokens?.access_token?.trim();
-  return Boolean(publicKey && accessToken);
+  if (!publicKey || !accessToken) {
+    return false;
+  }
+  const plain = decryptSecret(accessToken);
+  return Boolean(plain);
 }
 
 export function hasMpTransfer(settings: BodaPaymentSettings): boolean {
