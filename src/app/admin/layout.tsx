@@ -13,7 +13,7 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-[#EBEBEB]">
       <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="min-w-0">
             <Link
               href="/"
@@ -32,8 +32,8 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-10">
-        <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
+      <main className="mx-auto w-full max-w-[1800px] px-4 py-4 sm:px-6 sm:py-10">
+        <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-6">
           <AdminSidebar />
           <div className="min-w-0">{children}</div>
         </div>

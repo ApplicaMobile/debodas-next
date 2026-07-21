@@ -12,6 +12,7 @@
     "db:seed": "dotenv -e .env.local -- prisma db seed",
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:import-wp": "dotenv -e .env.local -- tsx scripts/import-wp.ts",
+    "email:test": "tsx scripts/test-smtp.ts",
     "share": "npm run build && next start"
   },
   "prisma": {
@@ -23,15 +24,16 @@
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
     "next": "16.2.10",
+    "nodemailer": "^9.0.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "recharts": "^3.9.2",
-    "resend": "^6.17.2"
+    "recharts": "^3.9.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dictionary-es": "^4.0.0",

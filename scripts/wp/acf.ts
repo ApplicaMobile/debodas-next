@@ -368,7 +368,6 @@ const EXACT_REPAIRS: Record<string, string> = {
   "apreci?": "apreció",
   "celebr?": "celebró",
   "disfrut?": "disfrutó",
-  "cambi?": "cambió",
 };
 
 /** Visible Spanish words written without their accent (no "?" left). */

@@ -15,7 +15,7 @@ export function AdminSidebar() {
 
   return (
     <>
-      <div className="mb-4 lg:hidden">
+      <div className="mb-4 xl:hidden">
         <label
           htmlFor="admin-section-nav"
           className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-stone-400"
@@ -38,7 +38,7 @@ export function AdminSidebar() {
         </select>
       </div>
 
-      <nav className="hidden rounded-3xl bg-white p-4 shadow-sm lg:block">
+      <nav className="hidden rounded-3xl bg-white p-4 shadow-sm xl:block">
         <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
           Admin
         </p>

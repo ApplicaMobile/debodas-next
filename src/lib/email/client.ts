@@ -1,18 +1,50 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+function getSmtpConfig() {
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASSWORD?.trim();
+
+  if (!host || !user || !pass) {
+    return null;
+  }
+
+  const parsedPort = Number(process.env.SMTP_PORT);
+  const port = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 465;
+  const secureValue = process.env.SMTP_SECURE?.trim().toLowerCase();
+  const secure =
+    secureValue === "true" || (secureValue !== "false" && port === 465);
+
+  return {
+    host,
+    port,
+    secure,
+    auth: { user, pass },
+    authMethod: "LOGIN" as const,
+  };
+}
+
+let transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
+
+function getTransporter() {
+  const config = getSmtpConfig();
+  if (!config) {
+    return null;
+  }
+  transporter ??= nodemailer.createTransport(config);
+  return transporter;
+}
 
 export function isEmailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY?.trim());
+  return getSmtpConfig() !== null;
 }
 
 function getFromAddress(): string {
   return (
-    process.env.EMAIL_FROM?.trim() || "DeBodas <onboarding@resend.dev>"
+    process.env.EMAIL_FROM?.trim() ||
+    `DeBodas <${process.env.SMTP_USER?.trim() || "consultas@debodas.com.ar"}>`
   );
 }
 
@@ -48,63 +80,73 @@ export async function sendEmail(input: {
   meta?: Record<string, unknown>;
 }): Promise<{ skipped: boolean; id?: string; simulated?: boolean }> {
   const to = Array.isArray(input.to) ? input.to : [input.to];
-  const recipients = to.map((e) => e.trim().toLowerCase()).filter(Boolean);
+  const requestedRecipients = to
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
 
-  if (recipients.length === 0) {
+  if (requestedRecipients.length === 0) {
     return { skipped: true };
   }
 
-  if (!resend) {
+  const testRecipient = process.env.EMAIL_TEST_TO?.trim().toLowerCase();
+  const recipients = testRecipient ? [testRecipient] : requestedRecipients;
+  const emailMeta = testRecipient
+    ? {
+        ...(input.meta ?? {}),
+        testRedirect: true,
+        originalRecipients: requestedRecipients,
+      }
+    : input.meta;
+  const deliverySubject = testRecipient
+    ? `[PRUEBA] ${input.subject}`
+    : input.subject;
+
+  if (testRecipient) {
+    console.info(
+      `[email] prueba redirigida ${requestedRecipients.join(", ")} → ${testRecipient}`,
+    );
+  }
+
+  const smtp = getTransporter();
+  if (!smtp) {
     console.warn(
-      `[email] RESEND_API_KEY missing — simulado "${input.subject}" → ${recipients.join(", ")}`,
+      `[email] SMTP incompleto — simulado "${deliverySubject}" → ${recipients.join(", ")}`,
     );
     await logEmail({
       to: recipients,
-      subject: input.subject,
+      subject: deliverySubject,
       status: "skipped",
-      meta: { ...(input.meta ?? {}), reason: "missing_resend_api_key" },
+      meta: { ...(emailMeta ?? {}), reason: "missing_smtp_config" },
     });
     return { skipped: true, simulated: true };
   }
 
   try {
-    const { data, error } = await resend.emails.send({
+    const info = await smtp.sendMail({
       from: getFromAddress(),
       to: recipients,
-      subject: input.subject,
+      subject: deliverySubject,
       html: input.html,
       replyTo: input.replyTo,
     });
 
-    if (error) {
-      await logEmail({
-        to: recipients,
-        subject: input.subject,
-        status: "failed",
-        error: error.message,
-        meta: input.meta,
-      });
-      console.error("[email] send failed:", error);
-      throw new Error(error.message);
-    }
-
     await logEmail({
       to: recipients,
-      subject: input.subject,
+      subject: deliverySubject,
       status: "sent",
-      providerId: data?.id,
-      meta: input.meta,
+      providerId: info.messageId,
+      meta: emailMeta,
     });
 
-    return { skipped: false, id: data?.id };
+    return { skipped: false, id: info.messageId };
   } catch (error) {
     const message = error instanceof Error ? error.message : "send failed";
     await logEmail({
       to: recipients,
-      subject: input.subject,
+      subject: deliverySubject,
       status: "failed",
       error: message,
-      meta: input.meta,
+      meta: emailMeta,
     });
     throw error;
   }

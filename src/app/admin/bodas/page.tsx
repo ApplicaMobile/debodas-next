@@ -104,24 +104,27 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
+          <table className="w-full min-w-[900px] table-fixed text-left text-sm">
             <thead className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
               <tr>
-                <th className="px-4 py-3">Boda</th>
-                <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3">Dueño</th>
-                <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3">RSVP / Regalos</th>
-                <th className="px-4 py-3">Acciones</th>
+                <th className="w-[18%] px-4 py-3">Boda</th>
+                <th className="w-[12%] px-4 py-3">Fecha</th>
+                <th className="w-[22%] px-4 py-3">Dueño</th>
+                <th className="w-[20%] px-4 py-3">Plan</th>
+                <th className="w-[15%] px-4 py-3">RSVP / Regalos</th>
+                <th className="w-[13%] px-4 py-3">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {bodas.map((boda) => (
                 <tr key={boda.id} className="align-top">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-stone-800">
+                    <Link
+                      href={`/admin/bodas/${boda.id}`}
+                      className="font-medium text-stone-800 hover:text-[#06263a] hover:underline"
+                    >
                       {coupleLabel(boda.couple, boda.title)}
-                    </p>
+                    </Link>
                     <p className="text-xs text-stone-500">/{boda.slug}</p>
                     <p className="text-xs text-stone-400">{boda.micrositeTheme}</p>
                   </td>
@@ -132,8 +135,12 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                     </p>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-stone-800">{boda.user.name || "—"}</p>
-                    <p className="text-xs text-stone-500">{boda.user.email}</p>
+                    <p className="break-words text-stone-800">
+                      {boda.user.name || "—"}
+                    </p>
+                    <p className="break-all text-xs text-stone-500">
+                      {boda.user.email}
+                    </p>
                   </td>
                   <td className="px-4 py-3">
                     <form action={updateBodaPlanAction} className="flex gap-2">
