@@ -2,6 +2,9 @@ import { requireAdmin } from "@/lib/admin/require-admin";
 import { isEmailConfigured } from "@/lib/email/client";
 import { prisma } from "@/lib/db/prisma";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
+import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import { retryEmailAdminAction } from "@/lib/admin/actions";
 
 const PAGE_SIZE = 25;
 
@@ -49,7 +52,9 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3">Fecha</th>
                 <th className="px-4 py-3">Para</th>
                 <th className="px-4 py-3">Asunto</th>
+                <th className="px-4 py-3">Intentos</th>
                 <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -64,26 +69,55 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                     {log.error ? (
                       <p className="mt-1 text-xs text-red-600">{log.error}</p>
                     ) : null}
+                    {["queued", "retry"].includes(log.status) ? (
+                      <p className="mt-1 text-xs text-stone-500">
+                        Próximo intento:{" "}
+                        {log.availableAt.toLocaleString("es-AR")}
+                      </p>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3 text-stone-600">
+                    {log.attempts}/{log.maxAttempts}
                   </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase ${
                         log.status === "sent"
                           ? "bg-emerald-50 text-emerald-700"
-                          : log.status === "skipped"
+                          : ["queued", "processing", "retry"].includes(log.status)
+                            ? "bg-blue-50 text-blue-700"
+                          : ["skipped", "blocked"].includes(log.status)
                             ? "bg-amber-50 text-amber-700"
                             : "bg-red-50 text-red-700"
                       }`}
                     >
-                      {log.status === "skipped" ? "simulado" : log.status}
+                      {log.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {["failed", "blocked"].includes(log.status) &&
+                    log.contentEncrypted ? (
+                      <AdminActionForm
+                        action={retryEmailAdminAction}
+                        confirmMessage="¿Agregar nuevamente este email a la cola?"
+                      >
+                        <input type="hidden" name="email_id" value={log.id} />
+                        <AdminSubmitButton
+                          idleLabel="Reintentar"
+                          pendingLabel="Agregando…"
+                          className="rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700"
+                        />
+                      </AdminActionForm>
+                    ) : (
+                      <span className="text-stone-400">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
               {logs.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={6}
                     className="px-4 py-8 text-center text-stone-500"
                   >
                     Todavía no hay emails registrados.

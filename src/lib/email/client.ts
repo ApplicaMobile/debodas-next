@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db/prisma";
+
+export class EmailConfigurationError extends Error {}
 
 function getSmtpConfig() {
   const host = process.env.SMTP_HOST?.trim();
@@ -23,6 +23,9 @@ function getSmtpConfig() {
     secure,
     auth: { user, pass },
     authMethod: "LOGIN" as const,
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 30_000,
   };
 }
 
@@ -48,55 +51,23 @@ function getFromAddress(): string {
   );
 }
 
-async function logEmail(input: {
-  to: string[];
-  subject: string;
-  status: "sent" | "skipped" | "failed";
-  providerId?: string;
-  error?: string;
-  meta?: Record<string, unknown>;
-}) {
-  try {
-    await prisma.emailLog.create({
-      data: {
-        toAddress: input.to.join(", "),
-        subject: input.subject,
-        status: input.status,
-        providerId: input.providerId ?? null,
-        error: input.error ?? null,
-        meta: (input.meta ?? {}) as Prisma.InputJsonValue,
-      },
-    });
-  } catch (error) {
-    console.error("[email] failed to write EmailLog", error);
-  }
-}
-
-export async function sendEmail(input: {
+export async function deliverEmail(input: {
   to: string | string[];
   subject: string;
   html: string;
   replyTo?: string;
-  meta?: Record<string, unknown>;
-}): Promise<{ skipped: boolean; id?: string; simulated?: boolean }> {
+}): Promise<{ id: string; recipients: string[]; subject: string }> {
   const to = Array.isArray(input.to) ? input.to : [input.to];
   const requestedRecipients = to
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
   if (requestedRecipients.length === 0) {
-    return { skipped: true };
+    throw new Error("El email no tiene destinatarios válidos");
   }
 
   const testRecipient = process.env.EMAIL_TEST_TO?.trim().toLowerCase();
   const recipients = testRecipient ? [testRecipient] : requestedRecipients;
-  const emailMeta = testRecipient
-    ? {
-        ...(input.meta ?? {}),
-        testRedirect: true,
-        originalRecipients: requestedRecipients,
-      }
-    : input.meta;
   const deliverySubject = testRecipient
     ? `[PRUEBA] ${input.subject}`
     : input.subject;
@@ -109,47 +80,22 @@ export async function sendEmail(input: {
 
   const smtp = getTransporter();
   if (!smtp) {
-    console.warn(
-      `[email] SMTP incompleto — simulado "${deliverySubject}" → ${recipients.join(", ")}`,
-    );
-    await logEmail({
-      to: recipients,
-      subject: deliverySubject,
-      status: "skipped",
-      meta: { ...(emailMeta ?? {}), reason: "missing_smtp_config" },
-    });
-    return { skipped: true, simulated: true };
+    throw new EmailConfigurationError("La configuración SMTP está incompleta");
   }
 
-  try {
-    const info = await smtp.sendMail({
-      from: getFromAddress(),
-      to: recipients,
-      subject: deliverySubject,
-      html: input.html,
-      replyTo: input.replyTo,
-    });
+  const info = await smtp.sendMail({
+    from: getFromAddress(),
+    to: recipients,
+    subject: deliverySubject,
+    html: input.html,
+    replyTo: input.replyTo,
+  });
 
-    await logEmail({
-      to: recipients,
-      subject: deliverySubject,
-      status: "sent",
-      providerId: info.messageId,
-      meta: emailMeta,
-    });
-
-    return { skipped: false, id: info.messageId };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "send failed";
-    await logEmail({
-      to: recipients,
-      subject: deliverySubject,
-      status: "failed",
-      error: message,
-      meta: emailMeta,
-    });
-    throw error;
-  }
+  return {
+    id: info.messageId,
+    recipients,
+    subject: deliverySubject,
+  };
 }
 
 export function getAppUrl(): string {

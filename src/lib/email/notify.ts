@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
 import { getCoupleDisplayName } from "@/data/bodas";
 import type { Boda as BodaShape } from "@/types/boda";
-import { getAdminEmail, getAppUrl, sendEmail } from "@/lib/email/client";
+import { getAdminEmail, getAppUrl } from "@/lib/email/client";
+import { enqueueEmail } from "@/lib/email/queue";
 import {
   giftToCoupleEmail,
   planConfirmedEmail,
@@ -45,6 +46,7 @@ export async function notifyNoviosRsvp(input: {
   menu?: string;
   notes?: string | null;
   guestEmail?: string | null;
+  notificationId?: string;
 }): Promise<void> {
   const boda = await getBodaOwner(input.bodaId);
   if (!boda?.user.email) return;
@@ -60,11 +62,16 @@ export async function notifyNoviosRsvp(input: {
     invitadosUrl: `${getAppUrl()}/mi-cuenta/invitados`,
   });
 
-  await sendEmail({
+  await enqueueEmail({
     to: boda.user.email,
     subject: mail.subject,
     html: mail.html,
     replyTo: input.guestEmail || undefined,
+    type: "rsvp",
+    dedupeKey: input.notificationId
+      ? `rsvp:${input.notificationId}:couple`
+      : undefined,
+    meta: { bodaId: input.bodaId },
   });
 }
 
@@ -76,6 +83,7 @@ export async function notifyNoviosGift(input: {
   method: string;
   pending: boolean;
   items: Array<{ title?: string; quantity?: number }>;
+  notificationId?: string;
 }): Promise<void> {
   const boda = await getBodaOwner(input.bodaId);
   if (!boda?.user.email) return;
@@ -106,10 +114,15 @@ export async function notifyNoviosGift(input: {
     panelUrl: `${getAppUrl()}/mi-cuenta/regalos-recibidos`,
   });
 
-  await sendEmail({
+  await enqueueEmail({
     to: boda.user.email,
     subject: mail.subject,
     html: mail.html,
+    type: "gift",
+    dedupeKey: input.notificationId
+      ? `gift:${input.notificationId}:couple`
+      : undefined,
+    meta: { bodaId: input.bodaId },
   });
 }
 
@@ -117,6 +130,7 @@ export async function notifyPlanConfirmed(input: {
   bodaId: string;
   planTarget: string;
   amount: number | string;
+  notificationId?: string;
 }): Promise<void> {
   const boda = await getBodaOwner(input.bodaId);
   if (!boda?.user.email) return;
@@ -133,10 +147,15 @@ export async function notifyPlanConfirmed(input: {
     panelUrl: `${getAppUrl()}/mi-cuenta/plan`,
   });
 
-  await sendEmail({
+  await enqueueEmail({
     to: boda.user.email,
     subject: mail.subject,
     html: mail.html,
+    type: "plan_confirmed",
+    dedupeKey: input.notificationId
+      ? `plan:${input.notificationId}:couple`
+      : undefined,
+    meta: { bodaId: input.bodaId },
   });
 }
 
@@ -144,17 +163,19 @@ export async function notifyRatingRequest(input: {
   to: string;
   coupleName: string;
   bodaId: string;
-}): Promise<{ skipped: boolean; simulated?: boolean; id?: string }> {
+}) {
   const mail = ratingRequestEmail({
     coupleName: input.coupleName,
     rateUrl: `${getAppUrl()}/calificar?bodaId=${encodeURIComponent(input.bodaId)}`,
   });
 
-  return sendEmail({
+  return enqueueEmail({
     to: input.to,
     subject: mail.subject,
     html: mail.html,
-    meta: { type: "rating_request", bodaId: input.bodaId },
+    type: "rating_request",
+    dedupeKey: `rating-request:${input.bodaId}`,
+    meta: { bodaId: input.bodaId },
   });
 }
 
@@ -164,29 +185,31 @@ export async function notifyRatingSubmitted(input: {
   email: string;
   score: number;
   comment: string | null;
+  ratingId?: string;
 }): Promise<void> {
   const thanks = ratingThanksEmail({ name: input.name });
-  await sendEmail({
+  await enqueueEmail({
     to: input.email,
     subject: thanks.subject,
     html: thanks.html,
+    type: "rating_thanks",
+    dedupeKey: input.ratingId
+      ? `rating:${input.ratingId}:thanks`
+      : undefined,
   });
 
   const admin = getAdminEmail();
   if (admin) {
     const adminMail = ratingAdminEmail(input);
-    await sendEmail({
+    await enqueueEmail({
       to: admin,
       subject: adminMail.subject,
       html: adminMail.html,
       replyTo: input.email,
+      type: "rating_admin",
+      dedupeKey: input.ratingId
+        ? `rating:${input.ratingId}:admin`
+        : undefined,
     });
   }
-}
-
-/** Fire-and-forget helper: never throws to callers. */
-export function queueEmail(task: () => Promise<void>): void {
-  void task().catch((err) => {
-    console.error("[email] background send failed:", err);
-  });
 }

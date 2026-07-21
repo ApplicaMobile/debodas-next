@@ -10,7 +10,7 @@ async function main() {
     throw new Error(`Faltan variables SMTP: ${missing.join(", ")}`);
   }
 
-  const { getAdminEmail, isEmailConfigured, sendEmail } = await import(
+  const { deliverEmail, getAdminEmail, isEmailConfigured } = await import(
     "../src/lib/email/client"
   );
   const to = getAdminEmail();
@@ -22,7 +22,7 @@ async function main() {
     throw new Error("EMAIL_ADMIN no está configurado");
   }
 
-  const result = await sendEmail({
+  const result = await deliverEmail({
     to,
     subject: "Prueba SMTP — DeBodas",
     html: `
@@ -31,7 +31,6 @@ async function main() {
         <p>Este correo fue enviado desde la aplicación DeBodas usando Hostinger.</p>
       </div>
     `,
-    meta: { type: "smtp_test" },
   });
 
   console.log(`Correo enviado a ${to}. ID: ${result.id ?? "sin ID"}`);

@@ -71,16 +71,29 @@ model AdminAuditLog {
 }
 
 model EmailLog {
-  id         String   @id @default(cuid())
-  toAddress  String   @map("to_address")
-  subject    String
-  status     String
-  providerId String?  @map("provider_id")
-  error      String?  @db.Text
-  meta       Json     @default("{}")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id               String    @id @default(cuid())
+  type             String    @default("generic")
+  dedupeKey        String?   @unique @map("dedupe_key")
+  toAddress        String    @map("to_address")
+  replyTo          String?   @map("reply_to")
+  subject          String
+  contentEncrypted String?   @db.LongText @map("content_encrypted")
+  status           String    @default("queued")
+  attempts         Int       @default(0)
+  maxAttempts      Int       @default(5) @map("max_attempts")
+  availableAt      DateTime  @default(now()) @map("available_at")
+  lockedAt         DateTime? @map("locked_at")
+  lockedBy         String?   @map("locked_by")
+  providerId       String?   @map("provider_id")
+  error            String?   @db.Text
+  meta             Json      @default("{}")
+  sentAt           DateTime? @map("sent_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  @@index([status])
+  @@index([status, availableAt, createdAt])
+  @@index([status, lockedAt])
+  @@index([type, createdAt])
   @@index([createdAt])
   @@map("email_logs")
 }

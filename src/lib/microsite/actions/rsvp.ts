@@ -12,7 +12,7 @@ import {
   sanitizeRsvpMenu,
 } from "@/lib/rsvp/menu";
 import { prisma } from "@/lib/db/prisma";
-import { notifyNoviosRsvp, queueEmail } from "@/lib/email/notify";
+import { notifyNoviosRsvp } from "@/lib/email/notify";
 import {
   checkRateLimit,
   clientIpFromHeaders,
@@ -96,7 +96,7 @@ export async function submitPublicRsvpAction(
         ? sanitizeRsvpMenu(menuRaw)
         : "general";
 
-    await prisma.rsvpGuest.create({
+    const guest = await prisma.rsvpGuest.create({
       data: {
         bodaId: boda.id,
         name,
@@ -107,16 +107,15 @@ export async function submitPublicRsvpAction(
       },
     });
 
-    queueEmail(() =>
-      notifyNoviosRsvp({
-        bodaId: boda.id,
-        guestName: name,
-        status,
-        menu,
-        notes: notes || null,
-        guestEmail: email || null,
-      }),
-    );
+    await notifyNoviosRsvp({
+      bodaId: boda.id,
+      guestName: name,
+      status,
+      menu,
+      notes: notes || null,
+      guestEmail: email || null,
+      notificationId: guest.id,
+    });
 
     revalidatePath(`/bodas/${boda.slug}`);
     revalidatePath("/mi-cuenta/invitados");

@@ -19,7 +19,7 @@ import {
 } from "@/lib/mercadopago/api";
 import { getAppBaseUrl, getMercadoPagoWebhookUrl } from "@/lib/mercadopago/config";
 import { prisma } from "@/lib/db/prisma";
-import { notifyNoviosGift, queueEmail } from "@/lib/email/notify";
+import { notifyNoviosGift } from "@/lib/email/notify";
 import {
   getUploadErrorMessage,
   saveUploadedVoucher,
@@ -355,7 +355,7 @@ export async function submitGiftTransferAction(
       );
     }
 
-    await prisma.confirmedGift.create({
+    const confirmedGift = await prisma.confirmedGift.create({
       data: {
         bodaId: boda.id,
         participants: fields.participants,
@@ -372,18 +372,17 @@ export async function submitGiftTransferAction(
       },
     });
 
-    queueEmail(() =>
-      notifyNoviosGift({
-        bodaId: boda.id,
-        participants: fields.participants,
-        amount,
-        currency:
-          fields.method === GIFT_PAYMENT_METHODS.BANK_TRANSFER_USD ? "USD" : "ARS",
-        method: fields.method,
-        pending: true,
-        items: cartLines,
-      }),
-    );
+    await notifyNoviosGift({
+      bodaId: boda.id,
+      participants: fields.participants,
+      amount,
+      currency:
+        fields.method === GIFT_PAYMENT_METHODS.BANK_TRANSFER_USD ? "USD" : "ARS",
+      method: fields.method,
+      pending: true,
+      items: cartLines,
+      notificationId: confirmedGift.id,
+    });
 
     revalidatePath("/mi-cuenta/regalos-recibidos");
     revalidatePath(`/bodas/${boda.slug}/regalo/gracias`);

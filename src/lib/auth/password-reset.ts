@@ -3,7 +3,8 @@
 import { createHash, randomBytes } from "crypto";
 import { hash } from "bcryptjs";
 import { headers } from "next/headers";
-import { getAppUrl, sendEmail } from "@/lib/email/client";
+import { getAppUrl } from "@/lib/email/client";
+import { enqueueEmail } from "@/lib/email/queue";
 import { prisma } from "@/lib/db/prisma";
 import {
   checkRateLimit,
@@ -75,21 +76,17 @@ export async function requestPasswordResetAction(
   });
 
   const resetUrl = `${getAppUrl()}/recuperar/${token}`;
-  const result = await sendEmail({
+  await enqueueEmail({
     to: user.email,
     subject: "Restablecer contraseña — DeBodas",
     html: `<p>Hola${user.name ? ` ${user.name}` : ""},</p>
 <p>Pediste restablecer tu contraseña. Este enlace vence en 1 hora:</p>
 <p><a href="${resetUrl}">${resetUrl}</a></p>
 <p>Si no fuiste vos, ignorá este mensaje.</p>`,
-    meta: { type: "password_reset", userId: user.id },
+    type: "password_reset",
+    dedupeKey: `password-reset:${tokenHash}`,
+    meta: { userId: user.id },
   });
-
-  if (result.simulated) {
-    return {
-      success: `${genericSuccess} (modo local: email simulado; revisá la configuración SMTP).`,
-    };
-  }
 
   return { success: genericSuccess };
 }

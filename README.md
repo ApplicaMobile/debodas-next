@@ -157,7 +157,7 @@ npm run db:seed
 
 ## Emails, calificaciones e Instagram
 
-- **Emails:** Resend (`RESEND_API_KEY`). Sin key, se loguea y no rompe. Triggers: RSVP, regalos, plan, calificación.
+- **Emails:** SMTP (Hostinger) con cola persistente, contenido cifrado y reintentos. Worker: `/api/cron/email-queue` con `Authorization: Bearer CRON_SECRET`.
 - **Calificar:** `/calificar?bodaId=...` (solo post-fecha). Cron diario: `/api/cron/rating-emails` con `Authorization: Bearer CRON_SECRET`.
 - **Instagram/Facebook:** URLs en `src/data/social.ts` (perfil público, sin Graph API).
 - **Uploads:** local `public/uploads/` o Vercel Blob si hay `BLOB_READ_WRITE_TOKEN`.

@@ -18,9 +18,11 @@ Copiar desde `.env.example` y completar:
 | `NEXT_PUBLIC_APP_URL` | URL pública final (`https://debodas.com.ar`) |
 | `MERCADOPAGO_ACCESS_TOKEN` | Token **producción** |
 | `MERCADOPAGO_SANDBOX` | `false` en prod |
-| `RESEND_API_KEY` | Dominio verificado en Resend |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | Servidor SMTP de producción |
+| `SMTP_USER`, `SMTP_PASSWORD` | Credenciales SMTP |
 | `EMAIL_FROM` | Ej. `DeBodas <noreply@debodas.com.ar>` |
 | `EMAIL_ADMIN` | Inbox interno |
+| `EMAIL_QUEUE_SECRET` | Secreto largo para cifrar emails en cola (opcional si se reutiliza `AUTH_SECRET`) |
 | `CRON_SECRET` | Igual en Vercel Cron |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob (uploads persistentes) |
 
@@ -35,7 +37,7 @@ Sin `BLOB_READ_WRITE_TOKEN` los uploads van a `public/uploads/` (no persistente 
 5. Correr migraciones: `npx prisma db push` (o migrate) contra la BD cloud
 6. Seed solo en staging: `npm run db:seed`
 7. Configurar webhook MP: `{APP_URL}/api/webhooks/mercadopago?bodaId=...`
-8. Verificar cron: `/api/cron/rating-emails` (Bearer `CRON_SECRET`)
+8. Verificar crons `/api/cron/rating-emails` y `/api/cron/email-queue` (Bearer `CRON_SECRET`)
 
 ## Cutover DNS
 

@@ -199,33 +199,29 @@ export async function sendRatingRequestAction(formData: FormData) {
       bodaId: boda.id,
     });
 
-    const delivered = !result.simulated && !result.skipped;
     await prisma.$transaction(async (tx) => {
-      if (delivered) {
-        await tx.boda.update({
-          where: { id: boda.id },
-          data: { ratingEmailSentAt: new Date() },
-        });
-      }
       await writeAdminAudit(tx, audit, {
-        action: "admin.boda.rating_request_sent",
+        action: "admin.boda.rating_request_queued",
         entity: "boda",
         entityId: boda.id,
         metadata: {
-          outcome: delivered ? "sent" : result.simulated ? "simulated" : "skipped",
-          simulated: result.simulated,
-          skipped: result.skipped,
+          outcome: result.skipped
+            ? "skipped"
+            : result.duplicate
+              ? "duplicate"
+              : "queued",
+          jobId: result.skipped ? null : result.id,
         },
       });
     });
 
     revalidatePath(detailPath);
     revalidatePath("/admin/bodas");
-    const okMessage = result.simulated
-      ? "Email simulado: revisá la configuración SMTP."
-      : result.skipped
-        ? "Pedido registrado pero el email no se envió."
-        : "Email de calificación enviado.";
+    const okMessage = result.skipped
+      ? "No se pudo crear el email porque falta el destinatario."
+      : result.duplicate
+        ? "El pedido ya estaba registrado en la cola."
+        : "Email de calificación agregado a la cola.";
     redirect(`${detailPath}?ok=${encodeURIComponent(okMessage)}`);
   } catch (error) {
     console.error("[sendRatingRequestAction]", error);
@@ -242,7 +238,7 @@ export async function sendRatingRequestAction(formData: FormData) {
         console.error("[sendRatingRequestAction audit]", auditError),
       );
     redirect(
-      `${detailPath}?error=${encodeURIComponent("No se pudo enviar el email por SMTP.")}`,
+      `${detailPath}?error=${encodeURIComponent("No se pudo agregar el email a la cola.")}`,
     );
   }
 }
@@ -266,6 +262,23 @@ export async function resetRatingEmailFlagAction(formData: FormData) {
     await tx.boda.update({
       where: { id: bodaId },
       data: { ratingEmailSentAt: null },
+    });
+    await tx.emailLog.updateMany({
+      where: {
+        dedupeKey: `rating-request:${bodaId}`,
+        status: { not: "processing" },
+        contentEncrypted: { not: null },
+      },
+      data: {
+        status: "queued",
+        attempts: 0,
+        availableAt: new Date(),
+        lockedAt: null,
+        lockedBy: null,
+        providerId: null,
+        error: null,
+        sentAt: null,
+      },
     });
     await writeAdminAudit(tx, audit, {
       action: "admin.boda.rating_email_flag_reset",
@@ -319,6 +332,48 @@ export async function confirmGiftAdminAction(formData: FormData) {
   revalidatePath("/admin/pagos");
   revalidatePath("/admin");
   revalidatePath("/mi-cuenta/regalos-recibidos");
+}
+
+export async function retryEmailAdminAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const emailId = String(formData.get("email_id") ?? "").trim();
+  if (!emailId) return;
+
+  const audit = await getAdminAuditContext(admin);
+  await prisma.$transaction(async (tx) => {
+    const email = await tx.emailLog.findUnique({
+      where: { id: emailId },
+      select: { status: true, contentEncrypted: true, type: true },
+    });
+    if (
+      !email?.contentEncrypted ||
+      !["failed", "blocked"].includes(email.status)
+    ) {
+      return;
+    }
+
+    await tx.emailLog.update({
+      where: { id: emailId },
+      data: {
+        status: "queued",
+        attempts: 0,
+        availableAt: new Date(),
+        lockedAt: null,
+        lockedBy: null,
+        providerId: null,
+        error: null,
+        sentAt: null,
+      },
+    });
+    await writeAdminAudit(tx, audit, {
+      action: "admin.email.retried",
+      entity: "emailLog",
+      entityId: emailId,
+      metadata: { previousStatus: email.status, type: email.type },
+    });
+  });
+
+  revalidatePath("/admin/emails");
 }
 
 function adminUsersPath(

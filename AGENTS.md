@@ -53,7 +53,7 @@ src/
 │   ├── bodas/[slug]/            # Micrositio + gracias regalos
 │   └── api/
 │       ├── webhooks/mercadopago/
-│       └── cron/rating-emails/  # Cron diario (CRON_SECRET)
+│       └── cron/                # Ratings + worker emails (CRON_SECRET)
 ├── components/
 │   ├── home/                    # Hero, planes, temas, reviews, Instagram
 │   ├── layout/
@@ -62,7 +62,7 @@ src/
 │   ├── auth/
 │   └── themes/
 ├── lib/
-│   ├── email/                   # Resend + templates + notifiers
+│   ├── email/                   # SMTP + cola persistente + templates
 │   ├── auth/ bodas/ account/ admin/ payments/ mercadopago/
 │   ├── ratings/ upload/         # local o Vercel Blob
 │   └── db/prisma.ts
@@ -86,6 +86,7 @@ public/uploads/                  # Solo local; en prod → storage cloud
 | `/calificar?bodaId=` | Dynamic | Calificación post-boda |
 | `/api/webhooks/mercadopago` | Route | Pagos regalos/plan |
 | `/api/cron/rating-emails` | Route | Solicitar calificación (Bearer `CRON_SECRET`) |
+| `/api/cron/email-queue` | Route | Procesar cola SMTP (Bearer `CRON_SECRET`) |
 
 ## Reglas Next.js (App Router)
 
@@ -105,7 +106,7 @@ Documentación oficial: [Next.js Docs](https://nextjs.org/docs) — versión del
 
 - **Primario:** Prisma/MariaDB.
 - **Fallback:** mock en `src/data/` si no hay BD.
-- Server Actions para mutaciones; emails fire-and-forget (no bloquear UX si falla el mail).
+- Server Actions para mutaciones; emails se encolan en MariaDB y el cron los envía con reintentos.
 - No fetch a WordPress salvo pedido explícito.
 
 ### Imports
@@ -152,9 +153,10 @@ ThemeProvider
   └── ThemeSection / MicrositeSectionTitle
 ```
 
-## Emails (Resend)
+## Emails (SMTP + cola persistente)
 
-- Cliente: `src/lib/email/client.ts` — si falta `RESEND_API_KEY`, loguea y no rompe.
+- Transporte: `src/lib/email/client.ts` (Nodemailer / SMTP).
+- Cola cifrada: `src/lib/email/queue.ts`; worker y reintentos: `src/lib/email/worker.ts`.
 - Templates: `src/lib/email/templates.ts`
 - Notifiers: `src/lib/email/notify.ts`
 - Triggers: RSVP (`submitPublicRsvpAction`), regalo transferencia / MP aprobado, plan aprobado, solicitud/agradecimiento de calificación.
@@ -164,7 +166,7 @@ ThemeProvider
 - Modelo Prisma `Rating` (ligado a `Boda`).
 - Público: `/calificar?bodaId=...` (solo después de la fecha del evento).
 - Home: ratings con `status=approved` (fallback a mock si no hay).
-- Cron: `/api/cron/rating-emails` marca `ratingEmailSentAt` en la boda.
+- Cron: `/api/cron/rating-emails` encola; el worker marca `ratingEmailSentAt` sólo tras envío SMTP.
 
 ## Instagram / redes
 
@@ -197,7 +199,7 @@ ThemeProvider
 2. ~~Auth JWT + MariaDB/Prisma~~
 3. ~~Panel `/mi-cuenta` (CRUD boda, regalos, RSVP, tema, etc.)~~
 4. ~~Planes + MercadoPago (regalos y upgrade)~~
-5. ~~Emails transaccionales (Resend)~~
+5. ~~Emails transaccionales (SMTP + cola persistente)~~
 6. ~~Calificaciones + cron~~
 7. ~~Instagram en home~~
 8. ~~Panel admin interno (`/admin`)~~
@@ -218,9 +220,14 @@ MERCADOPAGO_SANDBOX=true
 PLAN_BASICO_PRICE_ARS=50000
 PLAN_PREMIUM_PRICE_ARS=90000
 
-RESEND_API_KEY=
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASSWORD=
 EMAIL_FROM="DeBodas <noreply@debodas.com.ar>"
 EMAIL_ADMIN=hola@debodas.com.ar
+EMAIL_QUEUE_SECRET=...            # opcional; fallback AUTH_SECRET
 
 CRON_SECRET=...                    # Bearer para /api/cron/*
 BLOB_READ_WRITE_TOKEN=...          # Vercel Blob; si falta, uploads locales
@@ -253,6 +260,6 @@ Deploy: ver `docs/DEPLOY.md`.
 ## Referencias
 
 - [Next.js Docs](https://nextjs.org/docs)
-- [Resend](https://resend.com/docs)
+- [Nodemailer](https://nodemailer.com/)
 - Tema WP legacy: `C:\xampp\htdocs\debodas\inc\functions\debodas-themes.php`
 - Calificaciones WP: `debodas/inc/functions/calificaciones.php`

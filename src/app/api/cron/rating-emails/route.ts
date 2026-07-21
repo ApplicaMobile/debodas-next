@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCoupleDisplayName } from "@/data/bodas";
 import { prisma } from "@/lib/db/prisma";
-import { notifyRatingRequest, queueEmail } from "@/lib/email/notify";
+import { notifyRatingRequest } from "@/lib/email/notify";
 import {
   hasEventDatePassed,
   parseEventDate,
@@ -37,12 +37,13 @@ export async function GET(request: Request) {
         event: true,
         user: { select: { email: true, name: true } },
       },
-      take: 50,
+      orderBy: { createdAt: "asc" },
+      take: 500,
     });
 
     const due = candidates.filter((boda) => hasEventDatePassed(boda.event));
 
-    let sent = 0;
+    let queued = 0;
     for (const boda of due) {
       const email = boda.user.email;
       if (!email) continue;
@@ -61,26 +62,19 @@ export async function GET(request: Request) {
       // Evitar enviar el mismo día de la boda muy temprano: solo si ya pasó la fecha.
       if (!eventDate) continue;
 
-      queueEmail(async () => {
-        await notifyRatingRequest({
-          to: email,
-          coupleName,
-          bodaId: boda.id,
-        });
+      const result = await notifyRatingRequest({
+        to: email,
+        coupleName,
+        bodaId: boda.id,
       });
-
-      await prisma.boda.update({
-        where: { id: boda.id },
-        data: { ratingEmailSentAt: new Date() },
-      });
-      sent += 1;
+      if (!result.skipped && !result.duplicate) queued += 1;
     }
 
     return NextResponse.json({
       ok: true,
       candidates: candidates.length,
       due: due.length,
-      sent,
+      queued,
     });
   } catch (error) {
     console.error("[cron/rating-emails]", error);

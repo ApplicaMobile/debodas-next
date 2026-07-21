@@ -5,7 +5,6 @@ import type { MercadoPagoPaymentResult } from "@/lib/mercadopago/api";
 import {
   notifyNoviosGift,
   notifyPlanConfirmed,
-  queueEmail,
 } from "@/lib/email/notify";
 
 const APPROVED_STATUSES = new Set(["approved"]);
@@ -115,13 +114,12 @@ export async function processMercadoPagoPaymentNotification(
       data: { plan: payment.planTarget },
     });
 
-    queueEmail(() =>
-      notifyPlanConfirmed({
-        bodaId: payment.bodaId,
-        planTarget: payment.planTarget!,
-        amount: updatedPayment.amount.toString(),
-      }),
-    );
+    await notifyPlanConfirmed({
+      bodaId: payment.bodaId,
+      planTarget: payment.planTarget,
+      amount: updatedPayment.amount.toString(),
+      notificationId: payment.id,
+    });
 
     revalidatePath("/mi-cuenta/plan");
     revalidatePath("/mi-cuenta");
@@ -137,16 +135,15 @@ export async function processMercadoPagoPaymentNotification(
     await createConfirmedGiftFromPayment(updatedPayment);
 
     const meta = (updatedPayment.metadata ?? {}) as GiftPaymentMetadata;
-    queueEmail(() =>
-      notifyNoviosGift({
-        bodaId: payment.bodaId,
-        participants: meta.participants ?? "Invitado",
-        amount: updatedPayment.amount.toString(),
-        method: meta.method ?? "mp_checkout",
-        pending: false,
-        items: Array.isArray(meta.items) ? meta.items : [],
-      }),
-    );
+    await notifyNoviosGift({
+      bodaId: payment.bodaId,
+      participants: meta.participants ?? "Invitado",
+      amount: updatedPayment.amount.toString(),
+      method: meta.method ?? "mp_checkout",
+      pending: false,
+      items: Array.isArray(meta.items) ? meta.items : [],
+      notificationId: payment.id,
+    });
 
     revalidatePath(`/bodas/${payment.boda.slug}`);
     revalidatePath("/mi-cuenta/regalos-recibidos");

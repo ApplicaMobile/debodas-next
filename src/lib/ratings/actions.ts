@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { FormState } from "@/lib/account/form-state";
 import { prisma } from "@/lib/db/prisma";
-import { notifyRatingSubmitted, queueEmail } from "@/lib/email/notify";
+import { notifyRatingSubmitted } from "@/lib/email/notify";
 import { getCoupleDisplayName } from "@/data/bodas";
 import type { Boda as BodaShape } from "@/types/boda";
 import { hasEventDatePassed } from "@/lib/ratings/date";
@@ -94,7 +94,7 @@ export async function submitRatingAction(
       return { error: "Ya enviaste una calificación para esta boda." };
     }
 
-    await prisma.rating.create({
+    const rating = await prisma.rating.create({
       data: {
         bodaId,
         name,
@@ -109,15 +109,14 @@ export async function submitRatingAction(
       getCoupleDisplayName((boda.couple ?? {}) as BodaShape["couple"]) ||
       boda.title;
 
-    queueEmail(() =>
-      notifyRatingSubmitted({
-        coupleName,
-        name,
-        email,
-        score,
-        comment: comment || null,
-      }),
-    );
+    await notifyRatingSubmitted({
+      coupleName,
+      name,
+      email,
+      score,
+      comment: comment || null,
+      ratingId: rating.id,
+    });
 
     revalidatePath("/");
     revalidatePath("/calificar");
