@@ -1,24 +1,63 @@
+import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import {
+  auditActionLabel,
+  auditEntityLabel,
+} from "@/lib/admin/audit-labels";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { prisma } from "@/lib/db/prisma";
 
 const PAGE_SIZE = 50;
 
 interface PageProps {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    q?: string;
+    action?: string;
+    entity?: string;
+  }>;
 }
 
 export default async function AdminAuditPage({ searchParams }: PageProps) {
   await requireAdmin();
-  const { page: pageRaw } = await searchParams;
-  const total = await prisma.adminAuditLog.count();
+  const params = await searchParams;
+  const query = (params.q ?? "").trim();
+  const action = (params.action ?? "").trim();
+  const entity = (params.entity ?? "").trim();
+  const where: Prisma.AdminAuditLogWhereInput = {
+    ...(query
+      ? {
+          OR: [
+            { actorEmail: { contains: query } },
+            { entityId: { contains: query } },
+          ],
+        }
+      : {}),
+    ...(action ? { action } : {}),
+    ...(entity ? { entity } : {}),
+  };
+  const [total, actionGroups, entityGroups] = await Promise.all([
+    prisma.adminAuditLog.count({ where }),
+    prisma.adminAuditLog.groupBy({
+      by: ["action"],
+      _count: { _all: true },
+      orderBy: { action: "asc" },
+    }),
+    prisma.adminAuditLog.groupBy({
+      by: ["entity"],
+      _count: { _all: true },
+      orderBy: { entity: "asc" },
+    }),
+  ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const requestedPage = Number.parseInt(pageRaw ?? "1", 10);
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
   const page = Math.min(
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1,
     totalPages,
   );
   const logs = await prisma.adminAuditLog.findMany({
+    where,
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     skip: (page - 1) * PAGE_SIZE,
     take: PAGE_SIZE,
@@ -34,6 +73,68 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
           {total} acción{total === 1 ? "" : "es"} registrada
           {total === 1 ? "" : "s"}.
         </p>
+      </section>
+
+      <section className="rounded-3xl bg-white p-5 shadow-sm">
+        <form className="flex flex-wrap gap-3" method="get">
+          <label htmlFor="audit-search" className="sr-only">
+            Buscar administrador o entidad
+          </label>
+          <input
+            id="audit-search"
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="Administrador o ID de entidad…"
+            className="min-h-11 min-w-[220px] flex-1 rounded-xl border border-stone-300 px-4 text-sm"
+          />
+          <label htmlFor="audit-action" className="sr-only">
+            Acción
+          </label>
+          <select
+            id="audit-action"
+            name="action"
+            defaultValue={action}
+            className="min-h-11 max-w-xs rounded-xl border border-stone-300 px-3 text-sm"
+          >
+            <option value="">Todas las acciones</option>
+            {actionGroups.map((group) => (
+              <option key={group.action} value={group.action}>
+                {auditActionLabel(group.action)} ({group._count._all})
+              </option>
+            ))}
+          </select>
+          <label htmlFor="audit-entity" className="sr-only">
+            Entidad
+          </label>
+          <select
+            id="audit-entity"
+            name="entity"
+            defaultValue={entity}
+            className="min-h-11 rounded-xl border border-stone-300 px-3 text-sm"
+          >
+            <option value="">Todas las entidades</option>
+            {entityGroups.map((group) => (
+              <option key={group.entity} value={group.entity}>
+                {auditEntityLabel(group.entity)} ({group._count._all})
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="min-h-11 rounded-full bg-stone-800 px-5 text-sm font-semibold text-white"
+          >
+            Filtrar
+          </button>
+          {query || action || entity ? (
+            <Link
+              href="/admin/auditoria"
+              className="inline-flex min-h-11 items-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700"
+            >
+              Limpiar
+            </Link>
+          ) : null}
+        </form>
       </section>
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
@@ -58,10 +159,13 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
                     {log.actorEmail}
                   </td>
                   <td className="px-4 py-3 font-medium text-stone-800">
-                    {log.action}
+                    {auditActionLabel(log.action)}
+                    <span className="mt-1 block text-xs font-normal text-stone-400">
+                      {log.action}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-stone-600">
-                    {log.entity}
+                    {auditEntityLabel(log.entity)}
                     {log.entityId ? (
                       <span className="block max-w-48 truncate text-xs text-stone-400">
                         {log.entityId}
@@ -92,6 +196,11 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
           pathname="/admin/auditoria"
           currentPage={page}
           totalPages={totalPages}
+          query={{
+            ...(query ? { q: query } : {}),
+            ...(action ? { action } : {}),
+            ...(entity ? { entity } : {}),
+          }}
         />
       </section>
     </div>

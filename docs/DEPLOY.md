@@ -28,6 +28,9 @@ Copiar desde `.env.example` y completar:
 
 Sin `BLOB_READ_WRITE_TOKEN` los uploads van a `public/uploads/` (no persistente en Vercel).
 
+No definir `EMAIL_TEST_TO` en producción: esa variable redirige todos los
+destinatarios al inbox de pruebas.
+
 ## Deploy
 
 1. `npm run build` local OK
@@ -38,6 +41,15 @@ Sin `BLOB_READ_WRITE_TOKEN` los uploads van a `public/uploads/` (no persistente 
 6. Seed solo en staging: `npm run db:seed`
 7. Configurar webhook MP: `{APP_URL}/api/webhooks/mercadopago?bodaId=...`
 8. Verificar crons `/api/cron/rating-emails` y `/api/cron/email-queue` (Bearer `CRON_SECRET`)
+
+## Verificación de emails
+
+- [ ] SPF, DKIM y DMARC configurados para el dominio remitente
+- [ ] `/api/cron/email-queue` ejecutándose al menos cada 5 minutos
+- [ ] Enviar un email real y confirmar estado `sent` en `/admin/emails`
+- [ ] Confirmar que `EMAIL_TEST_TO` no existe en producción
+- [ ] Revisar periódicamente contadores `failed` y `blocked`
+- [ ] Probar el reintento manual desde el panel
 
 ## Cutover DNS
 

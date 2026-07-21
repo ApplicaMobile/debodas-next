@@ -10,6 +10,7 @@ import {
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { getCoupleDisplayName } from "@/data/bodas";
 import { notifyRatingRequest } from "@/lib/email/notify";
+import { processEmailQueue } from "@/lib/email/worker";
 import { prisma } from "@/lib/db/prisma";
 import type { Boda as BodaShape } from "@/types/boda";
 
@@ -374,6 +375,98 @@ export async function retryEmailAdminAction(formData: FormData) {
   });
 
   revalidatePath("/admin/emails");
+}
+
+export async function processEmailQueueAdminAction() {
+  const admin = await requireAdmin();
+  const audit = await getAdminAuditContext(admin);
+  const stats = await processEmailQueue(20);
+
+  await prisma.$transaction((tx) =>
+    writeAdminAudit(tx, audit, {
+      action: "admin.email.queue_processed",
+      entity: "email_queue",
+      metadata: {
+        claimed: stats.claimed,
+        sent: stats.sent,
+        retried: stats.retried,
+        failed: stats.failed,
+        blocked: stats.blocked,
+      },
+    }),
+  );
+
+  revalidatePath("/admin/emails");
+  redirect(
+    `/admin/emails?ok=processed&claimed=${stats.claimed}&sent=${stats.sent}&failed=${stats.failed + stats.blocked}`,
+  );
+}
+
+export async function retryFailedEmailsAdminAction() {
+  const admin = await requireAdmin();
+  const audit = await getAdminAuditContext(admin);
+
+  const count = await prisma.$transaction(async (tx) => {
+    const result = await tx.emailLog.updateMany({
+      where: {
+        status: { in: ["failed", "blocked"] },
+        contentEncrypted: { not: null },
+      },
+      data: {
+        status: "queued",
+        attempts: 0,
+        availableAt: new Date(),
+        lockedAt: null,
+        lockedBy: null,
+        providerId: null,
+        error: null,
+        sentAt: null,
+      },
+    });
+    await writeAdminAudit(tx, audit, {
+      action: "admin.email.bulk_retried",
+      entity: "email_queue",
+      metadata: { count: result.count },
+    });
+    return result.count;
+  });
+
+  revalidatePath("/admin/emails");
+  redirect(`/admin/emails?ok=requeued&count=${count}`);
+}
+
+export async function deleteEmailLogAdminAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const emailId = String(formData.get("email_id") ?? "").trim();
+  if (!emailId) return;
+
+  const audit = await getAdminAuditContext(admin);
+  const deleted = await prisma.$transaction(async (tx) => {
+    const email = await tx.emailLog.findUnique({
+      where: { id: emailId },
+      select: { status: true, type: true },
+    });
+    if (
+      !email ||
+      !["failed", "blocked", "skipped", "cancelled"].includes(email.status)
+    ) {
+      return false;
+    }
+
+    await writeAdminAudit(tx, audit, {
+      action: "admin.email.deleted",
+      entity: "emailLog",
+      entityId: emailId,
+      metadata: { previousStatus: email.status, type: email.type },
+    });
+    await tx.emailLog.delete({ where: { id: emailId } });
+    return true;
+  });
+
+  if (deleted) {
+    revalidatePath("/admin/emails");
+    redirect("/admin/emails");
+  }
 }
 
 function adminUsersPath(
