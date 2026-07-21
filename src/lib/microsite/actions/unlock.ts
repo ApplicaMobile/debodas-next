@@ -26,7 +26,11 @@ export async function unlockMicrositeAction(
   const headerStore = await headers();
   const ip = clientIpFromHeaders(headerStore);
 
-  const limited = checkRateLimit(`unlock:${slug}:${ip}`, 10, 15 * 60 * 1000);
+  const limited = await checkRateLimit(
+    `unlock:${slug}:${ip}`,
+    10,
+    15 * 60 * 1000,
+  );
   if (!limited.ok) {
     return {
       error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,

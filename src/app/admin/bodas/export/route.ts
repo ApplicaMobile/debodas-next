@@ -7,11 +7,15 @@ import {
 } from "@/lib/admin/format";
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
+import {
+  getAdminAuditContext,
+  writeAdminAudit,
+} from "@/lib/admin/audit";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const { searchParams } = new URL(request.url);
   const query = (searchParams.get("q") ?? "").trim();
@@ -38,6 +42,19 @@ export async function GET(request: Request) {
       _count: { select: { rsvpGuests: true, gifts: true, ratings: true } },
     },
   });
+
+  const audit = await getAdminAuditContext(admin);
+  await prisma.$transaction((tx) =>
+    writeAdminAudit(tx, audit, {
+      action: "admin.bodas.exported",
+      entity: "boda_collection",
+      metadata: {
+        query,
+        plan: planFilter,
+        rowCount: bodas.length,
+      },
+    }),
+  );
 
   const header = [
     "id",

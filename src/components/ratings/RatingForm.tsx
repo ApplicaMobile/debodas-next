@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { submitRatingAction } from "@/lib/ratings/actions";
 import type { FormState } from "@/lib/account/form-state";
+import { HoneypotField } from "@/components/ui/HoneypotField";
 
 const initialState: FormState = {};
 
@@ -20,16 +21,21 @@ export function RatingForm({ bodaId, coupleName }: RatingFormProps) {
 
   if (state.success) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+      <div
+        role="status"
+        aria-live="polite"
+        className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center"
+      >
         <p className="font-serif text-xl text-emerald-900">{state.success}</p>
       </div>
     );
   }
 
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} aria-busy={pending} className="space-y-5">
       <input type="hidden" name="boda_id" value={bodaId} />
       <input type="hidden" name="score" value={score || ""} />
+      <HoneypotField id="rating-website" />
 
       <p className="text-stone-600">
         Contanos cómo fue tu experiencia con DeBodas para{" "}
@@ -38,7 +44,11 @@ export function RatingForm({ bodaId, coupleName }: RatingFormProps) {
 
       <div>
         <p className="mb-2 text-sm font-medium text-stone-700">Calificación</p>
-        <div className="flex gap-2 text-3xl" role="group" aria-label="Estrellas">
+        <div
+          className="flex gap-1 text-3xl"
+          role="group"
+          aria-label="Calificación de 1 a 5 estrellas"
+        >
           {[1, 2, 3, 4, 5].map((value) => {
             const active = value <= score;
             return (
@@ -46,10 +56,11 @@ export function RatingForm({ bodaId, coupleName }: RatingFormProps) {
                 key={value}
                 type="button"
                 onClick={() => setScore(value)}
+                aria-pressed={score === value}
                 className={
                   active
-                    ? "text-amber-600 transition"
-                    : "text-stone-300 transition hover:text-amber-500"
+                    ? "flex min-h-11 min-w-11 items-center justify-center rounded-lg text-amber-700 transition"
+                    : "flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone-400 transition hover:text-amber-600"
                 }
                 aria-label={`${value} estrellas`}
               >
@@ -71,7 +82,9 @@ export function RatingForm({ bodaId, coupleName }: RatingFormProps) {
           id="name"
           name="name"
           required
-          className="w-full rounded-xl border border-stone-200 px-4 py-3 text-stone-800 outline-none focus:border-[#e6dac7]"
+          minLength={2}
+          maxLength={120}
+          className="w-full rounded-xl border border-stone-200 px-4 py-3 text-stone-800 focus:border-stone-600"
           placeholder="Tu nombre"
         />
       </div>
@@ -88,7 +101,8 @@ export function RatingForm({ bodaId, coupleName }: RatingFormProps) {
           name="email"
           type="email"
           required
-          className="w-full rounded-xl border border-stone-200 px-4 py-3 text-stone-800 outline-none focus:border-[#e6dac7]"
+          maxLength={254}
+          className="w-full rounded-xl border border-stone-200 px-4 py-3 text-stone-800 focus:border-stone-600"
           placeholder="tu@email.com"
         />
       </div>
@@ -104,13 +118,17 @@ export function RatingForm({ bodaId, coupleName }: RatingFormProps) {
           id="comment"
           name="comment"
           rows={4}
-          className="w-full rounded-xl border border-stone-200 px-4 py-3 text-stone-800 outline-none focus:border-[#e6dac7]"
+          maxLength={2000}
+          className="w-full rounded-xl border border-stone-200 px-4 py-3 text-stone-800 focus:border-stone-600"
           placeholder="¿Qué te gustó más?"
         />
       </div>
 
       {state.error ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
           {state.error}
         </p>
       ) : null}

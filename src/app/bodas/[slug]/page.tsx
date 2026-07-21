@@ -134,7 +134,9 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
   return (
     <ThemeProvider slug={resolvedTheme}>
       {showThemeSwitcher ? <ThemeSwitcher weddingSlug={slug} /> : null}
-      <MicrositeDemo boda={boda} rsvpOpen={rsvpOpen} />
+      <main>
+        <MicrositeDemo boda={boda} rsvpOpen={rsvpOpen} />
+      </main>
     </ThemeProvider>
   );
 }

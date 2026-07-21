@@ -6,6 +6,7 @@ import {
   requestPasswordResetAction,
   type PasswordResetState,
 } from "@/lib/auth/password-reset";
+import { HoneypotField } from "@/components/ui/HoneypotField";
 
 const initialState: PasswordResetState = {};
 
@@ -16,22 +17,38 @@ export function ForgotPasswordForm() {
   );
 
   return (
-    <form action={action} className="mt-8 space-y-4">
+    <form action={action} aria-busy={pending} className="mt-8 space-y-4">
+      <HoneypotField id="forgot-website" />
+      <label
+        htmlFor="forgot-email"
+        className="block text-sm font-medium text-stone-700"
+      >
+        Email
+      </label>
       <input
+        id="forgot-email"
         name="email"
         type="email"
+        maxLength={254}
         required
         autoComplete="email"
         placeholder="Tu email"
         className="w-full rounded-xl border border-stone-200 px-4 py-3"
       />
       {state.error ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
           {state.error}
         </p>
       ) : null}
       {state.success ? (
-        <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p
+          role="status"
+          aria-live="polite"
+          className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+        >
           {state.success}
         </p>
       ) : null}
@@ -43,7 +60,7 @@ export function ForgotPasswordForm() {
         {pending ? "Enviando…" : "Enviar enlace"}
       </button>
       <p className="text-center text-sm text-stone-500">
-        <Link href="/login" className="font-medium text-[#e6dac7]">
+        <Link href="/login" className="font-medium text-stone-700 underline">
           Volver al login
         </Link>
       </p>

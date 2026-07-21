@@ -26,14 +26,29 @@ export async function requestPasswordResetAction(
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
+  const website = String(formData.get("website") ?? "").trim();
+  const genericSuccess =
+    "Si ese email está registrado, te enviamos un enlace para restablecer la contraseña.";
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (website) {
+    return { success: genericSuccess };
+  }
+
+  if (
+    !email ||
+    email.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  ) {
     return { error: "Ingresá un email válido." };
   }
 
   const headerStore = await headers();
   const ip = clientIpFromHeaders(headerStore);
-  const limited = checkRateLimit(`reset:${ip}:${email}`, 5, 15 * 60 * 1000);
+  const [ipLimit, emailLimit] = await Promise.all([
+    checkRateLimit(`reset:ip:${ip}`, 10, 60 * 60 * 1000),
+    checkRateLimit(`reset:email:${email}`, 5, 60 * 60 * 1000),
+  ]);
+  const limited = !ipLimit.ok ? ipLimit : emailLimit;
   if (!limited.ok) {
     return {
       error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,
@@ -46,9 +61,6 @@ export async function requestPasswordResetAction(
   });
 
   // Respuesta genérica para no filtrar si el email existe
-  const genericSuccess =
-    "Si ese email está registrado, te enviamos un enlace para restablecer la contraseña.";
-
   if (!user) {
     return { success: genericSuccess };
   }
@@ -75,7 +87,7 @@ export async function requestPasswordResetAction(
 
   if (result.simulated) {
     return {
-      success: `${genericSuccess} (modo local: email simulado, usá el link del log del servidor o pedí RESEND_API_KEY).`,
+      success: `${genericSuccess} (modo local: email simulado; revisá la configuración SMTP).`,
     };
   }
 
@@ -94,8 +106,10 @@ export async function resetPasswordAction(
     return { error: "Enlace inválido." };
   }
 
-  if (password.length < 8) {
-    return { error: "La contraseña debe tener al menos 8 caracteres." };
+  if (password.length < 8 || password.length > 72) {
+    return {
+      error: "La contraseña debe tener entre 8 y 72 caracteres.",
+    };
   }
 
   if (password !== passwordConfirm) {
@@ -104,14 +118,18 @@ export async function resetPasswordAction(
 
   const headerStore = await headers();
   const ip = clientIpFromHeaders(headerStore);
-  const limited = checkRateLimit(`reset-confirm:${ip}`, 10, 15 * 60 * 1000);
+  const tokenHash = hashToken(token);
+  const limited = await checkRateLimit(
+    `reset-confirm:${ip}:${tokenHash}`,
+    10,
+    15 * 60 * 1000,
+  );
   if (!limited.ok) {
     return {
       error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,
     };
   }
 
-  const tokenHash = hashToken(token);
   const record = await prisma.passwordResetToken.findFirst({
     where: {
       tokenHash,
@@ -125,19 +143,31 @@ export async function resetPasswordAction(
   }
 
   const passwordHash = await hash(password, 10);
-  await prisma.$transaction([
-    prisma.user.update({
+  const consumed = await prisma.$transaction(async (tx) => {
+    const result = await tx.passwordResetToken.updateMany({
+      where: {
+        id: record.id,
+        usedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      data: { usedAt: new Date() },
+    });
+    if (result.count !== 1) {
+      return false;
+    }
+    await tx.user.update({
       where: { id: record.userId },
       data: { passwordHash },
-    }),
-    prisma.passwordResetToken.update({
-      where: { id: record.id },
-      data: { usedAt: new Date() },
-    }),
-    prisma.passwordResetToken.deleteMany({
+    });
+    await tx.passwordResetToken.deleteMany({
       where: { userId: record.userId, id: { not: record.id } },
-    }),
-  ]);
+    });
+    return true;
+  });
+
+  if (!consumed) {
+    return { error: "El enlace ya fue utilizado o expiró. Pedí uno nuevo." };
+  }
 
   return {
     success: "Contraseña actualizada. Ya podés iniciar sesión.",

@@ -18,7 +18,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
   if (state.success) {
     return (
       <div className="mt-8 space-y-4 text-center">
-        <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p
+          role="status"
+          aria-live="polite"
+          className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+        >
           {state.success}
         </p>
         <Link
@@ -32,28 +36,47 @@ export function ResetPasswordForm({ token }: { token: string }) {
   }
 
   return (
-    <form action={action} className="mt-8 space-y-4">
+    <form action={action} aria-busy={pending} className="mt-8 space-y-4">
       <input type="hidden" name="token" value={token} />
+      <label
+        htmlFor="reset-password"
+        className="block text-sm font-medium text-stone-700"
+      >
+        Nueva contraseña
+      </label>
       <input
+        id="reset-password"
         name="password"
         type="password"
         required
         minLength={8}
+        maxLength={72}
         autoComplete="new-password"
         placeholder="Nueva contraseña (mín. 8)"
         className="w-full rounded-xl border border-stone-200 px-4 py-3"
       />
+      <label
+        htmlFor="reset-password-confirm"
+        className="block text-sm font-medium text-stone-700"
+      >
+        Repetir contraseña
+      </label>
       <input
+        id="reset-password-confirm"
         name="password_confirm"
         type="password"
         required
         minLength={8}
+        maxLength={72}
         autoComplete="new-password"
         placeholder="Repetir contraseña"
         className="w-full rounded-xl border border-stone-200 px-4 py-3"
       />
       {state.error ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
           {state.error}
         </p>
       ) : null}

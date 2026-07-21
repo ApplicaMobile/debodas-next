@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { submitPublicRsvpAction } from "@/lib/microsite/actions/rsvp";
 import type { FormState } from "@/lib/account/form-state";
 import { FormAlert } from "@/components/account/FormAlert";
+import { HoneypotField } from "@/components/ui/HoneypotField";
 import { MicrositeSectionTitle } from "@/components/themes/ThemeSection";
 import {
   canChooseRsvpMenu,
@@ -64,21 +65,42 @@ export function RsvpForm({
         Confirmá tu asistencia completando el formulario.
       </p>
 
-      <form action={formAction} className="mt-6 space-y-4">
+      <form
+        action={formAction}
+        aria-busy={isPending}
+        className="mt-6 space-y-4"
+      >
         <input type="hidden" name="boda_slug" value={slug} />
+        <HoneypotField id="rsvp-website" />
 
+        <label
+          htmlFor="rsvp-name"
+          className="block text-sm font-medium text-stone-700"
+        >
+          Nombre y apellido
+        </label>
         <input
+          id="rsvp-name"
           name="name"
           required
           minLength={2}
+          maxLength={120}
           className="w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-stone-800"
           placeholder="Tu nombre y apellido"
           autoComplete="name"
         />
 
+        <label
+          htmlFor="rsvp-email"
+          className="block text-sm font-medium text-stone-700"
+        >
+          Email (opcional)
+        </label>
         <input
+          id="rsvp-email"
           name="email"
           type="email"
+          maxLength={254}
           className="w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-stone-800"
           placeholder="Email (opcional)"
           autoComplete="email"
@@ -88,7 +110,7 @@ export function RsvpForm({
           <legend className="text-sm font-medium text-stone-700">
             ¿Vas a asistir?
           </legend>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex min-h-11 items-center gap-3 rounded-lg px-2 text-sm text-stone-700 hover:bg-white/60">
             <input
               type="radio"
               name="status"
@@ -99,7 +121,7 @@ export function RsvpForm({
             />
             Sí, asistiré
           </label>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex min-h-11 items-center gap-3 rounded-lg px-2 text-sm text-stone-700 hover:bg-white/60">
             <input
               type="radio"
               name="status"
@@ -131,9 +153,17 @@ export function RsvpForm({
           <input type="hidden" name="menu" value="general" />
         )}
 
+        <label
+          htmlFor="rsvp-notes"
+          className="block text-sm font-medium text-stone-700"
+        >
+          Mensaje para los novios (opcional)
+        </label>
         <textarea
+          id="rsvp-notes"
           name="notes"
           rows={2}
+          maxLength={1000}
           className="w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-stone-800"
           placeholder="Mensaje para los novios (opcional)"
         />

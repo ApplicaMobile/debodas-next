@@ -12,6 +12,7 @@ export const adminSections: AdminSection[] = [
   { href: "/admin/usuarios", label: "Usuarios" },
   { href: "/admin/pagos", label: "Pagos" },
   { href: "/admin/emails", label: "Emails" },
+  { href: "/admin/auditoria", label: "Auditoría" },
 ];
 
 export function isAdminSectionActive(

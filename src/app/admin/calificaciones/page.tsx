@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { updateRatingStatusAction } from "@/lib/admin/actions";
 import { prisma } from "@/lib/db/prisma";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
+import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>;
@@ -110,40 +112,43 @@ export default async function AdminCalificacionesPage({
 
             <div className="mt-4 flex flex-wrap gap-2">
               {rating.status !== "approved" ? (
-                <form action={updateRatingStatusAction}>
+                <AdminActionForm action={updateRatingStatusAction}>
                   <input type="hidden" name="rating_id" value={rating.id} />
                   <input type="hidden" name="status" value="approved" />
-                  <button
-                    type="submit"
+                  <AdminSubmitButton
+                    idleLabel="Aprobar"
+                    pendingLabel="Aprobando…"
                     className="rounded-full bg-[#e6dac7] px-4 py-2 text-xs font-semibold text-stone-800"
-                  >
-                    Aprobar
-                  </button>
-                </form>
+                  />
+                </AdminActionForm>
               ) : null}
               {rating.status !== "rejected" ? (
-                <form action={updateRatingStatusAction}>
+                <AdminActionForm
+                  action={updateRatingStatusAction}
+                  confirmMessage="¿Confirmás que querés rechazar esta calificación?"
+                >
                   <input type="hidden" name="rating_id" value={rating.id} />
                   <input type="hidden" name="status" value="rejected" />
-                  <button
-                    type="submit"
+                  <AdminSubmitButton
+                    idleLabel="Rechazar"
+                    pendingLabel="Rechazando…"
                     className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-700"
-                  >
-                    Rechazar
-                  </button>
-                </form>
+                  />
+                </AdminActionForm>
               ) : null}
               {rating.status !== "pending" ? (
-                <form action={updateRatingStatusAction}>
+                <AdminActionForm
+                  action={updateRatingStatusAction}
+                  confirmMessage="¿Confirmás que querés quitar esta calificación de su estado actual?"
+                >
                   <input type="hidden" name="rating_id" value={rating.id} />
                   <input type="hidden" name="status" value="pending" />
-                  <button
-                    type="submit"
+                  <AdminSubmitButton
+                    idleLabel="Marcar pendiente"
+                    pendingLabel="Actualizando…"
                     className="rounded-full border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-500"
-                  >
-                    Marcar pendiente
-                  </button>
-                </form>
+                  />
+                </AdminActionForm>
               ) : null}
             </div>
           </article>

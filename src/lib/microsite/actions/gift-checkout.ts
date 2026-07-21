@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import {
   getAvailableGiftPaymentMethods,
   getDecryptedPaymentSettings,
@@ -23,6 +24,10 @@ import {
   getUploadErrorMessage,
   saveUploadedVoucher,
 } from "@/lib/upload/local";
+import {
+  checkRateLimit,
+  clientIpFromHeaders,
+} from "@/lib/security/rate-limit";
 
 export interface GiftCheckoutState {
   error?: string;
@@ -38,7 +43,7 @@ interface ParsedCartItem {
 function parseCartItems(raw: string): ParsedCartItem[] {
   try {
     const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed) || parsed.length === 0) {
+    if (!Array.isArray(parsed) || parsed.length === 0 || parsed.length > 20) {
       return [];
     }
 
@@ -50,7 +55,12 @@ function parseCartItems(raw: string): ParsedCartItem[] {
         const record = item as Record<string, unknown>;
         const giftId = String(record.giftId ?? "").trim();
         const quantity = Number(record.quantity ?? 1);
-        if (!giftId || !Number.isFinite(quantity) || quantity < 1) {
+        if (
+          !giftId ||
+          !Number.isInteger(quantity) ||
+          quantity < 1 ||
+          quantity > 20
+        ) {
           return null;
         }
         return { giftId, quantity: Math.floor(quantity) };
@@ -75,6 +85,15 @@ async function buildCartLines(
   }
 
   const giftById = new Map(gifts.map((gift) => [gift.id, gift]));
+  const unavailable = cartItems.find((item) => {
+    const gift = giftById.get(item.giftId);
+    return gift && item.quantity > gift.quantity;
+  });
+  if (unavailable) {
+    return {
+      error: `No hay suficiente disponibilidad para "${giftById.get(unavailable.giftId)?.title ?? "este regalo"}".`,
+    };
+  }
 
   return cartItems.map((item) => {
     const gift = giftById.get(item.giftId)!;
@@ -96,20 +115,45 @@ function readCheckoutFields(formData: FormData) {
     dedication: String(formData.get("dedication") ?? "").trim(),
     method: String(formData.get("method") ?? "").trim(),
     cartRaw: String(formData.get("cart_items") ?? "").trim(),
+    website: String(formData.get("website") ?? "").trim(),
   };
 }
 
 function validateCheckoutFields(fields: ReturnType<typeof readCheckoutFields>) {
-  if (!fields.slug) {
+  if (!fields.slug || fields.slug.length > 100) {
     return "No encontramos esta boda.";
   }
-  if (fields.participants.length < 2) {
+  if (fields.participants.length < 2 || fields.participants.length > 200) {
     return "Ingresá quién/es regala/n.";
   }
-  if (fields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
+  if (
+    fields.email &&
+    (fields.email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email))
+  ) {
     return "Ingresá un email válido o dejá el campo vacío.";
   }
+  if (fields.phone.length > 40 || fields.dedication.length > 1000) {
+    return "Uno de los campos supera el largo permitido.";
+  }
+  if (fields.cartRaw.length > 10_000) {
+    return "El carrito es demasiado grande.";
+  }
   return null;
+}
+
+async function checkGiftRateLimit(
+  slug: string,
+  scope: "checkout" | "transfer",
+  limit: number,
+) {
+  const headerStore = await headers();
+  const ip = clientIpFromHeaders(headerStore);
+  return checkRateLimit(
+    `gift:${scope}:${slug}:${ip}`,
+    limit,
+    15 * 60 * 1000,
+  );
 }
 
 export async function createGiftCheckoutAction(
@@ -117,6 +161,9 @@ export async function createGiftCheckoutAction(
   formData: FormData,
 ): Promise<GiftCheckoutState> {
   const fields = readCheckoutFields(formData);
+  if (fields.website) {
+    return { success: "Solicitud recibida." };
+  }
   const validationError = validateCheckoutFields(fields);
   if (validationError) {
     return { error: validationError };
@@ -132,6 +179,13 @@ export async function createGiftCheckoutAction(
   }
 
   try {
+    const limited = await checkGiftRateLimit(fields.slug, "checkout", 10);
+    if (!limited.ok) {
+      return {
+        error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,
+      };
+    }
+
     const boda = await prisma.boda.findUnique({
       where: { slug: fields.slug },
       select: { id: true, slug: true, plan: true, misc: true },
@@ -163,6 +217,9 @@ export async function createGiftCheckoutAction(
     }
 
     const subtotal = calculateGiftSubtotal(cartLines);
+    if (!Number.isFinite(subtotal) || subtotal <= 0) {
+      return { error: "El total del regalo no es válido." };
+    }
     const externalRef = `gift_${boda.id}_${Date.now()}`;
 
     const payment = await prisma.payment.create({
@@ -228,6 +285,9 @@ export async function submitGiftTransferAction(
   formData: FormData,
 ): Promise<GiftCheckoutState> {
   const fields = readCheckoutFields(formData);
+  if (fields.website) {
+    return { success: "Solicitud recibida." };
+  }
   const validationError = validateCheckoutFields(fields);
   if (validationError) {
     return { error: validationError };
@@ -253,6 +313,13 @@ export async function submitGiftTransferAction(
   const voucherFile = voucher instanceof File && voucher.size > 0 ? voucher : null;
 
   try {
+    const limited = await checkGiftRateLimit(fields.slug, "transfer", 6);
+    if (!limited.ok) {
+      return {
+        error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,
+      };
+    }
+
     const boda = await prisma.boda.findUnique({
       where: { slug: fields.slug },
       select: { id: true, slug: true, plan: true, misc: true },
@@ -276,6 +343,9 @@ export async function submitGiftTransferAction(
     }
 
     const amount = calculateGiftSubtotal(cartLines);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { error: "El total del regalo no es válido." };
+    }
     let voucherUrl: string | null = null;
 
     if (voucherFile) {

@@ -26,20 +26,28 @@ export async function submitPublicRsvpAction(
 ): Promise<FormState> {
   const slug = String(formData.get("boda_slug") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const status = String(formData.get("status") ?? "confirmed").trim();
   const notes = String(formData.get("notes") ?? "").trim();
   const menuRaw = String(formData.get("menu") ?? "general").trim();
+  const website = String(formData.get("website") ?? "").trim();
 
-  if (!slug) {
+  if (website) {
+    return { success: "¡Gracias! Recibimos tu confirmación de asistencia." };
+  }
+
+  if (!slug || slug.length > 100) {
     return { error: "No encontramos esta boda." };
   }
 
-  if (name.length < 2) {
+  if (name.length < 2 || name.length > 120) {
     return { error: "Ingresá tu nombre completo." };
   }
 
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (
+    email &&
+    (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  ) {
     return { error: "Ingresá un email válido o dejá el campo vacío." };
   }
 
@@ -47,10 +55,18 @@ export async function submitPublicRsvpAction(
     return { error: "Seleccioná si vas a asistir o no." };
   }
 
+  if (notes.length > 1000) {
+    return { error: "El mensaje es demasiado largo." };
+  }
+
   try {
     const headerStore = await headers();
     const ip = clientIpFromHeaders(headerStore);
-    const limited = checkRateLimit(`rsvp:${slug}:${ip}`, 8, 15 * 60 * 1000);
+    const [weddingLimit, ipLimit] = await Promise.all([
+      checkRateLimit(`rsvp:wedding:${slug}:${ip}`, 8, 15 * 60 * 1000),
+      checkRateLimit(`rsvp:ip:${ip}`, 30, 60 * 60 * 1000),
+    ]);
+    const limited = !weddingLimit.ok ? weddingLimit : ipLimit;
     if (!limited.ok) {
       return {
         error: `Demasiados envíos. Probá en ${limited.retryAfterSec}s.`,

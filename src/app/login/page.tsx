@@ -59,7 +59,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           ) : null}
 
           <p className="mt-4 text-center text-sm text-stone-500">
-            <Link href="/registro" className="font-medium text-[#e6dac7]">
+            <Link href="/registro" className="font-medium text-[#6f5f47] underline">
               Crear cuenta
             </Link>
           </p>

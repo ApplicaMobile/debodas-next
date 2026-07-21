@@ -100,7 +100,7 @@ function EmptyState({ title, message }: { title: string; message: string }) {
       <p className="mt-3 text-stone-600">{message}</p>
       <Link
         href="/"
-        className="mt-6 inline-block text-sm font-semibold text-[#e6dac7] hover:underline"
+        className="mt-6 inline-block text-sm font-semibold text-[#6f5f47] hover:underline"
       >
         Volver al inicio
       </Link>

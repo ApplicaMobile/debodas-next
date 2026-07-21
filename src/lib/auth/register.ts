@@ -4,6 +4,7 @@ import {
 } from "@/lib/auth/plans";
 
 const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 72;
 const MIN_NAME_LENGTH = 2;
 const MIN_PHONE_LENGTH = 8;
 
@@ -58,7 +59,11 @@ function parseRegisterFields(formData: FormData): RegisterInput {
 }
 
 function validateEmail(email: string): string | null {
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (
+    !email ||
+    email.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  ) {
     return "Ingresá un email válido.";
   }
   return null;
@@ -67,6 +72,9 @@ function validateEmail(email: string): string | null {
 function validatePassword(password: string, passwordConfirm: string): string | null {
   if (password.length < MIN_PASSWORD_LENGTH) {
     return `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return `La contraseña no puede superar ${MAX_PASSWORD_LENGTH} caracteres.`;
   }
 
   if (password !== passwordConfirm) {
@@ -79,6 +87,9 @@ function validatePassword(password: string, passwordConfirm: string): string | n
 function validateName(value: string, label: string): string | null {
   if (value.length < MIN_NAME_LENGTH) {
     return `${label} debe tener al menos ${MIN_NAME_LENGTH} caracteres.`;
+  }
+  if (value.length > 100) {
+    return `${label} no puede superar 100 caracteres.`;
   }
   return null;
 }
@@ -99,8 +110,11 @@ export function validateRegisterStep2(formData: FormData): string | null {
     validateName(data.brideLastname, "El apellido 1") ??
     validateName(data.groomName, "El nombre 2") ??
     validateName(data.groomLastname, "El apellido 2") ??
-    (data.phone.length < MIN_PHONE_LENGTH
-      ? `El teléfono debe tener al menos ${MIN_PHONE_LENGTH} caracteres.`
+    (data.phone.length < MIN_PHONE_LENGTH || data.phone.length > 40
+      ? `El teléfono debe tener entre ${MIN_PHONE_LENGTH} y 40 caracteres.`
+      : null) ??
+    (data.ourStory.length > 3000
+      ? "La historia no puede superar 3000 caracteres."
       : null) ??
     (!data.eventDate ? "Ingresá la fecha de la boda." : null) ??
     (!data.siteSource ? "Seleccioná cómo nos conociste." : null) ??

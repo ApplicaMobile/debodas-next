@@ -2,6 +2,11 @@ import Link from "next/link";
 import { confirmGiftAdminAction } from "@/lib/admin/actions";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { prisma } from "@/lib/db/prisma";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
+import { AdminPagination } from "@/components/admin/AdminPagination";
+import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+
+const PAGE_SIZE = 25;
 
 function money(amount: { toString(): string }, currency: string) {
   const n = Number(amount.toString());
@@ -12,20 +17,47 @@ function money(amount: { toString(): string }, currency: string) {
   }).format(Number.isFinite(n) ? n : 0);
 }
 
-export default async function AdminPagosPage() {
+interface PageProps {
+  searchParams: Promise<{ paymentsPage?: string; giftsPage?: string }>;
+}
+
+export default async function AdminPagosPage({ searchParams }: PageProps) {
   await requireAdmin();
+  const params = await searchParams;
+  const [paymentsTotal, giftsTotal] = await Promise.all([
+    prisma.payment.count(),
+    prisma.confirmedGift.count(),
+  ]);
+  const paymentsTotalPages = Math.max(1, Math.ceil(paymentsTotal / PAGE_SIZE));
+  const giftsTotalPages = Math.max(1, Math.ceil(giftsTotal / PAGE_SIZE));
+  const requestedPaymentsPage = Number.parseInt(params.paymentsPage ?? "1", 10);
+  const requestedGiftsPage = Number.parseInt(params.giftsPage ?? "1", 10);
+  const paymentsPage = Math.min(
+    Number.isFinite(requestedPaymentsPage) && requestedPaymentsPage > 0
+      ? requestedPaymentsPage
+      : 1,
+    paymentsTotalPages,
+  );
+  const giftsPage = Math.min(
+    Number.isFinite(requestedGiftsPage) && requestedGiftsPage > 0
+      ? requestedGiftsPage
+      : 1,
+    giftsTotalPages,
+  );
 
   const [payments, gifts] = await Promise.all([
     prisma.payment.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      skip: (paymentsPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       include: {
         boda: { select: { id: true, title: true, slug: true } },
       },
     }),
     prisma.confirmedGift.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      skip: (giftsPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       include: {
         boda: { select: { id: true, title: true, slug: true } },
       },
@@ -45,7 +77,7 @@ export default async function AdminPagosPage() {
 
       <section className="space-y-3">
         <h3 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">
-          Payments
+          Payments ({paymentsTotal})
         </h3>
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
           <div className="overflow-x-auto">
@@ -96,12 +128,19 @@ export default async function AdminPagosPage() {
               </tbody>
             </table>
           </div>
+          <AdminPagination
+            pathname="/admin/pagos"
+            currentPage={paymentsPage}
+            totalPages={paymentsTotalPages}
+            pageParam="paymentsPage"
+            query={giftsPage > 1 ? { giftsPage: String(giftsPage) } : {}}
+          />
         </div>
       </section>
 
       <section className="space-y-3">
         <h3 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">
-          Regalos confirmados / pendientes
+          Regalos confirmados / pendientes ({giftsTotal})
         </h3>
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
           <div className="overflow-x-auto">
@@ -157,15 +196,17 @@ export default async function AdminPagosPage() {
                       {gift.confirmed ? (
                         <span className="text-emerald-700">Confirmado</span>
                       ) : (
-                        <form action={confirmGiftAdminAction}>
+                        <AdminActionForm
+                          action={confirmGiftAdminAction}
+                          confirmMessage={`¿Confirmás que el regalo de ${gift.participants} fue recibido?`}
+                        >
                           <input type="hidden" name="gift_id" value={gift.id} />
-                          <button
-                            type="submit"
+                          <AdminSubmitButton
+                            idleLabel="Confirmar"
+                            pendingLabel="Confirmando…"
                             className="rounded-full bg-[#e6dac7] px-3 py-1.5 text-xs font-semibold text-stone-800"
-                          >
-                            Confirmar
-                          </button>
-                        </form>
+                          />
+                        </AdminActionForm>
                       )}
                     </td>
                   </tr>
@@ -183,6 +224,17 @@ export default async function AdminPagosPage() {
               </tbody>
             </table>
           </div>
+          <AdminPagination
+            pathname="/admin/pagos"
+            currentPage={giftsPage}
+            totalPages={giftsTotalPages}
+            pageParam="giftsPage"
+            query={
+              paymentsPage > 1
+                ? { paymentsPage: String(paymentsPage) }
+                : {}
+            }
+          />
         </div>
       </section>
     </div>

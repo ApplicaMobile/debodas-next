@@ -60,7 +60,7 @@ export default async function MiCuentaPage() {
               {pendingGiftsCount > 0 ? (
                 <Link
                   href="/mi-cuenta/regalos-recibidos"
-                  className="mt-2 inline-block text-sm font-medium text-[#e6dac7] hover:underline"
+                  className="mt-2 inline-block text-sm font-medium text-[#6f5f47] hover:underline"
                 >
                   Revisar →
                 </Link>
@@ -80,7 +80,7 @@ export default async function MiCuentaPage() {
             >
               <Link
                 href={item.href}
-                className="font-medium text-[#e6dac7] hover:underline"
+                className="font-medium text-[#6f5f47] hover:underline"
               >
                 {item.label}
                 {item.href === "/mi-cuenta/regalos-recibidos" &&

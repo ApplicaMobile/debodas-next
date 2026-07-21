@@ -15,7 +15,14 @@ export function AdminSidebar() {
 
   return (
     <>
-      <div className="mb-4 xl:hidden">
+      <form
+        className="mb-4 xl:hidden"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          router.push(String(formData.get("section") ?? activeSection.href));
+        }}
+      >
         <label
           htmlFor="admin-section-nav"
           className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-stone-400"
@@ -24,10 +31,9 @@ export function AdminSidebar() {
         </label>
         <select
           id="admin-section-nav"
-          value={activeSection.href}
-          onChange={(event) => {
-            router.push(event.target.value);
-          }}
+          key={activeSection.href}
+          name="section"
+          defaultValue={activeSection.href}
           className="w-full rounded-xl border border-stone-200 bg-white px-3 py-3 text-sm font-medium text-stone-800 shadow-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/20"
         >
           {adminSections.map((section) => (
@@ -36,7 +42,13 @@ export function AdminSidebar() {
             </option>
           ))}
         </select>
-      </div>
+        <button
+          type="submit"
+          className="mt-2 min-h-11 w-full rounded-xl bg-[#06263a] px-4 py-2 text-sm font-semibold text-white"
+        >
+          Ir a la sección
+        </button>
+      </form>
 
       <nav className="hidden rounded-3xl bg-white p-4 shadow-sm xl:block">
         <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">

@@ -35,8 +35,14 @@ export async function loginAction(
   formData: FormData,
 ): Promise<LoginState> {
   const email = String(formData.get("email") ?? "");
+  const normalizedEmail = email.trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const nextPath = String(formData.get("next") ?? "/mi-cuenta");
+  const website = String(formData.get("website") ?? "").trim();
+
+  if (website || normalizedEmail.length > 254 || password.length > 72) {
+    return { error: "Email o contraseña incorrectos." };
+  }
 
   const safeNext =
     nextPath.startsWith("/") && !nextPath.startsWith("//")
@@ -46,14 +52,18 @@ export async function loginAction(
   try {
     const headerStore = await headers();
     const ip = clientIpFromHeaders(headerStore);
-    const limited = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
+    const [ipLimit, accountLimit] = await Promise.all([
+      checkRateLimit(`login:ip:${ip}`, 20, 15 * 60 * 1000),
+      checkRateLimit(`login:account:${normalizedEmail}`, 10, 15 * 60 * 1000),
+    ]);
+    const limited = !ipLimit.ok ? ipLimit : accountLimit;
     if (!limited.ok) {
       return {
         error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,
       };
     }
 
-    const user = await verifyCredentials(email, password);
+    const user = await verifyCredentials(normalizedEmail, password);
     if (!user) {
       return { error: "Email o contraseña incorrectos." };
     }
@@ -89,6 +99,10 @@ export async function registerAction(
   _prevState: RegisterState,
   formData: FormData,
 ): Promise<RegisterState> {
+  if (String(formData.get("website") ?? "").trim()) {
+    return { success: true, redirectTo: "/" };
+  }
+
   const validation = validateRegisterInput(formData);
   if (!validation.ok) {
     return { error: validation.error };
@@ -96,7 +110,15 @@ export async function registerAction(
 
   const headerStore = await headers();
   const ip = clientIpFromHeaders(headerStore);
-  const limited = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
+  const [ipLimit, emailLimit] = await Promise.all([
+    checkRateLimit(`register:ip:${ip}`, 5, 60 * 60 * 1000),
+    checkRateLimit(
+      `register:email:${validation.data.email}`,
+      3,
+      60 * 60 * 1000,
+    ),
+  ]);
+  const limited = !ipLimit.ok ? ipLimit : emailLimit;
   if (!limited.ok) {
     return {
       error: `Demasiados registros desde esta red. Probá en ${limited.retryAfterSec}s.`,

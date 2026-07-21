@@ -17,6 +17,7 @@ import {
   validateRegisterStep3,
 } from "@/lib/auth/register";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
+import { HoneypotField } from "@/components/ui/HoneypotField";
 
 const initialState: RegisterState = {};
 const TOTAL_STEPS = 3;
@@ -199,6 +200,7 @@ export function RegisterWizard() {
           return (
             <li
               key={label}
+              aria-current={isActive ? "step" : undefined}
               className={`flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold sm:text-sm ${
                 isActive
                   ? "bg-[#e6dac7] text-stone-800"
@@ -218,15 +220,19 @@ export function RegisterWizard() {
         action={formAction}
         noValidate
         onSubmit={handleSubmit}
+        aria-busy={isPending}
         className="mt-6 space-y-4"
       >
+        <HoneypotField id="register-website" />
         <div className={step === 1 ? "space-y-4" : "hidden"}>
           <p className="text-sm text-stone-600">
             Creá tu acceso al panel de DeBodas.
           </p>
           <input
             name="email"
+            aria-label="Email"
             type="email"
+            maxLength={254}
             className={inputClassName}
             placeholder="Email"
             autoComplete="email"
@@ -234,7 +240,9 @@ export function RegisterWizard() {
           />
           <input
             name="password"
+            aria-label="Contraseña"
             type="password"
+            maxLength={72}
             className={inputClassName}
             placeholder="Contraseña (mín. 8 caracteres)"
             autoComplete="new-password"
@@ -242,7 +250,9 @@ export function RegisterWizard() {
           />
           <input
             name="password_confirm"
+            aria-label="Repetir contraseña"
             type="password"
+            maxLength={72}
             className={inputClassName}
             placeholder="Repetir contraseña"
             autoComplete="new-password"
@@ -259,6 +269,8 @@ export function RegisterWizard() {
           <div className="grid gap-4 sm:grid-cols-2">
             <input
               name="bride_name"
+              maxLength={100}
+              aria-label="Nombre de la primera persona"
               className={inputClassName}
               placeholder="Nombre novia/o 1"
               autoComplete="given-name"
@@ -266,6 +278,8 @@ export function RegisterWizard() {
             />
             <input
               name="bride_lastname"
+              maxLength={100}
+              aria-label="Apellido de la primera persona"
               className={inputClassName}
               placeholder="Apellido novia/o 1"
               autoComplete="family-name"
@@ -273,6 +287,8 @@ export function RegisterWizard() {
             />
             <input
               name="groom_name"
+              maxLength={100}
+              aria-label="Nombre de la segunda persona"
               className={inputClassName}
               placeholder="Nombre novia/o 2"
               autoComplete="given-name"
@@ -280,6 +296,8 @@ export function RegisterWizard() {
             />
             <input
               name="groom_lastname"
+              maxLength={100}
+              aria-label="Apellido de la segunda persona"
               className={inputClassName}
               placeholder="Apellido novia/o 2"
               autoComplete="family-name"
@@ -290,6 +308,8 @@ export function RegisterWizard() {
           <div className="grid gap-4 sm:grid-cols-2">
             <input
               name="phone"
+              maxLength={40}
+              aria-label="Teléfono"
               className={inputClassName}
               placeholder="Teléfono"
               autoComplete="tel"
@@ -297,6 +317,8 @@ export function RegisterWizard() {
             />
             <input
               name="event_date"
+              maxLength={20}
+              aria-label="Fecha de la boda"
               className={inputClassName}
               placeholder="Fecha de la boda (dd/mm/aaaa)"
               onInput={clearStepError}
@@ -305,7 +327,9 @@ export function RegisterWizard() {
 
           <textarea
             name="our_story"
+            aria-label="Historia de la pareja"
             rows={3}
+            maxLength={3000}
             className={inputClassName}
             placeholder="¿Cómo se conocieron? (opcional)"
             onInput={clearStepError}
@@ -339,6 +363,8 @@ export function RegisterWizard() {
 
           <input
             name="site_source_other"
+            maxLength={200}
+            aria-label="Cómo conociste DeBodas"
             className={showSiteSourceOther ? inputClassName : "hidden"}
             placeholder="Contanos cómo nos conociste"
             onInput={clearStepError}

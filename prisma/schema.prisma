@@ -18,6 +18,7 @@ model User {
 
   boda               Boda?
   passwordResetTokens PasswordResetToken[]
+  adminAuditLogs      AdminAuditLog[] @relation("AdminAuditActor")
 
   @@index([role])
   @@map("users")
@@ -26,16 +27,47 @@ model User {
 model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  tokenHash String   @map("token_hash")
+  tokenHash String   @unique @map("token_hash")
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
   usedAt    DateTime? @map("used_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([tokenHash])
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+model RateLimitBucket {
+  id        String   @id @default(cuid())
+  keyHash   String   @unique @db.Char(64) @map("key_hash")
+  count     Int      @default(1)
+  resetAt   DateTime @map("reset_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([resetAt])
+  @@map("rate_limit_buckets")
+}
+
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?  @map("actor_user_id")
+  actorEmail  String   @map("actor_email")
+  action      String
+  entity      String
+  entityId    String?  @map("entity_id")
+  metadata    Json     @default("{}")
+  ipHash      String?  @db.Char(64) @map("ip_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor User? @relation("AdminAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt])
+  @@index([entity, entityId])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
 }
 
 model EmailLog {

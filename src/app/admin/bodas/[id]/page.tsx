@@ -13,6 +13,8 @@ import {
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { prisma } from "@/lib/db/prisma";
 import { getAppUrl } from "@/lib/email/client";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
+import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -49,7 +51,7 @@ export default async function AdminBodaDetailPage({
     return (
       <div className="rounded-3xl bg-white p-8 text-center shadow-sm">
         <p className="text-stone-600">No encontramos esta boda.</p>
-        <Link href="/admin/bodas" className="mt-4 inline-block text-[#e6dac7]">
+        <Link href="/admin/bodas" className="mt-4 inline-block text-[#6f5f47] underline">
           ← Volver
         </Link>
       </div>
@@ -171,7 +173,11 @@ export default async function AdminBodaDetailPage({
             </div>
           </dl>
 
-          <form action={updateBodaPlanAction} className="mt-6 flex gap-2">
+          <AdminActionForm
+            action={updateBodaPlanAction}
+            className="mt-6 flex gap-2"
+            confirmMessage="¿Confirmás el cambio de plan de esta boda?"
+          >
             <input type="hidden" name="boda_id" value={boda.id} />
             <select
               name="plan"
@@ -182,17 +188,21 @@ export default async function AdminBodaDetailPage({
               <option value="basico">basico</option>
               <option value="premium">premium</option>
             </select>
-            <button
-              type="submit"
+            <AdminSubmitButton
+              idleLabel="Guardar plan"
+              pendingLabel="Guardando…"
               className="rounded-lg bg-stone-800 px-3 py-2 text-xs font-semibold text-white"
-            >
-              Guardar plan
-            </button>
-          </form>
+            />
+          </AdminActionForm>
 
-          <form
+          <AdminActionForm
             action={updateBodaOnlineAction}
             className="mt-3 flex items-center gap-3"
+            confirmMessage={
+              boda.isOnline
+                ? "¿Confirmás que querés despublicar este micrositio?"
+                : "¿Confirmás que querés publicar este micrositio?"
+            }
           >
             <input type="hidden" name="boda_id" value={boda.id} />
             <label className="flex items-center gap-2 text-sm text-stone-700">
@@ -204,13 +214,12 @@ export default async function AdminBodaDetailPage({
               />
               Micrositio online
             </label>
-            <button
-              type="submit"
+            <AdminSubmitButton
+              idleLabel="Guardar"
+              pendingLabel="Guardando…"
               className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700"
-            >
-              Guardar
-            </button>
-          </form>
+            />
+          </AdminActionForm>
         </div>
 
         <div className="rounded-3xl bg-white p-6 shadow-sm">
@@ -243,25 +252,29 @@ export default async function AdminBodaDetailPage({
               <p className="text-sm text-stone-600">
                 Todavía no hay calificación. Podés enviar el pedido por email.
               </p>
-              <form action={sendRatingRequestAction}>
+              <AdminActionForm
+                action={sendRatingRequestAction}
+                confirmMessage={`¿Enviar el pedido de calificación a ${boda.user.email}?`}
+              >
                 <input type="hidden" name="boda_id" value={boda.id} />
-                <button
-                  type="submit"
+                <AdminSubmitButton
+                  idleLabel="Enviar pedido de calificación"
+                  pendingLabel="Enviando…"
                   className="rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800"
-                >
-                  Enviar pedido de calificación
-                </button>
-              </form>
+                />
+              </AdminActionForm>
               {boda.ratingEmailSentAt ? (
-                <form action={resetRatingEmailFlagAction}>
+                <AdminActionForm
+                  action={resetRatingEmailFlagAction}
+                  confirmMessage="¿Resetear el registro de envío? El cron podrá volver a enviar este email."
+                >
                   <input type="hidden" name="boda_id" value={boda.id} />
-                  <button
-                    type="submit"
+                  <AdminSubmitButton
+                    idleLabel="Resetear flag de email enviado (para cron)"
+                    pendingLabel="Reseteando…"
                     className="text-xs font-medium text-stone-500 underline"
-                  >
-                    Resetear flag de email enviado (para cron)
-                  </button>
-                </form>
+                  />
+                </AdminActionForm>
               ) : null}
             </div>
           )}

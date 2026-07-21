@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
 interface ImageFileInputProps {
   name: string;
   label: string;
@@ -27,6 +29,7 @@ export function ImageFileInput({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isPdf, setIsPdf] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -46,9 +49,35 @@ export function ImageFileInput({
       });
       setFileName(null);
       setIsPdf(false);
+      setError(null);
       return;
     }
 
+    const allowedTypes = new Set(
+      accept
+        .split(",")
+        .map((type) => type.trim())
+        .filter(Boolean),
+    );
+    if (!allowedTypes.has(file.type) || file.size > MAX_FILE_BYTES) {
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+      setFileName(null);
+      setIsPdf(false);
+      setError(
+        file.size > MAX_FILE_BYTES
+          ? "El archivo supera el límite de 5 MB."
+          : "El formato del archivo no está permitido.",
+      );
+      setPreviewUrl((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return null;
+      });
+      return;
+    }
+
+    setError(null);
     setFileName(file.name);
     setIsPdf(file.type === "application/pdf");
 
@@ -79,6 +108,11 @@ export function ImageFileInput({
       <div className="space-y-2">
         <p className="text-sm font-medium text-stone-700">{label}</p>
         {hint ? <p className="text-sm text-stone-500">{hint}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm font-medium text-red-700">
+            {error}
+          </p>
+        ) : null}
 
         <input
           ref={inputRef}
@@ -148,6 +182,11 @@ export function ImageFileInput({
         {label}
       </label>
       {hint ? <p className="text-sm text-stone-500">{hint}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm font-medium text-red-700">
+          {error}
+        </p>
+      ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <input

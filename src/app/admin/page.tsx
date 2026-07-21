@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
         </p>
         <Link
           href="/admin/estadisticas"
-          className="mt-4 inline-flex text-sm font-medium text-[#e6dac7] hover:underline"
+          className="mt-4 inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
         >
           Ver estadísticas de bodas →
         </Link>
@@ -125,7 +125,7 @@ export default async function AdminDashboardPage() {
             </h3>
             <Link
               href="/admin/bodas"
-              className="text-sm font-medium text-[#e6dac7] hover:underline"
+              className="text-sm font-medium text-[#6f5f47] hover:underline"
             >
               Ver todas
             </Link>

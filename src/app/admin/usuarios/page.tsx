@@ -2,28 +2,49 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { updateUserRoleAction } from "@/lib/admin/actions";
 import { prisma } from "@/lib/db/prisma";
+import type { Prisma } from "@prisma/client";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
+import { AdminPagination } from "@/components/admin/AdminPagination";
+import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+
+const PAGE_SIZE = 25;
 
 interface PageProps {
-  searchParams: Promise<{ ok?: string; error?: string; q?: string }>;
+  searchParams: Promise<{
+    ok?: string;
+    error?: string;
+    q?: string;
+    page?: string;
+  }>;
 }
 
 export default async function AdminUsuariosPage({ searchParams }: PageProps) {
   const admin = await requireAdmin();
   const flash = await searchParams;
   const q = (flash.q ?? "").trim();
+  const where: Prisma.UserWhereInput | undefined = q
+    ? {
+        OR: [
+          { email: { contains: q } },
+          { name: { contains: q } },
+          { boda: { title: { contains: q } } },
+          { boda: { slug: { contains: q } } },
+        ],
+      }
+    : undefined;
+  const total = await prisma.user.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const requestedPage = Number.parseInt(flash.page ?? "1", 10);
+  const page = Math.min(
+    Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1,
+    totalPages,
+  );
 
   const users = await prisma.user.findMany({
-    where: q
-      ? {
-          OR: [
-            { email: { contains: q } },
-            { name: { contains: q } },
-            { boda: { title: { contains: q } } },
-            { boda: { slug: { contains: q } } },
-          ],
-        }
-      : undefined,
-    orderBy: { createdAt: "desc" },
+    where,
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
     include: {
       boda: { select: { id: true, slug: true, title: true, plan: true } },
     },
@@ -49,7 +70,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
           Usuarios
         </h2>
         <p className="mt-2 text-stone-600">
-          {users.length} cuenta{users.length === 1 ? "" : "s"}
+          {total} cuenta{total === 1 ? "" : "s"}
           {q ? ` para “${q}”` : " en el sistema"}.
         </p>
 
@@ -104,8 +125,14 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                     <p className="text-xs text-stone-500">{user.email}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <form action={updateUserRoleAction} className="flex gap-2">
+                    <AdminActionForm
+                      action={updateUserRoleAction}
+                      className="flex gap-2"
+                      confirmMessage={`¿Confirmás el cambio de rol de ${user.email}?`}
+                    >
                       <input type="hidden" name="user_id" value={user.id} />
+                      <input type="hidden" name="q" value={q} />
+                      <input type="hidden" name="page" value={page} />
                       <select
                         name="role"
                         defaultValue={user.role}
@@ -114,13 +141,12 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                         <option value="couple">couple</option>
                         <option value="admin">admin</option>
                       </select>
-                      <button
-                        type="submit"
+                      <AdminSubmitButton
+                        idleLabel="Guardar"
+                        pendingLabel="Guardando…"
                         className="rounded-lg bg-stone-800 px-2.5 py-1.5 text-xs font-semibold text-white"
-                      >
-                        Guardar
-                      </button>
-                    </form>
+                      />
+                    </AdminActionForm>
                   </td>
                   <td className="px-4 py-3 text-stone-600">
                     {user.boda ? (
@@ -157,6 +183,12 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          pathname="/admin/usuarios"
+          currentPage={page}
+          totalPages={totalPages}
+          query={q ? { q } : {}}
+        />
       </section>
     </div>
   );

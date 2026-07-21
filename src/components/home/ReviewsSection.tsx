@@ -2,9 +2,14 @@ import type { HomeReview } from "@/data/home";
 
 function Stars({ count }: { count: number }) {
   return (
-    <div className="flex gap-1 text-[#BA9C5F]">
+    <div
+      className="flex gap-1 text-[#8a6c31]"
+      aria-label={`${count} de 5 estrellas`}
+    >
       {Array.from({ length: count }).map((_, index) => (
-        <span key={index}>★</span>
+        <span key={index} aria-hidden="true">
+          ★
+        </span>
       ))}
     </div>
   );
