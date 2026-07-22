@@ -1,0 +1,355 @@
+/* Tarjetas de invitación digital (panel /mi-cuenta/invitar) */
+
+.invitation-card-stage {
+  position: relative;
+  width: 400px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.invitation-card-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 400px;
+  max-width: 100%;
+  aspect-ratio: 400 / 618;
+  height: auto;
+  min-height: 360px;
+  padding: 2rem 2.75rem;
+  box-sizing: border-box;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-align: center;
+  overflow: hidden;
+}
+
+.invitation-card-body p {
+  margin: 0 0 0.6rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.invitation-card-body h4 {
+  margin: 0 0 0.75rem;
+  font-weight: 400;
+}
+
+.invitation-card-body .date {
+  text-transform: capitalize;
+}
+
+.invitation-card-body.flores-rsvp {
+  background-color: #816f9d;
+}
+
+.invitation-card-body.flores-rsvp h4 {
+  font-family: "Great Vibes", cursive;
+  font-size: clamp(2.5rem, 12vw, 5.5rem);
+  line-height: 0.85;
+  color: #fff;
+}
+
+.invitation-card-body.flores-rsvp .rsvp {
+  font-family: "Times New Roman", Times, serif;
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  font-style: italic;
+  color: #fff;
+  padding-bottom: 2rem;
+}
+
+.invitation-card-body.flores-rsvp .date,
+.invitation-card-body.flores-rsvp .time {
+  color: #fff;
+  font-family: "Times New Roman", Times, serif;
+  font-size: clamp(0.95rem, 3vw, 1.25rem);
+}
+
+.invitation-card-body.flores-rsvp .location-name {
+  color: #fff;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 0.85rem;
+}
+
+.invitation-card-body.flores h4 {
+  font-family: "Great Vibes", cursive;
+  font-size: clamp(2rem, 8vw, 3.25rem);
+  color: #030306;
+  text-align: left;
+  align-self: flex-start;
+  padding-left: 1.5rem;
+}
+
+.invitation-card-body.flores .title {
+  font-family: "Times New Roman", Times, serif;
+  color: #656565;
+  font-size: 1.1rem;
+  font-style: italic;
+  max-width: 70%;
+}
+
+.invitation-card-body.flores .description {
+  font-family: "Times New Roman", Times, serif;
+  color: #656565;
+  font-size: 0.875rem;
+  width: 55%;
+  max-width: 55%;
+  font-style: italic;
+}
+
+.invitation-card-body.flores .location-name,
+.invitation-card-body.flores .address {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 0.8rem;
+  max-width: 62%;
+  line-height: 1.35;
+  padding: 0 0.25rem;
+}
+
+.invitation-card-body.flores .outfit {
+  font-family: "Great Vibes", cursive;
+  font-size: 1rem;
+}
+
+.invitation-card-body.hojas h4 {
+  font-family: "Lora", serif;
+  color: #9e8017;
+  font-size: clamp(1.75rem, 7vw, 3rem);
+  line-height: 1.05;
+}
+
+.invitation-card-body.hojas h4 span {
+  font-family: "Lora", serif;
+  color: rgb(116 115 113 / 53%);
+  font-size: clamp(3rem, 14vw, 6rem);
+  line-height: 0.7;
+  display: block;
+}
+
+.invitation-card-body.hojas-rsvp .rsvp {
+  font-family: "Lora", serif;
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  color: #000;
+  padding-bottom: 2rem;
+}
+
+.invitation-card-body.hojas-rsvp h4 {
+  font-family: "Lora", serif;
+  font-size: clamp(2rem, 9vw, 4rem);
+  line-height: 0.9;
+  color: #656565;
+}
+
+.invitation-card-body.hojas-rsvp h4 span {
+  font-family: "Lora", serif;
+  color: #9e8017;
+  font-size: clamp(4rem, 18vw, 8rem);
+  opacity: 0.5;
+  display: block;
+  line-height: 0.65;
+}
+
+.invitation-card-body.hojas .title {
+  font-family: "Lora", serif;
+  color: #656565;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.invitation-card-body.hojas .description {
+  font-family: "Lora", serif;
+  color: #656565;
+  font-size: 0.7rem;
+  width: 55%;
+  max-width: 55%;
+  font-style: italic;
+}
+
+.invitation-card-body.hojas .date,
+.invitation-card-body.hojas .time,
+.invitation-card-body.hojas .address,
+.invitation-card-body.hojas .outfit {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #656565;
+  font-size: 0.75rem;
+  font-weight: 700;
+  max-width: 62%;
+}
+
+.invitation-card-body.hojas .location-name {
+  font-family: "Lora", serif;
+  color: #656565;
+  font-size: 0.75rem;
+  max-width: 62%;
+}
+
+.invitation-card-body.hojas-rsvp .date,
+.invitation-card-body.hojas-rsvp .time {
+  font-family: "Lora", serif;
+  color: #656565;
+  font-size: 1.25rem;
+  font-style: italic;
+}
+
+.invitation-card-body.hojas-rsvp .location-name {
+  font-family: "Lora", serif;
+  color: #656565;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.invitation-card-body.manantial h4 {
+  font-family: "Bodoni Moda", serif;
+  font-size: clamp(1.5rem, 6vw, 2.4rem);
+  color: #867c4d;
+}
+
+.invitation-card-body.manantial-rsvp .rsvp {
+  font-family: "Bona Nova", serif;
+  font-size: clamp(1.25rem, 4vw, 1.85rem);
+  color: #000;
+  font-style: italic;
+  font-weight: 700;
+  padding-bottom: 1.5rem;
+}
+
+.invitation-card-body.manantial-rsvp h4 {
+  font-family: "Bodoni Moda", serif;
+  font-size: clamp(2.25rem, 10vw, 4.5rem);
+  color: #867c4d;
+}
+
+.invitation-card-body.manantial .title {
+  font-family: "Bona Nova", serif;
+  color: #030306;
+  font-size: 1.05rem;
+  font-style: italic;
+}
+
+.invitation-card-body.manantial .description {
+  font-family: "Bona Nova", serif;
+  color: #030306;
+  font-size: 0.8rem;
+  width: 55%;
+  max-width: 55%;
+  font-style: italic;
+}
+
+.invitation-card-body.manantial .date,
+.invitation-card-body.manantial .time {
+  font-family: "Bona Nova", serif;
+  color: #938958;
+  font-size: 1rem;
+}
+
+.invitation-card-body.manantial-rsvp .date,
+.invitation-card-body.manantial-rsvp .time {
+  font-family: "Bona Nova", serif;
+  color: #000;
+  font-size: 1rem;
+}
+
+.invitation-card-body.manantial .location-name {
+  font-family: "Bona Nova", serif;
+  font-weight: 700;
+  color: #303433;
+  font-size: 0.75rem;
+  max-width: 62%;
+}
+
+.invitation-card-body.manantial .address {
+  font-family: "Bona Nova", serif;
+  color: #030306;
+  font-size: 0.7rem;
+  max-width: 62%;
+  line-height: 1.35;
+}
+
+.invitation-card-body.manantial .outfit {
+  font-family: "Bona Nova", serif;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.invitation-card-body.marfil {
+  align-items: flex-start !important;
+  padding: 3rem 2.5rem;
+  text-align: left;
+}
+
+.invitation-card-body.marfil-rsvp {
+  align-items: center !important;
+  text-align: center;
+}
+
+.invitation-card-body.marfil-rsvp .rsvp {
+  font-family: "Josefin Sans", sans-serif;
+  font-size: clamp(1.75rem, 6vw, 2.75rem);
+  padding: 1rem;
+}
+
+.invitation-card-body.marfil h4 {
+  font-family: "Pinyon Script", cursive;
+  font-size: clamp(1.75rem, 7vw, 3rem);
+  color: #585858;
+  text-align: left;
+}
+
+.invitation-card-body.marfil-rsvp h4 {
+  font-family: "Pinyon Script", cursive;
+  font-size: clamp(1.75rem, 7vw, 3rem);
+  color: #585858;
+  text-align: center;
+}
+
+.invitation-card-body.marfil .title,
+.invitation-card-body.marfil .description {
+  font-family: "Josefin Sans", sans-serif;
+  color: #585858;
+  font-size: 0.75rem;
+  font-weight: 300;
+  text-align: left;
+}
+
+.invitation-card-body.marfil .description {
+  margin-bottom: 2rem;
+  width: 60%;
+}
+
+.invitation-card-body.marfil .date,
+.invitation-card-body.marfil .time,
+.invitation-card-body.marfil .location-name,
+.invitation-card-body.marfil .address,
+.invitation-card-body.marfil .outfit {
+  align-self: flex-end !important;
+  font-family: "Josefin Sans", sans-serif;
+  color: #938958;
+  font-size: 0.6rem;
+  margin-right: 0.5rem;
+}
+
+.invitation-card-body.marfil .location-name {
+  color: #303433;
+  font-weight: 300;
+}
+
+.invitation-card-body.marfil .address {
+  color: #030306;
+}
+
+.invitation-card-body.marfil .outfit {
+  font-style: italic;
+}
+
+.invitation-card-body.marfil-rsvp .date,
+.invitation-card-body.marfil-rsvp .time,
+.invitation-card-body.marfil-rsvp .outfit {
+  font-family: "Josefin Sans", sans-serif;
+  color: #938958;
+  font-size: 0.6rem;
+  align-self: center !important;
+}

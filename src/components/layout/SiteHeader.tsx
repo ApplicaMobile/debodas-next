@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getSession } from "@/lib/auth/session";
 
 const navLinks = [
   { label: "Planes", href: "/#planes" },
@@ -7,7 +8,17 @@ const navLinks = [
   { label: "Demo", href: "/bodas/demo" },
 ];
 
-export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
+export async function SiteHeader({
+  transparent = false,
+}: {
+  transparent?: boolean;
+}) {
+  const session = await getSession();
+  const accountHref = session ? "/mi-cuenta" : "/login";
+  const accountLabel = session ? "Mi cuenta" : "Ingresar";
+  const primaryHref = session ? "/mi-cuenta" : "/registro";
+  const primaryLabel = session ? "Ir al panel" : "Crear sitio";
+
   return (
     <header
       className={`absolute inset-x-0 top-0 z-50 ${
@@ -49,18 +60,18 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/login"
+            href={accountHref}
             className={`hidden text-sm font-medium sm:inline ${
               transparent ? "text-white/90 hover:text-white" : "text-stone-700"
             }`}
           >
-            Ingresar
+            {accountLabel}
           </Link>
           <Link
-            href="/registro"
+            href={primaryHref}
             className="hidden min-h-11 items-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-[#d4c4a8] sm:inline-flex"
           >
-            Crear sitio
+            {primaryLabel}
           </Link>
           <details className="group relative md:hidden">
             <summary
@@ -87,16 +98,16 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
                 </Link>
               ))}
               <Link
-                href="/login"
+                href={accountHref}
                 className="flex min-h-11 items-center rounded-xl px-4 text-sm font-medium hover:bg-stone-50"
               >
-                Ingresar
+                {accountLabel}
               </Link>
               <Link
-                href="/registro"
+                href={primaryHref}
                 className="flex min-h-11 items-center rounded-xl bg-[#e6dac7] px-4 text-sm font-semibold text-stone-800"
               >
-                Crear sitio
+                {primaryLabel}
               </Link>
             </nav>
           </details>

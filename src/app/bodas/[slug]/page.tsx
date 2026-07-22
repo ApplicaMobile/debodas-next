@@ -6,6 +6,8 @@ import { getAppUrl } from "@/lib/email/client";
 import {
   getMicrositePassword,
   isMicrositeUnlocked,
+  passwordsMatch,
+  unlockMicrosite,
 } from "@/lib/microsite/password";
 import { canAddRsvpGuest } from "@/lib/plans/limits";
 import { getTheme, isThemeSlug } from "@/lib/themes/registry";
@@ -28,7 +30,7 @@ function toAbsoluteUrl(url: string | null): string | null {
 
 interface BodaPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ theme?: string }>;
+  searchParams: Promise<{ theme?: string; pass?: string }>;
 }
 
 function shouldShowThemeSwitcher(slug: string, themeParam?: string) {
@@ -102,7 +104,7 @@ export async function generateMetadata({
 
 export default async function BodaPage({ params, searchParams }: BodaPageProps) {
   const { slug } = await params;
-  const { theme: themeParam } = await searchParams;
+  const { theme: themeParam, pass: passParam } = await searchParams;
   const boda = await getBodaBySlug(slug);
 
   if (!boda) {
@@ -117,7 +119,11 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
         : "marfil";
 
   const password = getMicrositePassword(boda.options);
-  const unlocked = await isMicrositeUnlocked(slug, password);
+  let unlocked = await isMicrositeUnlocked(slug, password);
+  if (password && !unlocked && passParam && passwordsMatch(passParam, password)) {
+    await unlockMicrosite(slug, password);
+    unlocked = true;
+  }
   if (password && !unlocked) {
     return (
       <PasswordGate

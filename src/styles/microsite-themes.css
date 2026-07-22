@@ -651,6 +651,36 @@
   border: var(--theme-card-border, 1px solid transparent);
 }
 
+.microsite-invitation-actions {
+  padding: 2rem 1.5rem;
+}
+
+.microsite-invitation-actions__btn {
+  display: inline-flex;
+  min-width: 9rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--theme-radius-button, 999px);
+  border: 1px solid color-mix(in srgb, var(--theme-text, #2d2d2d) 35%, transparent);
+  background: color-mix(in srgb, var(--theme-card-bg, #fff) 88%, transparent);
+  color: var(--theme-text, #2d2d2d);
+  padding: 0.7rem 1.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.microsite-invitation-actions__btn:hover {
+  opacity: 0.8;
+}
+
+.microsite-invitation-actions__map {
+  margin-top: 1.25rem;
+  overflow: hidden;
+  border-radius: calc(var(--theme-radius-card, 1rem) - 0.25rem);
+  border: 1px solid color-mix(in srgb, var(--theme-text, #2d2d2d) 8%, transparent);
+}
+
 .microsite-theme--frame .microsite-card,
 .microsite-theme--unified-decor .microsite-card {
   background: var(--theme-card-bg, rgba(255, 255, 255, 0.92));

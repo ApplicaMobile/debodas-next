@@ -23,6 +23,9 @@ import {
   getDressCode,
   hasDressCodeContent,
 } from "@/lib/bodas/dress-code";
+import { MicrositeInvitationActions } from "@/components/microsite/MicrositeInvitationActions";
+import { parseInvitations } from "@/lib/invitations/parse";
+import { normalizePlan } from "@/lib/plans/features";
 import { getScheduleIconUrl } from "@/lib/schedule/icons";
 
 interface MicrositeDemoProps {
@@ -108,6 +111,11 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
     getPaymentSettings(boda.misc),
     String(boda.plan ?? "free"),
   );
+  const invitations = parseInvitations(
+    (boda.misc ?? {}) as Record<string, unknown>,
+  );
+  const isPremium = normalizePlan(boda.plan) === "premium";
+  const hashtag = String(boda.misc?.hashtag ?? "").trim();
 
   return (
     <>
@@ -204,6 +212,17 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
               })}
             </div>
           </div>
+        </ThemeSection>
+      ) : null}
+
+      {invitations.some((item) => item.isVisibleInMicrosite) ? (
+        <ThemeSection soft id="ubicacion">
+          <MicrositeInvitationActions
+            invitations={invitations}
+            coupleName={coupleName}
+            isPremium={isPremium}
+            hashtag={hashtag || undefined}
+          />
         </ThemeSection>
       ) : null}
 

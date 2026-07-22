@@ -41,7 +41,7 @@ export const heroContent = {
 export const workSteps: HomeStep[] = [
   {
     number: "01",
-    title: "Crea tu cuenta",
+    title: "Creá tu cuenta",
     description: "Creá tu cuenta en segundos, sin tarjeta de crédito",
   },
   {
@@ -52,9 +52,9 @@ export const workSteps: HomeStep[] = [
   },
   {
     number: "03",
-    title: "Elige tu lista",
+    title: "Elegí tu lista",
     description:
-      "Hay cuatro opciones, elige la que más te guste: Hogar, Viaje de Bodas, La Joda y Varieté",
+      "Hay cuatro opciones, elegí la que más te guste: Hogar, Viaje de Bodas, La Joda y Varieté",
   },
   {
     number: "04",
@@ -83,7 +83,7 @@ export const plans: HomePlan[] = [
   {
     slug: "basico",
     name: "Básico",
-    price: "Consultar",
+    price: "Desde $50.000",
     priceNote: "Pago único · Sin mensualidad",
     image:
       "https://test.debodas.com.ar/wp-content/uploads/2026/06/2-3.jpg",
@@ -93,12 +93,12 @@ export const plans: HomePlan[] = [
       "Álbum de fotos",
       "Medios de pago avanzados",
     ],
-    cta: "¡Arma tu lista!",
+    cta: "¡Armá tu lista!",
   },
   {
     slug: "premium",
     name: "Premium",
-    price: "Consultar",
+    price: "Desde $90.000",
     priceNote: "Pago único · Sin mensualidad",
     image:
       "https://test.debodas.com.ar/wp-content/uploads/2026/06/5-2.jpg",
@@ -108,7 +108,7 @@ export const plans: HomePlan[] = [
       "RSVP con menú y mesas",
       "Soporte prioritario",
     ],
-    cta: "¡Arma tu lista!",
+    cta: "¡Armá tu lista!",
   },
 ];
 

@@ -1,7 +1,22 @@
 import Link from "next/link";
 import { plans } from "@/data/home";
+import {
+  formatPlanPriceArs,
+  getPlanProduct,
+} from "@/lib/plans/pricing";
 
 export function PlansSection() {
+  const pricedPlans = plans.map((plan) => {
+    const product = getPlanProduct(plan.slug);
+    if (!product) {
+      return plan;
+    }
+    return {
+      ...plan,
+      price: formatPlanPriceArs(product.priceArs),
+    };
+  });
+
   return (
     <section id="planes" className="bg-white py-20">
       <div className="mx-auto max-w-6xl px-6">
@@ -20,7 +35,7 @@ export function PlansSection() {
         </div>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          {plans.map((plan) => (
+          {pricedPlans.map((plan) => (
             <article
               key={plan.slug}
               className="relative overflow-hidden rounded-3xl bg-stone-900 text-white shadow-xl"

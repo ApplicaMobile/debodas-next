@@ -8,6 +8,7 @@ export interface AccountSection {
 export const accountSections: AccountSection[] = [
   { href: "/mi-cuenta", label: "Resumen", available: true, exact: true },
   { href: "/mi-cuenta/boda", label: "Datos de la boda", available: true },
+  { href: "/mi-cuenta/invitar", label: "Compartir / invitar", available: true },
   { href: "/mi-cuenta/banner", label: "Banner y galería", available: true },
   { href: "/mi-cuenta/regalos", label: "Lista de regalos", available: true },
   {

@@ -51,14 +51,23 @@ export default async function MiCuentaLayout({
               <span className="hidden sm:inline">Micrositio: </span>
               <strong className="text-stone-800">{user.boda.title}</strong>
             </span>
-            <Link
-              href={`/bodas/${user.boda.slug}`}
-              className="shrink-0 font-medium text-[#6f5f47] hover:underline"
-              target="_blank"
-            >
-              <span className="sm:hidden">Ver sitio ↗</span>
-              <span className="hidden sm:inline">Ver sitio público ↗</span>
-            </Link>
+            <div className="flex shrink-0 items-center gap-3">
+              <Link
+                href="/mi-cuenta/invitar"
+                className="font-medium text-[#25D366] hover:underline"
+              >
+                <span className="sm:hidden">Invitar</span>
+                <span className="hidden sm:inline">Compartir / invitar</span>
+              </Link>
+              <Link
+                href={`/bodas/${user.boda.slug}`}
+                className="font-medium text-[#6f5f47] hover:underline"
+                target="_blank"
+              >
+                <span className="sm:hidden">Ver sitio ↗</span>
+                <span className="hidden sm:inline">Ver sitio público ↗</span>
+              </Link>
+            </div>
           </div>
         </div>
       ) : null}
