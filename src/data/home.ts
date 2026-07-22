@@ -29,9 +29,10 @@ export interface HomeReview {
   comment: string;
 }
 
+const MARKETING = "/assets/img/marketing";
+
 export const heroContent = {
-  backgroundImage:
-    "https://test.debodas.com.ar/wp-content/uploads/2026/06/1-1.jpg",
+  backgroundImage: `${MARKETING}/hero.jpg`,
   title: "Tu boda merece una página tan especial como ese día",
   subtitle: "Diseños únicos, lista de regalos y todo listo en minutos.",
   ctaLabel: "Creá tu sitio hoy",
@@ -70,8 +71,7 @@ export const plans: HomePlan[] = [
     name: "Gratuito",
     price: "$0",
     isFree: true,
-    image:
-      "https://test.debodas.com.ar/wp-content/uploads/2026/06/1-3.jpg",
+    image: `${MARKETING}/plan-free.jpg`,
     features: [
       "Micrositio básico",
       "Hasta 10 regalos",
@@ -85,8 +85,7 @@ export const plans: HomePlan[] = [
     name: "Básico",
     price: "Desde $50.000",
     priceNote: "Pago único · Sin mensualidad",
-    image:
-      "https://test.debodas.com.ar/wp-content/uploads/2026/06/2-3.jpg",
+    image: `${MARKETING}/plan-basico.jpg`,
     features: [
       "Temas premium básicos",
       "Regalos ilimitados",
@@ -100,8 +99,7 @@ export const plans: HomePlan[] = [
     name: "Premium",
     price: "Desde $90.000",
     priceNote: "Pago único · Sin mensualidad",
-    image:
-      "https://test.debodas.com.ar/wp-content/uploads/2026/06/5-2.jpg",
+    image: `${MARKETING}/plan-premium.jpg`,
     features: [
       "Todos los temas",
       "Invitaciones digitales",
@@ -113,19 +111,15 @@ export const plans: HomePlan[] = [
 ];
 
 const themeBannerUrls: Record<string, string> = {
-  base: "https://test.debodas.com.ar/wp-content/uploads/2026/06/1-3.jpg",
-  hojas: "https://test.debodas.com.ar/wp-content/uploads/2026/06/2-3.jpg",
-  flores: "https://test.debodas.com.ar/wp-content/uploads/2026/06/3-1.jpg",
-  manantial: "https://test.debodas.com.ar/wp-content/uploads/2026/06/4-2.jpg",
-  marfil: "https://test.debodas.com.ar/wp-content/uploads/2026/06/5-2.jpg",
-  "mariposas-azules":
-    "https://test.debodas.com.ar/wp-content/uploads/2026/06/8-1.jpg",
-  "marco-verde":
-    "https://test.debodas.com.ar/wp-content/uploads/2026/06/7-2.jpg",
-  "marco-blanco":
-    "https://test.debodas.com.ar/wp-content/uploads/2026/06/8-1.jpg",
-  "marco-flores-inferiores":
-    "https://test.debodas.com.ar/wp-content/uploads/2026/06/9-1.jpg",
+  base: `${MARKETING}/theme-base.jpg`,
+  hojas: `${MARKETING}/theme-hojas.jpg`,
+  flores: `${MARKETING}/theme-flores.jpg`,
+  manantial: `${MARKETING}/theme-manantial.jpg`,
+  marfil: `${MARKETING}/theme-marfil.jpg`,
+  "mariposas-azules": `${MARKETING}/theme-mariposas.jpg`,
+  "marco-verde": `${MARKETING}/theme-marco-verde.jpg`,
+  "marco-blanco": `${MARKETING}/theme-marco-blanco.jpg`,
+  "marco-flores-inferiores": `${MARKETING}/theme-marco-flores.jpg`,
 };
 
 export const themes: HomeTheme[] = [

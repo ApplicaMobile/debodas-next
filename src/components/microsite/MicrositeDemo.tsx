@@ -33,7 +33,13 @@ interface MicrositeDemoProps {
   rsvpOpen?: boolean;
 }
 
-function Countdown({ targetDate }: { targetDate: string }) {
+function Countdown({
+  targetDate,
+  eventTime,
+}: {
+  targetDate: string;
+  eventTime?: string;
+}) {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -42,15 +48,32 @@ function Countdown({ targetDate }: { targetDate: string }) {
   });
 
   useEffect(() => {
-    const parseDate = (value: string) => {
+    const normalizeTime = (raw?: string) => {
+      const value = String(raw ?? "").trim();
+      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(value)) {
+        const [h, m, s] = value.split(":");
+        return `${h.padStart(2, "0")}:${m.padStart(2, "0")}:${(s ?? "00").padStart(2, "0")}`;
+      }
+      return "19:30:00";
+    };
+
+    const parseDate = (value: string, time?: string) => {
+      const clock = normalizeTime(time);
       const parts = value.split("/");
       if (parts.length === 3) {
-        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}T19:30:00`);
+        const [day, month, year] = parts;
+        return new Date(
+          `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${clock}`,
+        );
+      }
+      if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+        const dateOnly = value.slice(0, 10);
+        return new Date(`${dateOnly}T${clock}`);
       }
       return new Date(value);
     };
 
-    const target = parseDate(targetDate).getTime();
+    const target = parseDate(targetDate, eventTime).getTime();
 
     const tick = () => {
       const diff = Math.max(target - Date.now(), 0);
@@ -65,7 +88,7 @@ function Countdown({ targetDate }: { targetDate: string }) {
     tick();
     const interval = window.setInterval(tick, 1000);
     return () => window.clearInterval(interval);
-  }, [targetDate]);
+  }, [targetDate, eventTime]);
 
   const items = [
     { label: "días", value: timeLeft.days },
@@ -94,6 +117,7 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
   const gifts = boda.gifts_list?.gifts ?? [];
   const giftsTitle = String(boda.gifts_list?.title ?? "Lista de regalos");
   const eventDate = String(boda.event?.date ?? "");
+  const eventTime = String(boda.event?.time ?? "").trim();
   const titleClass = theme.headingUppercase
     ? "microsite-section__title microsite-section__title--uppercase theme-heading"
     : "microsite-section__title theme-heading";
@@ -138,7 +162,9 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
             Faltan
           </MicrositeSectionTitle>
           <div className="mt-8">
-            {eventDate ? <Countdown targetDate={eventDate} /> : null}
+            {eventDate ? (
+              <Countdown targetDate={eventDate} eventTime={eventTime} />
+            ) : null}
           </div>
         </div>
       </ThemeSection>

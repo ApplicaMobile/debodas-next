@@ -17,7 +17,7 @@ export const demoBoda: Boda = {
   },
   banner: {
     image: {
-      url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/5-2.jpg",
+      url: "/assets/img/marketing/theme-marfil.jpg",
     },
   },
   options: {
@@ -90,13 +90,13 @@ export const demoBoda: Boda = {
   },
   pictures: [
     {
-      url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/2-3.jpg",
+      url: "/assets/img/marketing/theme-hojas.jpg",
     },
     {
-      url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/3-1.jpg",
+      url: "/assets/img/marketing/theme-flores.jpg",
     },
     {
-      url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/4-2.jpg",
+      url: "/assets/img/marketing/theme-manantial.jpg",
     },
   ],
   schedule: [
@@ -140,7 +140,7 @@ export const demoBoda: Boda = {
     },
   ],
   featured_image: {
-    url: "https://test.debodas.com.ar/wp-content/uploads/2026/06/1-3.jpg",
+    url: "/assets/img/marketing/plan-free.jpg",
   },
 };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { formatPrice } from "@/data/bodas";
 import {
@@ -184,8 +185,23 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
           <div className="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
             <p className="font-medium text-stone-700">Todavía no hay regalos</p>
             <p className="mt-1 text-sm text-stone-500">
-              Agregá el primero con el formulario de abajo.
+              Agregá el primero con el formulario de abajo. Mientras tanto
+              podés seguir armando el sitio.
             </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <Link
+                href="/mi-cuenta/invitados"
+                className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              >
+                Configurar RSVP
+              </Link>
+              <Link
+                href="/mi-cuenta/cronograma"
+                className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              >
+                Armar cronograma
+              </Link>
+            </div>
           </div>
         ) : (
           <ul className="mt-4 divide-y divide-stone-100">

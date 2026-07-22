@@ -1,3 +1,13 @@
+import {
+  formatPlanPriceArs,
+  getPlanProduct,
+} from "@/lib/plans/pricing";
+
+function pricedLabel(slug: "basico" | "premium"): string {
+  const product = getPlanProduct(slug);
+  return product ? formatPlanPriceArs(product.priceArs) : "$0";
+}
+
 export const REGISTER_PLANS = [
   {
     slug: "gratuito",
@@ -10,14 +20,14 @@ export const REGISTER_PLANS = [
     slug: "basico",
     dbValue: "basico",
     name: "Básico",
-    price: "Consultar",
+    price: pricedLabel("basico"),
     description: "Más regalos, temas y medios de pago.",
   },
   {
     slug: "premium",
     dbValue: "premium",
     name: "Premium",
-    price: "Consultar",
+    price: pricedLabel("premium"),
     description: "Experiencia completa con todos los temas.",
   },
 ] as const;

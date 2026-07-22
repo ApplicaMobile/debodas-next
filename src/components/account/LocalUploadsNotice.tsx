@@ -1,7 +1,11 @@
 import { usesCloudStorage } from "@/lib/upload/local";
 
-/** Aviso en paneles de cuenta cuando los archivos van a disco local. */
+/** Aviso solo en desarrollo local cuando los uploads van a disco. */
 export function LocalUploadsNotice() {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+
   if (usesCloudStorage()) {
     return null;
   }

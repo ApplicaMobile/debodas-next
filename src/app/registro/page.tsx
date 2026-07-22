@@ -41,8 +41,7 @@ export default async function RegistroPage() {
           <div
             className="min-h-[320px] bg-cover bg-center"
             style={{
-              backgroundImage:
-                "url('https://test.debodas.com.ar/wp-content/uploads/2026/06/2-3.jpg')",
+              backgroundImage: "url('/assets/img/marketing/plan-basico.jpg')",
             }}
           />
         </div>
