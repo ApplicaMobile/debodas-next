@@ -24,7 +24,7 @@ function isPremiumPlan(plan: string): boolean {
   return normalizePlan(plan) === "premium";
 }
 
-export async function addInvitationAction(
+export async function saveInvitationAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
@@ -33,6 +33,7 @@ export async function addInvitationAction(
     return { error: error ?? "No encontramos tu boda." };
   }
 
+  const invitationId = String(formData.get("invitation_id") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -62,28 +63,67 @@ export async function addInvitationAction(
 
   const misc = parseMisc(boda.misc);
   const invitations = parseInvitations(misc);
+  const isEdit = Boolean(invitationId);
 
-  if (invitations.length >= MAX_INVITATIONS) {
+  if (isEdit) {
+    const index = invitations.findIndex((item) => item.id === invitationId);
+    if (index < 0) {
+      return { error: "No encontramos esa invitación." };
+    }
+  } else if (invitations.length >= MAX_INVITATIONS) {
     return {
       error: `Podés crear hasta ${MAX_INVITATIONS} invitaciones digitales.`,
     };
   }
 
-  const invitation: DigitalInvitation = {
-    id: randomUUID(),
-    name,
-    title,
-    description: cleanDescription,
-    theme,
-    datetime: datetime.slice(0, 16),
-    outfit,
-    locationName,
-    location: premium
-      ? { address, lat, lng }
-      : { address: "", lat: "", lng: "" },
-    isVisibleInMicrosite: isVisible,
-    createdAt: new Date().toISOString(),
-  };
+  const location = premium
+    ? { address, lat, lng }
+    : { address: "", lat: "", lng: "" };
+
+  const nextInvitation = (() => {
+    if (isEdit) {
+      const current = invitations.find((item) => item.id === invitationId);
+      if (!current) {
+        return null;
+      }
+      return {
+        ...current,
+        name,
+        title,
+        description: cleanDescription,
+        theme,
+        datetime: datetime.slice(0, 16),
+        outfit,
+        locationName,
+        location,
+        isVisibleInMicrosite: isVisible,
+      } satisfies DigitalInvitation;
+    }
+
+    return {
+      id: randomUUID(),
+      name,
+      title,
+      description: cleanDescription,
+      theme,
+      datetime: datetime.slice(0, 16),
+      outfit,
+      locationName,
+      location,
+      isVisibleInMicrosite: isVisible,
+      createdAt: new Date().toISOString(),
+    } satisfies DigitalInvitation;
+  })();
+
+  if (!nextInvitation) {
+    return { error: "No encontramos esa invitación." };
+  }
+
+  const nextList = isEdit
+    ? invitations.map((item) =>
+        item.id === invitationId ? nextInvitation : item,
+      )
+    : [...invitations, nextInvitation];
 
   try {
     await prisma.boda.update({
@@ -91,7 +131,7 @@ export async function addInvitationAction(
       data: {
         misc: {
           ...misc,
-          invitations: [...invitations, invitation],
+          invitations: nextList,
         } as object,
       },
     });
@@ -100,11 +140,21 @@ export async function addInvitationAction(
       "/mi-cuenta/invitar",
       `/bodas/${boda.slug}`,
     ]);
-    return { success: "Invitación creada." };
+    return {
+      success: isEdit ? "Invitación actualizada." : "Invitación creada.",
+    };
   } catch (err) {
-    console.error("[addInvitationAction]", err);
+    console.error("[saveInvitationAction]", err);
     return { error: "No se pudo guardar la invitación." };
   }
+}
+
+/** Alias de create; preferí saveInvitationAction. */
+export async function addInvitationAction(
+  prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  return saveInvitationAction(prev, formData);
 }
 
 export async function deleteInvitationAction(formData: FormData): Promise<void> {

@@ -1,27 +1,40 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { toPng } from "html-to-image";
 import {
-  addInvitationAction,
   deleteInvitationAction,
+  saveInvitationAction,
 } from "@/lib/account/actions/invitations";
 import type { FormState } from "@/lib/account/form-state";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { FormAlert } from "@/components/account/FormAlert";
 import { InvitationCardPreview } from "@/components/account/InvitationCardPreview";
 import { buildInvitationFilename } from "@/lib/invitations/format";
-import {
-  getInvitationThemeOptions,
-} from "@/lib/invitations/themes";
+import { getInvitationThemeOptions } from "@/lib/invitations/themes";
 import {
   INVITATION_OUTFITS,
   MAX_INVITATIONS,
   OUTFIT_LABELS,
   type DigitalInvitation,
+  type InvitationOutfit,
   type InvitationThemeSlug,
 } from "@/lib/invitations/types";
-import Link from "next/link";
+
+const LocationMapPicker = dynamic(
+  () =>
+    import("@/components/account/LocationMapPicker").then(
+      (mod) => mod.LocationMapPicker,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 animate-pulse rounded-2xl bg-stone-100" />
+    ),
+  },
+);
 
 interface InvitationBuilderProps {
   invitations: DigitalInvitation[];
@@ -32,19 +45,52 @@ interface InvitationBuilderProps {
 
 const initialState: FormState = {};
 
-const emptyDraft = {
+type Draft = {
+  id: string;
+  name: string;
+  title: string;
+  description: string;
+  theme: InvitationThemeSlug;
+  datetime: string;
+  outfit: InvitationOutfit;
+  locationName: string;
+  address: string;
+  lat: string;
+  lng: string;
+  isVisibleInMicrosite: boolean;
+};
+
+const emptyDraft = (): Draft => ({
+  id: "",
   name: "",
   title: "",
   description: "",
-  theme: "flores" as InvitationThemeSlug,
+  theme: "flores",
   datetime: "",
-  outfit: "formal" as const,
+  outfit: "formal",
   locationName: "",
   address: "",
   lat: "",
   lng: "",
   isVisibleInMicrosite: false,
-};
+});
+
+function draftFromInvitation(invitation: DigitalInvitation): Draft {
+  return {
+    id: invitation.id,
+    name: invitation.name,
+    title: invitation.title,
+    description: invitation.description,
+    theme: invitation.theme,
+    datetime: invitation.datetime,
+    outfit: invitation.outfit,
+    locationName: invitation.locationName,
+    address: invitation.location.address,
+    lat: invitation.location.lat,
+    lng: invitation.location.lng,
+    isVisibleInMicrosite: invitation.isVisibleInMicrosite,
+  };
+}
 
 export function InvitationBuilder({
   invitations,
@@ -53,21 +99,37 @@ export function InvitationBuilder({
   isPremium,
 }: InvitationBuilderProps) {
   const [state, formAction, pending] = useActionState(
-    addInvitationAction,
+    saveInvitationAction,
     initialState,
   );
   const [openForm, setOpenForm] = useState(invitations.length === 0);
-  const [draft, setDraft] = useState(emptyDraft);
+  const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const themes = useMemo(() => getInvitationThemeOptions(), []);
   const selectedTheme = themes.find((t) => t.slug === draft.theme) ?? themes[0];
+  const isEditing = Boolean(draft.id);
 
   useEffect(() => {
     if (state.success) {
-      setDraft(emptyDraft);
+      setDraft(emptyDraft());
       setOpenForm(false);
     }
   }, [state.success]);
+
+  function openCreate() {
+    setDraft(emptyDraft());
+    setOpenForm(true);
+  }
+
+  function openEdit(invitation: DigitalInvitation) {
+    setDraft(draftFromInvitation(invitation));
+    setOpenForm(true);
+    window.setTimeout(() => {
+      document
+        .getElementById("invitation-form")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
 
   async function downloadPng(invitation: DigitalInvitation) {
     const el = document.getElementById(`invitation-card-${invitation.id}`);
@@ -100,7 +162,10 @@ export function InvitationBuilder({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+      <section
+        id="invitation-form"
+        className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8"
+      >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold text-stone-800">
@@ -109,24 +174,46 @@ export function InvitationBuilder({
             <p className="mt-1 text-sm text-stone-600">
               Creá tarjetas con plantillas, descargalas en PNG y compartilas.
               {isPremium
-                ? " Con Premium podés sumar dirección y coordenadas del mapa."
+                ? " Con Premium podés marcar la ubicación en el mapa."
                 : " La ubicación con mapa está disponible en Premium."}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => setOpenForm((v) => !v)}
+            onClick={() => {
+              if (openForm && !isEditing) {
+                setOpenForm(false);
+                return;
+              }
+              if (invitations.length >= MAX_INVITATIONS && !isEditing) {
+                return;
+              }
+              openCreate();
+            }}
             disabled={invitations.length >= MAX_INVITATIONS && !openForm}
             className="rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-50"
           >
-            {openForm ? "Cerrar formulario" : "Nueva invitación"}
+            {openForm && !isEditing ? "Cerrar formulario" : "Nueva invitación"}
           </button>
         </div>
 
         <FormAlert error={state.error} success={state.success} />
 
         {openForm ? (
-          <form action={formAction} className="mt-6 space-y-5 border-t border-stone-100 pt-6">
+          <form
+            action={formAction}
+            className="mt-6 space-y-5 border-t border-stone-100 pt-6"
+          >
+            {isEditing ? (
+              <input type="hidden" name="invitation_id" value={draft.id} />
+            ) : null}
+
+            {isEditing ? (
+              <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Editando: <strong>{draft.name || "invitación"}</strong>
+              </p>
+            ) : null}
+
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm text-stone-700">
                 Nombre
@@ -208,7 +295,7 @@ export function InvitationBuilder({
                   onChange={(e) =>
                     setDraft((d) => ({
                       ...d,
-                      outfit: e.target.value as typeof draft.outfit,
+                      outfit: e.target.value as InvitationOutfit,
                     }))
                   }
                   className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
@@ -235,48 +322,22 @@ export function InvitationBuilder({
             </div>
 
             {isPremium ? (
-              <div className="grid gap-4 rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-4 sm:grid-cols-2">
-                <label className="block text-sm text-stone-700 sm:col-span-2">
-                  Dirección (Premium)
-                  <input
-                    name="address"
-                    value={draft.address}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, address: e.target.value }))
-                    }
-                    placeholder="Calle, ciudad..."
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5"
-                  />
-                </label>
-                <label className="block text-sm text-stone-700">
-                  Latitud (opcional)
-                  <input
-                    name="lat"
-                    value={draft.lat}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, lat: e.target.value }))
-                    }
-                    placeholder="-34.6037"
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5"
-                  />
-                </label>
-                <label className="block text-sm text-stone-700">
-                  Longitud (opcional)
-                  <input
-                    name="lng"
-                    value={draft.lng}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, lng: e.target.value }))
-                    }
-                    placeholder="-58.3816"
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5"
-                  />
-                </label>
-                <p className="sm:col-span-2 text-xs text-stone-500">
-                  Tip: en Google Maps, clic derecho sobre el punto → copiar
-                  coordenadas.
-                </p>
-              </div>
+              <LocationMapPicker
+                key={draft.id || "new"}
+                value={{
+                  address: draft.address,
+                  lat: draft.lat,
+                  lng: draft.lng,
+                }}
+                onChange={(location) =>
+                  setDraft((d) => ({
+                    ...d,
+                    address: location.address,
+                    lat: location.lat,
+                    lng: location.lng,
+                  }))
+                }
+              />
             ) : (
               <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-900">
                 El mapa y la dirección completa están en el plan Premium. Podés
@@ -345,13 +406,31 @@ export function InvitationBuilder({
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={pending}
-              className="rounded-full bg-[#06263a] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-            >
-              {pending ? "Guardando…" : "Guardar invitación"}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="submit"
+                disabled={pending}
+                className="rounded-full bg-[#06263a] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {pending
+                  ? "Guardando…"
+                  : isEditing
+                    ? "Guardar cambios"
+                    : "Guardar invitación"}
+              </button>
+              {isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraft(emptyDraft());
+                    setOpenForm(false);
+                  }}
+                  className="rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-stone-700"
+                >
+                  Cancelar
+                </button>
+              ) : null}
+            </div>
           </form>
         ) : null}
       </section>
@@ -388,6 +467,13 @@ export function InvitationBuilder({
                   />
                 </div>
                 <div className="space-y-2 border-t border-stone-100 p-4">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(invitation)}
+                    className="w-full rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                  >
+                    Editar
+                  </button>
                   <button
                     type="button"
                     onClick={() => downloadPng(invitation)}

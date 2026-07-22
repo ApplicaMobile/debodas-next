@@ -25,6 +25,7 @@ export default async function MiCuentaPage() {
             include: {
               gifts: { select: { id: true }, take: 1 },
               scheduleItems: { select: { id: true }, take: 1 },
+              rsvpGuests: { select: { id: true }, take: 1 },
             },
           },
         },
@@ -53,6 +54,7 @@ export default async function MiCuentaPage() {
     Boolean(String(options.alias ?? "").trim()) ||
     Boolean(String(options.cbu ?? "").trim());
   const hasSchedule = Boolean(boda?.scheduleItems?.length);
+  const hasRsvp = Boolean(boda?.rsvpGuests?.length);
   const checklist = boda
     ? [
         {
@@ -78,6 +80,13 @@ export default async function MiCuentaPage() {
           label: "Configurá un método de pago",
           done: hasPayments,
           href: "/mi-cuenta/pagos",
+        },
+        {
+          id: "rsvp",
+          label: "Revisá invitados / RSVP",
+          done: hasRsvp,
+          href: "/mi-cuenta/invitados",
+          optional: true,
         },
         {
           id: "cronograma",
