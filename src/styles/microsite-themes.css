@@ -48,71 +48,44 @@
   background-position: center top;
 }
 
-/* Marcos: decor por sección a todo el ancho, con opacidad controlada */
-[data-theme="marco-verde"].microsite-theme--frame-section-decor
-  .microsite-section,
-[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
-  .microsite-section {
-  position: relative;
-  isolation: isolate;
-  background-image: none;
-  padding-bottom: clamp(3rem, 8vw, 5.5rem);
-  overflow: hidden;
-}
-
-[data-theme="marco-verde"].microsite-theme--frame-section-decor
-  .microsite-section::before,
-[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
-  .microsite-section::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: var(--theme-info-decor);
-  background-size: 100% auto;
-  background-repeat: no-repeat;
-  opacity: 0.42;
-}
-
-[data-theme="marco-verde"].microsite-theme--frame-section-decor
-  .microsite-section::before {
+/* Misma idea que mariposas: una sola capa fija, sin decor por sección */
+.microsite-theme--unified-decor[data-theme="marco-verde"]::before {
+  background-size: cover;
   background-position: center top;
+  opacity: 0.72;
 }
 
-[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
-  .microsite-section::before {
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]::before {
+  background-size: cover;
   background-position: center bottom;
+  opacity: 0.72;
 }
 
-[data-theme="marco-verde"].microsite-theme--frame-section-decor
-  .microsite-section
-  > *,
-[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
-  .microsite-section
-  > * {
-  position: relative;
-  z-index: 1;
-}
-
-[data-theme="marco-verde"] .microsite-card,
-[data-theme="marco-verde"] .microsite-countdown-item,
-[data-theme="marco-verde"] .microsite-schedule-item,
-[data-theme="marco-verde"] .microsite-dress-code,
-[data-theme="marco-verde"] .microsite-faq details,
-[data-theme="marco-verde"] .microsite-rsvp-box,
-[data-theme="marco-flores-inferiores"] .microsite-card,
-[data-theme="marco-flores-inferiores"] .microsite-countdown-item,
-[data-theme="marco-flores-inferiores"] .microsite-schedule-item,
-[data-theme="marco-flores-inferiores"] .microsite-dress-code,
-[data-theme="marco-flores-inferiores"] .microsite-faq details,
-[data-theme="marco-flores-inferiores"] .microsite-rsvp-box {
+.microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-card,
+.microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-countdown-item,
+.microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-schedule-item,
+.microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-dress-code,
+.microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-faq details,
+.microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-rsvp-box,
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"] .microsite-card,
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
+  .microsite-countdown-item,
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
+  .microsite-schedule-item,
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
+  .microsite-dress-code,
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
+  .microsite-faq
+  details,
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
+  .microsite-rsvp-box {
   background: var(--theme-card-bg);
   backdrop-filter: blur(2px);
 }
 
-[data-theme="marco-verde"] .microsite-story,
-[data-theme="marco-flores-inferiores"] .microsite-story {
+.microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-story,
+.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
+  .microsite-story {
   position: relative;
   z-index: 1;
   padding: 0.95rem 1.15rem;
@@ -122,7 +95,7 @@
   box-shadow: var(--theme-card-shadow);
 }
 
-/* Marco inferior: flores solo en la franja baja del banner (como WP) */
+/* Marco inferior: flores solo en la franja baja del banner (sin foto) */
 .microsite-theme--frame-bottom .microsite-banner__frame {
   top: auto;
   bottom: 0;
@@ -143,7 +116,6 @@
   mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 85%);
 }
 
-/* Secciones: decor abajo, sin estirar a todo el alto */
 .microsite-theme--frame-bottom.microsite-theme--frame-section-decor
   .microsite-section {
   background-size: min(1100px, 100%) auto;
@@ -159,19 +131,9 @@
     opacity: 0.7;
   }
 
-  [data-theme="marco-verde"].microsite-theme--frame-section-decor
-    .microsite-section::before,
-  [data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
-    .microsite-section::before {
-    opacity: 0.3;
-    background-size: 100% auto;
-  }
-
-  [data-theme="marco-verde"].microsite-theme--frame-section-decor
-    .microsite-section,
-  [data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
-    .microsite-section {
-    padding-bottom: 3.25rem;
+  .microsite-theme--unified-decor[data-theme="marco-verde"]::before,
+  .microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]::before {
+    opacity: 0.55;
   }
 }
 

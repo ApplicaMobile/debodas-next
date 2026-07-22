@@ -245,6 +245,7 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
   "marco-verde": createTheme("marco-verde", "Marco verde", "premium", {
     bannerMode: "frame-overlay",
     hideBannerFrameWithPhoto: true,
+    unifiedDecor: true,
     fonts: {
       heading: "'Cinzel', Georgia, serif",
       body: "'Lora', Georgia, serif",
@@ -320,6 +321,8 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
     {
       bannerMode: "frame-overlay",
       framePosition: "bottom",
+      hideBannerFrameWithPhoto: true,
+      unifiedDecor: true,
       fonts: {
         heading: "'Great Vibes', cursive",
         body: "'Cormorant Infant', Georgia, serif",
