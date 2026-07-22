@@ -32,10 +32,18 @@ export const planLabels: Record<string, string> = {
 
 export const planFeatures: Record<string, string[]> = {
   free: ["Micrositio básico", "Tema base", "Countdown"],
-  basico: ["Todos los temas básicos", "Lista de regalos", "RSVP", "FAQ"],
+  basico: [
+    "Todos los temas básicos",
+    "Lista de regalos",
+    "RSVP",
+    "FAQ",
+    "Tipografías básicas",
+  ],
   premium: [
     "Todos los temas",
     "Invitaciones digitales",
+    "Playlist de Spotify",
+    "Tipografías premium",
     "Regalo monto libre",
     "Gestión de mesas",
     "Menú especial en RSVP",

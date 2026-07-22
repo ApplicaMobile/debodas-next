@@ -926,3 +926,139 @@
   border: var(--theme-card-border, 1px solid transparent);
 }
 
+.microsite-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .microsite-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+.microsite-gallery__item {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--theme-radius-card, 1rem);
+  border: var(--theme-card-border, 1px solid transparent);
+  box-shadow: var(--theme-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.06));
+  padding: 0;
+  cursor: zoom-in;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.microsite-gallery__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.microsite-gallery__item:hover .microsite-gallery__thumb,
+.microsite-gallery__item:focus-visible .microsite-gallery__thumb {
+  transform: scale(1.04);
+}
+
+.microsite-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(10, 10, 10, 0.88);
+}
+
+.microsite-lightbox__figure {
+  position: relative;
+  max-width: min(96vw, 56rem);
+  max-height: 90vh;
+  margin: 0;
+}
+
+.microsite-lightbox__image {
+  display: block;
+  max-width: 100%;
+  max-height: 82vh;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+  object-fit: contain;
+}
+
+.microsite-lightbox__caption {
+  margin-top: 0.75rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+.microsite-lightbox__close,
+.microsite-lightbox__nav {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.microsite-lightbox__close {
+  top: 1rem;
+  right: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.microsite-lightbox__nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.microsite-lightbox__nav--prev {
+  left: 0.75rem;
+}
+
+.microsite-lightbox__nav--next {
+  right: 0.75rem;
+}
+
+.microsite-lightbox__close:hover,
+.microsite-lightbox__nav:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.microsite-spotify__player {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 28rem;
+}
+
+.microsite-spotify__iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: var(--theme-radius-card, 1rem);
+  overflow: hidden;
+}
+
+

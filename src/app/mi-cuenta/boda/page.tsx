@@ -52,8 +52,10 @@ export default async function MiCuentaBodaPage() {
             eventTime: String(event.time ?? ""),
             eventPlace: String(event.place ?? ""),
             ourStory: String(misc.our_story ?? ""),
+            spotifyUrl: String(misc.spotify_url ?? misc.spotify ?? ""),
             slug: boda.slug,
             password,
+            plan: boda.plan,
           }}
         />
       </section>

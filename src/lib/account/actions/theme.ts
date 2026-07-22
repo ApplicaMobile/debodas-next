@@ -2,8 +2,15 @@
 
 import { isThemeSlug } from "@/lib/themes/registry";
 import { requireOwnedBoda } from "@/lib/account/auth-boda";
+import { parseMisc } from "@/lib/account/require-boda";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
 import { canUseTheme } from "@/lib/plans/features";
+import {
+  canUseFont,
+  isMicrositeFontSlug,
+  micrositeFonts,
+  sanitizeMicrositeFont,
+} from "@/lib/themes/fonts";
 import { getTheme } from "@/lib/themes/registry";
 import { prisma } from "@/lib/db/prisma";
 import type { FormState } from "@/lib/account/form-state";
@@ -29,16 +36,36 @@ export async function updateThemeAction(
     };
   }
 
+  const fontRaw = String(formData.get("microsite_font") ?? "").trim();
+  const fontSlug = isMicrositeFontSlug(fontRaw)
+    ? fontRaw
+    : sanitizeMicrositeFont(fontRaw);
+  const font = micrositeFonts[fontSlug];
+
+  if (!canUseFont(boda.plan, font.plan)) {
+    return { error: "Esa tipografía requiere un plan superior." };
+  }
+
+  const misc = {
+    ...parseMisc(boda.misc),
+    microsite_font: fontSlug,
+  };
+
   try {
     await prisma.boda.update({
       where: { id: boda.id },
-      data: { micrositeTheme: themeSlug },
+      data: {
+        micrositeTheme: themeSlug,
+        misc,
+      },
     });
 
     revalidateBodaPaths(boda.slug, ["/mi-cuenta/tema", `/bodas/${boda.slug}`]);
-    return { success: `Tema "${theme.label}" aplicado.` };
+    return {
+      success: `Tema "${theme.label}" y tipografía aplicados.`,
+    };
   } catch (err) {
     console.error("[updateThemeAction]", err);
-    return { error: "No se pudo cambiar el tema." };
+    return { error: "No se pudo guardar el tema." };
   }
 }

@@ -7,10 +7,14 @@ interface ThemeBannerProps {
   eventDate: string;
   eventPlace: string;
   bannerPhotoUrl?: string | null;
+  showGallery?: boolean;
   showSchedule?: boolean;
+  showLocation?: boolean;
   showFaq?: boolean;
   showDressCode?: boolean;
   showRsvp?: boolean;
+  showCanva?: boolean;
+  showMusic?: boolean;
 }
 
 interface BannerNavItem {
@@ -24,10 +28,14 @@ export function ThemeBanner({
   eventDate,
   eventPlace,
   bannerPhotoUrl,
+  showGallery = false,
   showSchedule = true,
+  showLocation = false,
   showFaq = true,
   showDressCode = false,
   showRsvp = true,
+  showCanva = false,
+  showMusic = false,
 }: ThemeBannerProps) {
   const { theme } = useMicrositeTheme();
   const hasPhoto = Boolean(bannerPhotoUrl);
@@ -60,13 +68,21 @@ export function ThemeBanner({
 
   const navItems: BannerNavItem[] = [
     { href: "#regalos", label: "Regalos" },
+    ...(showGallery ? [{ href: "#album", label: "Fotos" }] : []),
     ...(showSchedule
       ? [{ href: "#cronograma", label: "Cronograma" }]
+      : []),
+    ...(showLocation
+      ? [{ href: "#ubicacion", label: "Ubicación" }]
+      : []),
+    ...(showCanva
+      ? [{ href: "#invitacion-canva", label: "Invitación" }]
       : []),
     ...(showDressCode
       ? [{ href: "#dress-code", label: "Vestimenta" }]
       : []),
     ...(showFaq ? [{ href: "#faq", label: "FAQ" }] : []),
+    ...(showMusic ? [{ href: "#musica", label: "Música" }] : []),
     ...(showRsvp
       ? [{ href: "#rsvp", label: "RSVP", primary: true }]
       : []),

@@ -247,3 +247,35 @@ export async function updateRsvpStatusAction(formData: FormData): Promise<void> 
 
   revalidateBodaPaths(boda.slug, ["/mi-cuenta/invitados"]);
 }
+
+/** Marca la sección RSVP como revisada (checklist de onboarding). */
+export async function markRsvpSectionReviewedAction(): Promise<void> {
+  const { error, boda } = await requireOwnedBoda();
+  if (error || !boda) {
+    return;
+  }
+
+  const misc =
+    boda.misc && typeof boda.misc === "object" && !Array.isArray(boda.misc)
+      ? ({ ...(boda.misc as Record<string, unknown>) } as Record<
+          string,
+          unknown
+        >)
+      : {};
+
+  if (misc.rsvpSectionReviewedAt) {
+    return;
+  }
+
+  await prisma.boda.update({
+    where: { id: boda.id },
+    data: {
+      misc: {
+        ...misc,
+        rsvpSectionReviewedAt: new Date().toISOString(),
+      } as object,
+    },
+  });
+
+  revalidateBodaPaths(boda.slug, ["/mi-cuenta", "/mi-cuenta/invitados"]);
+}

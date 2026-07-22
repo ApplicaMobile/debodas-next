@@ -11,27 +11,50 @@ import {
   getTheme,
   getThemeCssVariables,
 } from "@/lib/themes/registry";
+import {
+  getFontCssStack,
+  micrositeFonts,
+  sanitizeMicrositeFont,
+  type MicrositeFontSlug,
+} from "@/lib/themes/fonts";
 import type { MicrositeTheme, ThemeSlug } from "@/lib/themes/types";
 
 interface ThemeContextValue {
   theme: MicrositeTheme;
   slug: ThemeSlug;
+  fontSlug: MicrositeFontSlug;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 interface ThemeProviderProps {
   slug?: string | null;
+  fontSlug?: string | null;
   children: ReactNode;
 }
 
-export function ThemeProvider({ slug, children }: ThemeProviderProps) {
+export function ThemeProvider({
+  slug,
+  fontSlug: fontSlugProp,
+  children,
+}: ThemeProviderProps) {
   const value = useMemo(() => {
     const theme = getTheme(slug);
-    return { theme, slug: theme.slug as ThemeSlug };
-  }, [slug]);
+    const fontSlug = sanitizeMicrositeFont(fontSlugProp);
+    return { theme, slug: theme.slug as ThemeSlug, fontSlug };
+  }, [slug, fontSlugProp]);
 
-  const cssVars = getThemeCssVariables(value.theme) as CSSProperties;
+  const cssVars = useMemo(() => {
+    const base = getThemeCssVariables(value.theme) as CSSProperties;
+    const stack = getFontCssStack(value.fontSlug);
+    if (!stack) return base;
+    return {
+      ...base,
+      ["--theme-font-heading" as string]: stack,
+      ["--theme-font-body" as string]: stack,
+    } as CSSProperties;
+  }, [value.theme, value.fontSlug]);
+
   const classNames = [
     "microsite-theme",
     `microsite-theme--${value.slug}`,
@@ -48,20 +71,26 @@ export function ThemeProvider({ slug, children }: ThemeProviderProps) {
     value.theme.framePosition === "bottom"
       ? "microsite-theme--frame-bottom"
       : "",
+    value.fontSlug !== "tema-default" ? "microsite-theme--custom-font" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
+  const customFontHref = micrositeFonts[value.fontSlug]?.googleFontsHref;
+  const themeFontHref =
+    value.fontSlug === "tema-default"
+      ? value.theme.fonts.googleFontsHref
+      : undefined;
+
   return (
     <ThemeContext.Provider value={value}>
-      {value.theme.fonts.googleFontsHref ? (
-        <link rel="stylesheet" href={value.theme.fonts.googleFontsHref} />
+      {themeFontHref ? (
+        <link rel="stylesheet" href={themeFontHref} />
       ) : null}
-      <div
-        data-theme={value.slug}
-        className={classNames}
-        style={cssVars}
-      >
+      {customFontHref ? (
+        <link rel="stylesheet" href={customFontHref} />
+      ) : null}
+      <div data-theme={value.slug} className={classNames} style={cssVars}>
         {children}
       </div>
     </ThemeContext.Provider>

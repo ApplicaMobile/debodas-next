@@ -1,3 +1,6 @@
+import { themeList } from "@/lib/themes/registry";
+import type { ThemePlan } from "@/lib/themes/types";
+
 export interface HomeStep {
   number: string;
   title: string;
@@ -18,6 +21,7 @@ export interface HomePlan {
 export interface HomeTheme {
   slug: string;
   label: string;
+  plan: ThemePlan;
   bannerImage: string;
   previewImage: string;
   demoSlug: string;
@@ -122,23 +126,13 @@ const themeBannerUrls: Record<string, string> = {
   "marco-flores-inferiores": `${MARKETING}/theme-marco-flores.jpg`,
 };
 
-export const themes: HomeTheme[] = [
-  { slug: "base", label: "Base", demoSlug: "demo" },
-  { slug: "hojas", label: "Hojas", demoSlug: "demo" },
-  { slug: "flores", label: "Flores", demoSlug: "demo" },
-  { slug: "manantial", label: "Manantial", demoSlug: "demo" },
-  { slug: "marfil", label: "Marfil", demoSlug: "demo" },
-  { slug: "mariposas-azules", label: "Mariposas azules", demoSlug: "demo" },
-  { slug: "marco-verde", label: "Marco verde", demoSlug: "demo" },
-  { slug: "marco-blanco", label: "Marco blanco", demoSlug: "demo" },
-  {
-    slug: "marco-flores-inferiores",
-    label: "Marco flores inferiores",
-    demoSlug: "demo",
-  },
-].map((theme) => ({
-  ...theme,
-  bannerImage: themeBannerUrls[theme.slug],
+/** Labels y planes salen del registry; assets de marketing + SVG home. */
+export const themes: HomeTheme[] = themeList.map((theme) => ({
+  slug: theme.slug,
+  label: theme.label,
+  plan: theme.plan,
+  demoSlug: "demo",
+  bannerImage: themeBannerUrls[theme.slug] ?? `${MARKETING}/theme-base.jpg`,
   previewImage: `/assets/img/themes/${theme.slug}-home.svg`,
 }));
 
@@ -160,6 +154,18 @@ export const reviews: HomeReview[] = [
     rating: 5,
     comment:
       "Excelente experiencia. El RSVP y las mesas del plan premium nos salvaron la logística.",
+  },
+  {
+    name: "Martina & Diego",
+    rating: 5,
+    comment:
+      "La vista previa de los temas nos ayudó a decidir rápido. Quedó exactamente como lo imaginábamos.",
+  },
+  {
+    name: "Florencia A.",
+    rating: 5,
+    comment:
+      "Compartir el link por WhatsApp fue un golazo: todos tenían la info, el mapa y el RSVP en un solo lugar.",
   },
 ];
 

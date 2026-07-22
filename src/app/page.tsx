@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { HeroSection } from "@/components/home/HeroSection";
+import { HowItLooksSection } from "@/components/home/HowItLooksSection";
 import { InstagramSection } from "@/components/home/InstagramSection";
 import { PlansSection } from "@/components/home/PlansSection";
 import { ReviewsSection } from "@/components/home/ReviewsSection";
@@ -18,6 +19,7 @@ export default async function HomePage() {
       <main>
         <HeroSection />
         <StepsSection />
+        <HowItLooksSection />
         <PlansSection />
         <ThemesSection />
         <ReviewsSection reviews={reviews} />

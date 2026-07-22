@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useRef } from "react";
 import {
   updateBodaAction,
   type BodaFormState,
 } from "@/lib/account/actions/boda";
+import { FormAlert } from "@/components/account/FormAlert";
 
 export interface BodaFormValues {
   title: string;
@@ -14,8 +15,10 @@ export interface BodaFormValues {
   eventTime: string;
   eventPlace: string;
   ourStory: string;
+  spotifyUrl: string;
   slug: string;
   password: string;
+  plan: string;
 }
 
 interface BodaFormProps {
@@ -30,12 +33,7 @@ export function BodaForm({ initialValues }: BodaFormProps) {
     initialState,
   );
   const formRef = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    if (state.success) {
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [state.success]);
+  const isPremium = initialValues.plan === "premium";
 
   return (
     <form ref={formRef} action={formAction} className="space-y-6">
@@ -134,6 +132,31 @@ export function BodaForm({ initialValues }: BodaFormProps) {
 
       <div>
         <label className="mb-2 block text-sm font-medium text-stone-700">
+          Playlist de Spotify
+          {!isPremium ? (
+            <span className="ml-2 text-xs font-normal text-stone-500">
+              (Premium)
+            </span>
+          ) : null}
+        </label>
+        <input
+          name="spotify_url"
+          type="text"
+          defaultValue={initialValues.spotifyUrl}
+          disabled={!isPremium}
+          className="w-full rounded-xl border border-stone-200 px-4 py-3 disabled:bg-stone-50 disabled:text-stone-400"
+          placeholder="ID o URL de la playlist (ej: open.spotify.com/playlist/...)"
+          autoComplete="off"
+        />
+        <p className="mt-2 text-xs text-stone-500">
+          {isPremium
+            ? "Pegá el link o el ID de una playlist pública. Se muestra al final del micrositio."
+            : "Disponible en el plan Premium. Podés upgradear desde Plan."}
+        </p>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-stone-700">
           Contraseña del micrositio
         </label>
         <input
@@ -150,16 +173,7 @@ export function BodaForm({ initialValues }: BodaFormProps) {
         </p>
       </div>
 
-      {state.error ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.error}
-        </p>
-      ) : null}
-      {state.success ? (
-        <p className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
-          {state.success}
-        </p>
-      ) : null}
+      <FormAlert error={state.error} success={state.success} />
 
       <button
         type="submit"

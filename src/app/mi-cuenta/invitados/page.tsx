@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { InvitadosPanel } from "@/components/account/InvitadosPanel";
+import { markRsvpSectionReviewedAction } from "@/lib/account/actions/content";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 
 export default async function MiCuentaInvitadosPage() {
@@ -7,6 +8,8 @@ export default async function MiCuentaInvitadosPage() {
   if (!boda) {
     notFound();
   }
+
+  await markRsvpSectionReviewedAction();
 
   return (
     <div className="space-y-6">

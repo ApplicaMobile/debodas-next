@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { themes } from "@/data/home";
+import { planLabels } from "@/lib/plans/features";
 
 export function ThemesSection() {
   return (
@@ -11,7 +12,8 @@ export function ThemesSection() {
             Elegí tu diseño
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600">
-            Mirá cómo queda cada tema con ejemplos de micrositios
+            Abrí cada tema en el micrositio demo real — mismo producto que usan
+            las parejas.
           </p>
         </div>
 
@@ -34,16 +36,32 @@ export function ThemesSection() {
                     alt={`Tema ${theme.label}`}
                     fill
                     className="object-cover object-top"
+                    sizes="(max-width: 640px) 100vw, 33vw"
                   />
                 </div>
               </div>
-              <div className="px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-4">
                 <span className="inline-flex rounded-full bg-[#E6DAC7] px-4 py-1.5 text-sm font-medium text-stone-800">
                   {theme.label}
                 </span>
+                <span className="text-xs font-medium uppercase tracking-wide text-stone-500">
+                  {planLabels[theme.plan] ?? theme.plan}
+                </span>
               </div>
+              <p className="px-5 pb-4 text-xs font-medium text-[#6f5f47] opacity-0 transition group-hover:opacity-100">
+                Ver en vivo →
+              </p>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/bodas/demo"
+            className="inline-flex rounded-full border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
+          >
+            Explorar micrositio demo completo
+          </Link>
         </div>
       </div>
     </section>

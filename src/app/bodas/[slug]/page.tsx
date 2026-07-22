@@ -11,6 +11,7 @@ import {
 } from "@/lib/microsite/password";
 import { canAddRsvpGuest } from "@/lib/plans/limits";
 import { getTheme, isThemeSlug } from "@/lib/themes/registry";
+import { getEffectiveFontSlug, getFontFromMisc } from "@/lib/themes/fonts";
 import { MicrositeDemo } from "@/components/microsite/MicrositeDemo";
 import { PasswordGate } from "@/components/microsite/PasswordGate";
 import { ThemeProvider } from "@/components/themes/ThemeProvider";
@@ -136,9 +137,13 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
   const rsvpCount = await getBodaRsvpCount(slug);
   const rsvpOpen = canAddRsvpGuest(boda.plan, rsvpCount);
   const showThemeSwitcher = shouldShowThemeSwitcher(slug, themeParam);
+  const fontSlug = getEffectiveFontSlug(
+    boda.plan,
+    getFontFromMisc((boda.misc ?? {}) as Record<string, unknown>),
+  );
 
   return (
-    <ThemeProvider slug={resolvedTheme}>
+    <ThemeProvider slug={resolvedTheme} fontSlug={fontSlug}>
       {showThemeSwitcher ? <ThemeSwitcher weddingSlug={slug} /> : null}
       <main>
         <MicrositeDemo boda={boda} rsvpOpen={rsvpOpen} />

@@ -54,7 +54,11 @@ export default async function MiCuentaPage() {
     Boolean(String(options.alias ?? "").trim()) ||
     Boolean(String(options.cbu ?? "").trim());
   const hasSchedule = Boolean(boda?.scheduleItems?.length);
-  const hasRsvp = Boolean(boda?.rsvpGuests?.length);
+  const hasRsvpGuests = Boolean(boda?.rsvpGuests?.length);
+  const misc = parseJsonObject(boda?.misc);
+  const hasRsvpReviewed = Boolean(
+    misc.rsvpSectionReviewedAt || hasRsvpGuests,
+  );
   const checklist = boda
     ? [
         {
@@ -84,7 +88,7 @@ export default async function MiCuentaPage() {
         {
           id: "rsvp",
           label: "Revisá invitados / RSVP",
-          done: hasRsvp,
+          done: hasRsvpReviewed,
           href: "/mi-cuenta/invitados",
           optional: true,
         },

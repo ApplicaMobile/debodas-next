@@ -28,19 +28,43 @@
 }
 
 .invitation-card-body p {
-  margin: 0 0 0.6rem;
-  max-width: 100%;
+  margin: 0 0 0.55rem;
+  max-width: min(100%, 14.5rem);
   overflow-wrap: anywhere;
   word-break: break-word;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
 }
 
 .invitation-card-body h4 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.65rem;
   font-weight: 400;
+  max-width: min(100%, 16rem);
+  overflow-wrap: anywhere;
+  line-height: 1.05;
+}
+
+.invitation-card-body .title,
+.invitation-card-body .description {
+  -webkit-line-clamp: 3;
+}
+
+.invitation-card-body .location-name,
+.invitation-card-body .address {
+  -webkit-line-clamp: 3;
+  font-size: 0.75rem;
+}
+
+.invitation-card-body .outfit {
+  -webkit-line-clamp: 2;
 }
 
 .invitation-card-body .date {
   text-transform: capitalize;
+  -webkit-line-clamp: 2;
 }
 
 .invitation-card-body.flores-rsvp {
@@ -104,9 +128,9 @@
 .invitation-card-body.flores .location-name,
 .invitation-card-body.flores .address {
   font-family: "Times New Roman", Times, serif;
-  font-size: 0.8rem;
-  max-width: 62%;
-  line-height: 1.35;
+  font-size: 0.75rem;
+  max-width: min(62%, 12rem);
+  line-height: 1.3;
   padding: 0 0.25rem;
 }
 

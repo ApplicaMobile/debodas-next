@@ -23,7 +23,7 @@ export default async function MiCuentaLayout({
   return (
     <div className="min-h-screen bg-[#EBEBEB]">
       <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur-sm supports-[backdrop-filter]:bg-white/90">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="min-w-0">
             <Link
               href="/"
@@ -46,7 +46,7 @@ export default async function MiCuentaLayout({
 
       {user?.boda ? (
         <div className="border-b border-stone-200 bg-white/80">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-6 sm:py-3">
+          <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-6 sm:py-3">
             <span className="min-w-0 truncate text-stone-600">
               <span className="hidden sm:inline">Micrositio: </span>
               <strong className="text-stone-800">{user.boda.title}</strong>
@@ -72,7 +72,7 @@ export default async function MiCuentaLayout({
         </div>
       ) : null}
 
-      <main className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full max-w-[1800px] px-4 py-4 sm:px-6 sm:py-10">
         <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
           <AccountSidebar />
           <div className="min-w-0">{children}</div>

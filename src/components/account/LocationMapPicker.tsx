@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -15,40 +21,39 @@ interface LocationMapPickerProps {
   onChange: (value: LocationMapValue) => void;
 }
 
-const DEFAULT_CENTER = { lat: -34.6037, lng: -58.3816 };
-const NOMINATIM_HEADERS = {
-  Accept: "application/json",
-  "Accept-Language": "es-AR,es",
-};
+const DEFAULT_CENTER = { lat: -31.6333, lng: -60.7 }; // Santa Fe AR (fallback)
 
-type NominatimResult = {
+type GeocodeResult = {
   display_name: string;
   lat: string;
   lon: string;
 };
 
-async function searchPlaces(query: string): Promise<NominatimResult[]> {
-  const url = new URL("https://nominatim.openstreetmap.org/search");
+async function searchPlaces(query: string): Promise<{
+  results: GeocodeResult[];
+  error?: string;
+}> {
+  const url = new URL("/api/geocode", window.location.origin);
   url.searchParams.set("q", query);
-  url.searchParams.set("format", "json");
-  url.searchParams.set("limit", "5");
-  url.searchParams.set("addressdetails", "0");
-
-  const res = await fetch(url.toString(), { headers: NOMINATIM_HEADERS });
-  if (!res.ok) return [];
-  return (await res.json()) as NominatimResult[];
+  const res = await fetch(url.toString());
+  const data = (await res.json()) as {
+    results?: GeocodeResult[];
+    error?: string;
+  };
+  if (!res.ok) {
+    return { results: [], error: data.error ?? "No se pudo buscar." };
+  }
+  return { results: data.results ?? [] };
 }
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const url = new URL("https://nominatim.openstreetmap.org/reverse");
+  const url = new URL("/api/geocode", window.location.origin);
   url.searchParams.set("lat", String(lat));
-  url.searchParams.set("lon", String(lng));
-  url.searchParams.set("format", "json");
-
-  const res = await fetch(url.toString(), { headers: NOMINATIM_HEADERS });
+  url.searchParams.set("lng", String(lng));
+  const res = await fetch(url.toString());
   if (!res.ok) return "";
-  const data = (await res.json()) as { display_name?: string };
-  return String(data.display_name ?? "").trim();
+  const data = (await res.json()) as { address?: string };
+  return String(data.address ?? "").trim();
 }
 
 export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
@@ -56,10 +61,17 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<LeafletMarker | null>(null);
   const onChangeRef = useRef(onChange);
+  const placeMarkerRef = useRef<
+    ((lat: number, lng: number, address?: string) => Promise<void>) | null
+  >(null);
+  const didAutoGeocodeRef = useRef(false);
+
   const [query, setQuery] = useState(value.address);
-  const [results, setResults] = useState<NominatimResult[]>([]);
+  const [results, setResults] = useState<GeocodeResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -69,6 +81,44 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
     setQuery(value.address);
   }, [value.address]);
 
+  const placeMarker = useCallback(
+    async (lat: number, lng: number, address?: string) => {
+      const map = mapRef.current;
+      if (!map) return;
+
+      const L = (await import("leaflet")).default;
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      } else {
+        markerRef.current = L.marker([lat, lng]).addTo(map);
+      }
+
+      map.setView([lat, lng], 16);
+      window.setTimeout(() => map.invalidateSize(), 50);
+
+      const resolved =
+        address?.trim() ||
+        (await reverseGeocode(lat, lng)) ||
+        value.address ||
+        "Ubicación seleccionada";
+
+      onChangeRef.current({
+        address: resolved,
+        lat: String(lat),
+        lng: String(lng),
+      });
+      setQuery(resolved);
+      setStatus("Ubicación seleccionada en el mapa");
+      setError("");
+      setResults([]);
+    },
+    [value.address],
+  );
+
+  useEffect(() => {
+    placeMarkerRef.current = placeMarker;
+  }, [placeMarker]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -77,7 +127,6 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
 
       const L = (await import("leaflet")).default;
 
-      // Fix default marker icons in bundlers
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -94,47 +143,28 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
       const startLat = hasPoint ? Number(value.lat) : DEFAULT_CENTER.lat;
       const startLng = hasPoint ? Number(value.lng) : DEFAULT_CENTER.lng;
 
-      const map = L.map(mapNodeRef.current).setView([startLat, startLng], hasPoint ? 15 : 12);
+      const map = L.map(mapNodeRef.current, {
+        scrollWheelZoom: false,
+      }).setView([startLat, startLng], hasPoint ? 15 : 12);
+
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
-
-      const placeMarker = async (lat: number, lng: number, address?: string) => {
-        if (markerRef.current) {
-          markerRef.current.setLatLng([lat, lng]);
-        } else {
-          markerRef.current = L.marker([lat, lng]).addTo(map);
-        }
-        map.setView([lat, lng], Math.max(map.getZoom(), 15));
-
-        const resolved =
-          address?.trim() ||
-          (await reverseGeocode(lat, lng)) ||
-          `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-
-        onChangeRef.current({
-          address: resolved,
-          lat: String(lat),
-          lng: String(lng),
-        });
-        setQuery(resolved);
-        setStatus("Ubicación seleccionada");
-      };
 
       if (hasPoint) {
         markerRef.current = L.marker([startLat, startLng]).addTo(map);
       }
 
       map.on("click", (event) => {
-        void placeMarker(event.latlng.lat, event.latlng.lng);
+        void placeMarkerRef.current?.(event.latlng.lat, event.latlng.lng);
       });
 
       mapRef.current = map;
-
-      // Expose place helper for search selection
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (map as any).__placeMarker = placeMarker;
+      window.setTimeout(() => {
+        map.invalidateSize();
+        if (!cancelled) setMapReady(true);
+      }, 100);
     }
 
     void initMap();
@@ -146,50 +176,95 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
         mapRef.current = null;
         markerRef.current = null;
       }
+      setMapReady(false);
     };
-    // init once
+    // init once per mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Si hay dirección guardada sin pin, geocodificar al estar listo el mapa
   useEffect(() => {
+    if (!mapReady || didAutoGeocodeRef.current) return;
+    if (value.lat && value.lng) return;
+    const address = value.address.trim();
+    if (address.length < 3) return;
+
+    didAutoGeocodeRef.current = true;
+    void (async () => {
+      setSearching(true);
+      setStatus("Ubicando dirección guardada…");
+      try {
+        const { results: found, error: searchError } =
+          await searchPlaces(address);
+        setResults(found);
+        if (found.length === 0) {
+          setError(
+            searchError ||
+              "No pudimos ubicar la dirección guardada. Buscá de nuevo o marcá en el mapa.",
+          );
+          setStatus("");
+        } else {
+          setStatus(
+            found.length === 1
+              ? "Encontramos 1 ubicación. Tocá el resultado para confirmarla en el mapa."
+              : `Encontramos ${found.length} posibles ubicaciones. Elegí la correcta.`,
+          );
+        }
+      } finally {
+        setSearching(false);
+      }
+    })();
+  }, [mapReady, value.address, value.lat, value.lng]);
+
+  async function runSearch() {
     const q = query.trim();
     if (q.length < 3) {
+      setError("Escribí al menos 3 caracteres para buscar.");
       setResults([]);
       return;
     }
 
-    const timer = window.setTimeout(async () => {
-      setSearching(true);
-      try {
-        const found = await searchPlaces(q);
-        setResults(found);
-      } catch {
-        setResults([]);
-      } finally {
-        setSearching(false);
+    setSearching(true);
+    setError("");
+    setStatus("Buscando…");
+    try {
+      const { results: found, error: searchError } = await searchPlaces(q);
+      setResults(found);
+      if (found.length === 0) {
+        setError(
+          searchError ||
+            "No encontramos esa dirección. Probá con calle, número y ciudad (ej: Maipú 1873, Santa Fe).",
+        );
+        setStatus("");
+        return;
       }
-    }, 450);
 
-    return () => window.clearTimeout(timer);
-  }, [query]);
-
-  async function selectResult(item: NominatimResult) {
-    const lat = Number(item.lat);
-    const lng = Number(item.lon);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const placeMarker = (mapRef.current as any)?.__placeMarker as
-      | ((lat: number, lng: number, address?: string) => Promise<void>)
-      | undefined;
-    if (placeMarker) {
-      await placeMarker(lat, lng, item.display_name);
-    } else {
-      onChange({
-        address: item.display_name,
-        lat: item.lat,
-        lng: item.lon,
-      });
+      setStatus(
+        found.length === 1
+          ? "Encontramos 1 resultado. Tocá la lista para ubicarlo en el mapa."
+          : `Encontramos ${found.length} resultados. Elegí el correcto de la lista (o marcá en el mapa).`,
+      );
+    } catch {
+      setError("No se pudo buscar la dirección. Intentá de nuevo.");
+      setStatus("");
+    } finally {
+      setSearching(false);
     }
-    setResults([]);
+  }
+
+  function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void runSearch();
+    }
+  }
+
+  async function selectResult(item: GeocodeResult) {
+    await placeMarkerRef.current?.(
+      Number(item.lat),
+      Number(item.lon),
+      item.display_name,
+    );
   }
 
   function clearLocation() {
@@ -200,38 +275,56 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
     onChange({ address: "", lat: "", lng: "" });
     setQuery("");
     setStatus("");
+    setError("");
     setResults([]);
+    didAutoGeocodeRef.current = false;
   }
 
   return (
     <div className="space-y-3 rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-4">
       <div>
-        <p className="text-sm font-medium text-stone-800">Ubicación en el mapa</p>
+        <p className="text-sm font-medium text-stone-800">
+          Ubicación en el mapa
+        </p>
         <p className="mt-1 text-xs text-stone-500">
-          Buscá una dirección o hacé clic en el mapa para marcar el lugar.
+          Escribí calle, número y ciudad (ej: Maipú 1873, Santa Fe), tocá Buscar
+          y elegí el resultado correcto. También podés marcar el punto con un
+          clic en el mapa.
         </p>
       </div>
 
-      <div className="relative">
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar dirección, salón, ciudad…"
-          className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm"
-          autoComplete="off"
-        />
-        {searching ? (
-          <p className="mt-1 text-xs text-stone-500">Buscando…</p>
-        ) : null}
+      <div className="relative space-y-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setError("");
+            }}
+            onKeyDown={onSearchKeyDown}
+            placeholder="Ej: Maipú 1873, Santa Fe"
+            className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm"
+            autoComplete="off"
+          />
+          <button
+            type="button"
+            disabled={searching}
+            onClick={() => void runSearch()}
+            className="rounded-full bg-[#06263a] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {searching ? "Buscando…" : "Buscar"}
+          </button>
+        </div>
+
         {results.length > 0 ? (
-          <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-stone-200 bg-white shadow-lg">
+          <ul className="max-h-56 overflow-auto rounded-xl border border-stone-200 bg-white shadow-sm">
             {results.map((item) => (
               <li key={`${item.lat}-${item.lon}-${item.display_name}`}>
                 <button
                   type="button"
                   onClick={() => void selectResult(item)}
-                  className="block w-full px-3 py-2 text-left text-sm text-stone-700 hover:bg-stone-50"
+                  className="block w-full px-3 py-2.5 text-left text-sm text-stone-700 hover:bg-stone-50"
                 >
                   {item.display_name}
                 </button>
@@ -270,7 +363,12 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
         </p>
       )}
 
-      {status ? (
+      {error ? (
+        <p className="text-xs text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {status && !error ? (
         <p className="text-xs text-green-800" role="status">
           {status}
         </p>

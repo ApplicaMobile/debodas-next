@@ -8,6 +8,8 @@ import {
 } from "@/lib/account/require-boda";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
 import { prisma } from "@/lib/db/prisma";
+import { normalizePlan } from "@/lib/plans/features";
+import { parseSpotifyPlaylistId } from "@/lib/spotify/parse";
 
 function parseOptions(value: unknown): Record<string, unknown> {
   if (value && typeof value === "object") {
@@ -37,10 +39,24 @@ export async function updateBodaAction(
   const eventTime = String(formData.get("event_time") ?? "").trim();
   const eventPlace = String(formData.get("event_place") ?? "").trim();
   const ourStory = String(formData.get("our_story") ?? "").trim();
+  const spotifyRaw = String(formData.get("spotify_url") ?? "").trim();
   const password = String(formData.get("password") ?? "").trim();
 
   if (!title || !brideName || !groomName || !eventDate) {
     return { error: "Completá título, nombres y fecha del evento." };
+  }
+
+  const isPremium = normalizePlan(boda.plan) === "premium";
+  let spotifyUrl = "";
+  if (isPremium && spotifyRaw) {
+    const playlistId = parseSpotifyPlaylistId(spotifyRaw);
+    if (!playlistId) {
+      return {
+        error:
+          "La playlist de Spotify no es válida. Pegá el link o el ID de la playlist.",
+      };
+    }
+    spotifyUrl = playlistId;
   }
 
   const couple = {
@@ -59,6 +75,7 @@ export async function updateBodaAction(
   const misc = {
     ...parseMisc(boda.misc),
     our_story: ourStory,
+    ...(isPremium ? { spotify_url: spotifyUrl } : {}),
   };
 
   const options = {

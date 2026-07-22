@@ -197,6 +197,10 @@ function buildMisc(meta: MetaMap, wpPostId: number): Record<string, unknown> {
   return {
     our_story: stripHtml(metaGet(meta, "misc_our_story") || metaGet(meta, "our_story")),
     spotify_url: metaGet(meta, "misc_spotify_url") || metaGet(meta, "spotify_url"),
+    microsite_font:
+      metaGet(meta, "microsite_font") ||
+      metaGet(meta, "misc_microsite_font") ||
+      "tema-default",
     site_source: siteSource,
     site_source_other: "",
     wp_post_id: wpPostId,

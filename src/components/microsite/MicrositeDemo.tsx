@@ -24,7 +24,14 @@ import {
   hasDressCodeContent,
 } from "@/lib/bodas/dress-code";
 import { MicrositeInvitationActions } from "@/components/microsite/MicrositeInvitationActions";
-import { parseInvitations } from "@/lib/invitations/parse";
+import { MicrositeCanvaInvite } from "@/components/microsite/MicrositeCanvaInvite";
+import { MicrositeGallery } from "@/components/microsite/MicrositeGallery";
+import { MicrositeSpotify } from "@/components/microsite/MicrositeSpotify";
+import {
+  parseCanvaLink,
+  parseInvitations,
+} from "@/lib/invitations/parse";
+import { getSpotifyPlaylistId } from "@/lib/spotify/parse";
 import { normalizePlan } from "@/lib/plans/features";
 import { getScheduleIconUrl } from "@/lib/schedule/icons";
 
@@ -138,8 +145,27 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
   const invitations = parseInvitations(
     (boda.misc ?? {}) as Record<string, unknown>,
   );
+  const canvaLink = parseCanvaLink(
+    (boda.misc ?? {}) as Record<string, unknown>,
+  );
   const isPremium = normalizePlan(boda.plan) === "premium";
   const hashtag = String(boda.misc?.hashtag ?? "").trim();
+  const showCanva = isPremium && Boolean(canvaLink);
+  const pictures = (boda.pictures ?? [])
+    .map((item) => {
+      const row = item as { url?: string; alt?: string };
+      const url = String(row.url ?? "").trim();
+      if (!url) return null;
+      const alt = row.alt ? String(row.alt) : undefined;
+      return { url, alt } as { url: string; alt?: string };
+    })
+    .filter((item): item is { url: string; alt?: string } => item !== null);
+  const showGallery = pictures.length > 0;
+  const showLocation = invitations.some((item) => item.isVisibleInMicrosite);
+  const spotifyId = getSpotifyPlaylistId(
+    (boda.misc ?? {}) as Record<string, unknown>,
+  );
+  const showMusic = isPremium && Boolean(spotifyId);
 
   return (
     <>
@@ -148,12 +174,16 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
         eventDate={eventDate}
         eventPlace={String(boda.event?.place ?? "")}
         bannerPhotoUrl={bannerUrl}
+        showGallery={showGallery}
         showSchedule={Boolean(boda.schedule?.length)}
+        showLocation={showLocation}
         showFaq={Boolean(showFaq && boda.faq_items?.length)}
         showDressCode={Boolean(
           showDressCode && hasDressCodeContent(dressCode),
         )}
         showRsvp={rsvpOpen}
+        showCanva={showCanva}
+        showMusic={showMusic}
       />
 
       <ThemeSection>
@@ -191,6 +221,12 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
           />
         </div>
       </ThemeSection>
+
+      {showGallery ? (
+        <ThemeSection soft id="album">
+          <MicrositeGallery pictures={pictures} titleClass={titleClass} />
+        </ThemeSection>
+      ) : null}
 
       {boda.schedule?.length ? (
         <ThemeSection soft decor={usesInfoDecor} id="cronograma">
@@ -241,13 +277,22 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
         </ThemeSection>
       ) : null}
 
-      {invitations.some((item) => item.isVisibleInMicrosite) ? (
+      {showLocation ? (
         <ThemeSection soft id="ubicacion">
           <MicrositeInvitationActions
             invitations={invitations}
             coupleName={coupleName}
             isPremium={isPremium}
             hashtag={hashtag || undefined}
+          />
+        </ThemeSection>
+      ) : null}
+
+      {showCanva ? (
+        <ThemeSection soft id="invitacion-canva">
+          <MicrositeCanvaInvite
+            canvaLink={canvaLink}
+            titleClass={titleClass}
           />
         </ThemeSection>
       ) : null}
@@ -287,6 +332,12 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
           />
         </div>
       </ThemeSection>
+
+      {showMusic && spotifyId ? (
+        <ThemeSection soft id="musica">
+          <MicrositeSpotify playlistId={spotifyId} titleClass={titleClass} />
+        </ThemeSection>
+      ) : null}
     </>
   );
 }
