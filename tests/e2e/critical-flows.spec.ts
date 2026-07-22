@@ -134,6 +134,7 @@ test("recorre las secciones administrativas críticas", async ({ page }) => {
   await login(page, "admin@debodas.local", "admin1234", "/admin");
 
   for (const [path, heading] of [
+    ["/admin/estado", "Estado del sistema"],
     ["/admin/bodas?q=demo", "Bodas"],
     ["/admin/usuarios", "Usuarios"],
     ["/admin/emails", "Emails"],

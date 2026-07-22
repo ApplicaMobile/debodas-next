@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/require-admin";
+import { getSystemAlerts } from "@/lib/admin/system-health";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function AdminDashboardPage() {
@@ -14,6 +15,7 @@ export default async function AdminDashboardPage() {
     pendingGifts,
     planGroups,
     recentBodas,
+    systemAlerts,
   ] = await Promise.all([
     prisma.boda.count(),
     prisma.user.count(),
@@ -37,6 +39,7 @@ export default async function AdminDashboardPage() {
         user: { select: { email: true } },
       },
     }),
+    getSystemAlerts(),
   ]);
 
   const cards = [
@@ -73,13 +76,53 @@ export default async function AdminDashboardPage() {
         <p className="mt-2 text-stone-600">
           Operación interna de DeBodas (reemplazo del admin de WordPress).
         </p>
-        <Link
-          href="/admin/estadisticas"
-          className="mt-4 inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
-        >
-          Ver estadísticas de bodas →
-        </Link>
+        <div className="mt-4 flex flex-wrap gap-4">
+          <Link
+            href="/admin/estado"
+            className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
+          >
+            Estado del sistema →
+          </Link>
+          <Link
+            href="/admin/estadisticas"
+            className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
+          >
+            Ver estadísticas de bodas →
+          </Link>
+        </div>
       </section>
+
+      {systemAlerts.length > 0 ? (
+        <section aria-label="Alertas del sistema" className="space-y-3">
+          {systemAlerts.slice(0, 4).map((alert) => (
+            <div
+              key={alert.id}
+              role="alert"
+              className={
+                alert.level === "error"
+                  ? "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
+                  : "rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+              }
+            >
+              <p>{alert.message}</p>
+              <Link
+                href={alert.href ?? "/admin/estado"}
+                className="mt-2 inline-flex text-sm font-medium underline underline-offset-2"
+              >
+                Revisar
+              </Link>
+            </div>
+          ))}
+          {systemAlerts.length > 4 ? (
+            <Link
+              href="/admin/estado"
+              className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
+            >
+              Ver las {systemAlerts.length} alertas →
+            </Link>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (

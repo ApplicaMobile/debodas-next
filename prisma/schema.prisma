@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  name         String?
-  role         String   @default("couple")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String   @map("password_hash")
+  name           String?
+  role           String   @default("couple")
+  sessionVersion Int      @default(0) @map("session_version")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   boda               Boda?
   passwordResetTokens PasswordResetToken[]
@@ -68,6 +69,15 @@ model AdminAuditLog {
   @@index([action, createdAt])
   @@index([createdAt])
   @@map("admin_audit_logs")
+}
+
+model SystemHeartbeat {
+  id        String   @id
+  lastRunAt DateTime @map("last_run_at")
+  meta      Json     @default("{}")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_heartbeats")
 }
 
 model EmailLog {

@@ -3,6 +3,10 @@
 import { hash } from "bcryptjs";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import {
+  getAdminAuditContext,
+  writeAdminAudit,
+} from "@/lib/admin/audit";
 import { verifyCredentials } from "@/lib/auth/credentials";
 import { isAdminRole } from "@/lib/auth/roles";
 import {
@@ -11,7 +15,7 @@ import {
   validateRegisterInput,
 } from "@/lib/auth/register";
 import { generateUniqueSlug } from "@/lib/auth/slug";
-import { createSession, deleteSession } from "@/lib/auth/session";
+import { createSession, deleteSession, getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import {
   checkRateLimit,
@@ -68,7 +72,26 @@ export async function loginAction(
       return { error: "Email o contraseña incorrectos." };
     }
 
-    await createSession({ userId: user.id, email: user.email });
+    await createSession({
+      userId: user.id,
+      email: user.email,
+      sessionVersion: user.sessionVersion,
+    });
+
+    if (isAdminRole(user.role)) {
+      const audit = await getAdminAuditContext({
+        id: user.id,
+        email: user.email,
+      });
+      await prisma.$transaction((tx) =>
+        writeAdminAudit(tx, audit, {
+          action: "admin.auth.login",
+          entity: "auth",
+          entityId: user.id,
+          metadata: { next: safeNext },
+        }),
+      );
+    }
 
     let redirectTo = safeNext;
     if (safeNext.startsWith("/admin") && !isAdminRole(user.role)) {
@@ -91,6 +114,24 @@ export async function loginAction(
 }
 
 export async function logoutAction(): Promise<void> {
+  const session = await getSession();
+  if (session) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, email: true, role: true },
+    });
+    if (user && isAdminRole(user.role)) {
+      const audit = await getAdminAuditContext(user);
+      await prisma.$transaction((tx) =>
+        writeAdminAudit(tx, audit, {
+          action: "admin.auth.logout",
+          entity: "auth",
+          entityId: user.id,
+        }),
+      );
+    }
+  }
+
   await deleteSession();
   redirect("/login");
 }
@@ -222,7 +263,11 @@ export async function registerAction(
       return createdUser;
     });
 
-    await createSession({ userId: user.id, email: user.email });
+    await createSession({
+      userId: user.id,
+      email: user.email,
+      sessionVersion: user.sessionVersion,
+    });
 
     return { success: true, redirectTo: "/mi-cuenta" };
   } catch (error) {

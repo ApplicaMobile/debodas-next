@@ -3,7 +3,7 @@ import {
   CRON_HEARTBEAT_IDS,
   recordCronHeartbeat,
 } from "@/lib/admin/cron-heartbeat";
-import { processEmailQueue } from "@/lib/email/worker";
+import { runMaintenance } from "@/lib/maintenance/run";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -18,18 +18,15 @@ async function handle(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
   try {
-    const stats = await processEmailQueue(20);
-    await recordCronHeartbeat(CRON_HEARTBEAT_IDS.emailQueue, {
-      claimed: stats.claimed,
-      sent: stats.sent,
-      failed: stats.failed,
-    });
+    const stats = await runMaintenance();
+    await recordCronHeartbeat(CRON_HEARTBEAT_IDS.maintenance, { ...stats });
     return NextResponse.json({ ok: true, ...stats });
   } catch (error) {
-    console.error("[cron/email-queue]", error);
+    console.error("[cron/maintenance]", error);
     return NextResponse.json(
-      { error: "Failed to process email queue" },
+      { error: "Failed to run maintenance" },
       { status: 500 },
     );
   }

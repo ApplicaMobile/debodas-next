@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCoupleDisplayName } from "@/data/bodas";
+import {
+  CRON_HEARTBEAT_IDS,
+  recordCronHeartbeat,
+} from "@/lib/admin/cron-heartbeat";
 import { prisma } from "@/lib/db/prisma";
 import { notifyRatingRequest } from "@/lib/email/notify";
 import {
@@ -69,6 +73,12 @@ export async function GET(request: Request) {
       });
       if (!result.skipped && !result.duplicate) queued += 1;
     }
+
+    await recordCronHeartbeat(CRON_HEARTBEAT_IDS.ratingEmails, {
+      candidates: candidates.length,
+      due: due.length,
+      queued,
+    });
 
     return NextResponse.json({
       ok: true,

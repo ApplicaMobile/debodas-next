@@ -7,10 +7,15 @@ import {
   getAdminAuditContext,
   writeAdminAudit,
 } from "@/lib/admin/audit";
+import {
+  CRON_HEARTBEAT_IDS,
+  recordCronHeartbeat,
+} from "@/lib/admin/cron-heartbeat";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { getCoupleDisplayName } from "@/data/bodas";
 import { notifyRatingRequest } from "@/lib/email/notify";
 import { processEmailQueue } from "@/lib/email/worker";
+import { runMaintenance } from "@/lib/maintenance/run";
 import { prisma } from "@/lib/db/prisma";
 import type { Boda as BodaShape } from "@/types/boda";
 
@@ -382,6 +387,13 @@ export async function processEmailQueueAdminAction() {
   const audit = await getAdminAuditContext(admin);
   const stats = await processEmailQueue(20);
 
+  await recordCronHeartbeat(CRON_HEARTBEAT_IDS.emailQueue, {
+    claimed: stats.claimed,
+    sent: stats.sent,
+    failed: stats.failed,
+    source: "admin",
+  });
+
   await prisma.$transaction((tx) =>
     writeAdminAudit(tx, audit, {
       action: "admin.email.queue_processed",
@@ -397,6 +409,7 @@ export async function processEmailQueueAdminAction() {
   );
 
   revalidatePath("/admin/emails");
+  revalidatePath("/admin/estado");
   redirect(
     `/admin/emails?ok=processed&claimed=${stats.claimed}&sent=${stats.sent}&failed=${stats.failed + stats.blocked}`,
   );
@@ -518,4 +531,37 @@ export async function updateUserRoleAction(formData: FormData) {
   revalidatePath("/admin/usuarios");
   revalidatePath("/admin");
   redirect(adminUsersPath(formData, { ok: "1" }));
+}
+
+export async function runMaintenanceAdminAction() {
+  const admin = await requireAdmin();
+  const audit = await getAdminAuditContext(admin);
+  const stats = await runMaintenance();
+
+  await recordCronHeartbeat(CRON_HEARTBEAT_IDS.maintenance, {
+    ...stats,
+    source: "admin",
+  });
+
+  await prisma.$transaction((tx) =>
+    writeAdminAudit(tx, audit, {
+      action: "admin.maintenance.run",
+      entity: "maintenance",
+      metadata: {
+        rateLimitBucketsDeleted: stats.rateLimitBucketsDeleted,
+        emailLogsDeleted: stats.emailLogsDeleted,
+        auditLogsDeleted: stats.auditLogsDeleted,
+        passwordResetTokensDeleted: stats.passwordResetTokensDeleted,
+        emailLogRetentionDays: stats.emailLogRetentionDays,
+        auditLogRetentionDays: stats.auditLogRetentionDays,
+      },
+    }),
+  );
+
+  revalidatePath("/admin/estado");
+  revalidatePath("/admin/emails");
+  revalidatePath("/admin/auditoria");
+  redirect(
+    `/admin/estado?ok=maintenance&rate=${stats.rateLimitBucketsDeleted}&emails=${stats.emailLogsDeleted}&audit=${stats.auditLogsDeleted}&tokens=${stats.passwordResetTokensDeleted}`,
+  );
 }

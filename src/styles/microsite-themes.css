@@ -18,7 +18,13 @@
   background-image: var(--theme-full-bg);
   background-size: cover;
   background-position: center top;
-  background-attachment: fixed;
+  background-attachment: scroll;
+}
+
+@media (min-width: 1024px) {
+  .microsite-theme--full-bg {
+    background-attachment: fixed;
+  }
 }
 
 .microsite-theme--full-bg .microsite-section {
@@ -40,6 +46,133 @@
 .microsite-theme--unified-decor[data-theme="mariposas-azules"]::before {
   background-size: cover;
   background-position: center top;
+}
+
+/* Marcos: decor por sección a todo el ancho, con opacidad controlada */
+[data-theme="marco-verde"].microsite-theme--frame-section-decor
+  .microsite-section,
+[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
+  .microsite-section {
+  position: relative;
+  isolation: isolate;
+  background-image: none;
+  padding-bottom: clamp(3rem, 8vw, 5.5rem);
+  overflow: hidden;
+}
+
+[data-theme="marco-verde"].microsite-theme--frame-section-decor
+  .microsite-section::before,
+[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
+  .microsite-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--theme-info-decor);
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  opacity: 0.42;
+}
+
+[data-theme="marco-verde"].microsite-theme--frame-section-decor
+  .microsite-section::before {
+  background-position: center top;
+}
+
+[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
+  .microsite-section::before {
+  background-position: center bottom;
+}
+
+[data-theme="marco-verde"].microsite-theme--frame-section-decor
+  .microsite-section
+  > *,
+[data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
+  .microsite-section
+  > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="marco-verde"] .microsite-card,
+[data-theme="marco-verde"] .microsite-countdown-item,
+[data-theme="marco-verde"] .microsite-schedule-item,
+[data-theme="marco-verde"] .microsite-dress-code,
+[data-theme="marco-verde"] .microsite-faq details,
+[data-theme="marco-verde"] .microsite-rsvp-box,
+[data-theme="marco-flores-inferiores"] .microsite-card,
+[data-theme="marco-flores-inferiores"] .microsite-countdown-item,
+[data-theme="marco-flores-inferiores"] .microsite-schedule-item,
+[data-theme="marco-flores-inferiores"] .microsite-dress-code,
+[data-theme="marco-flores-inferiores"] .microsite-faq details,
+[data-theme="marco-flores-inferiores"] .microsite-rsvp-box {
+  background: var(--theme-card-bg);
+  backdrop-filter: blur(2px);
+}
+
+[data-theme="marco-verde"] .microsite-story,
+[data-theme="marco-flores-inferiores"] .microsite-story {
+  position: relative;
+  z-index: 1;
+  padding: 0.95rem 1.15rem;
+  border-radius: var(--theme-radius-card, 1rem);
+  background: color-mix(in srgb, var(--theme-page) 78%, #fff);
+  border: var(--theme-card-border);
+  box-shadow: var(--theme-card-shadow);
+}
+
+/* Marco inferior: flores solo en la franja baja del banner (como WP) */
+.microsite-theme--frame-bottom .microsite-banner__frame {
+  top: auto;
+  bottom: 0;
+  height: 55%;
+  background-position: center bottom;
+  background-size: 100% auto;
+}
+
+.microsite-theme--frame-bottom .microsite-banner--has-photo .microsite-banner__frame {
+  height: 32%;
+  opacity: 0.82;
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 40%,
+    transparent 85%
+  );
+  mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 85%);
+}
+
+/* Secciones: decor abajo, sin estirar a todo el alto */
+.microsite-theme--frame-bottom.microsite-theme--frame-section-decor
+  .microsite-section {
+  background-size: min(1100px, 100%) auto;
+  background-position: center bottom;
+}
+
+@media (max-width: 768px) {
+  .microsite-theme--frame-bottom .microsite-banner__frame,
+  .microsite-theme--frame-bottom
+    .microsite-banner--has-photo
+    .microsite-banner__frame {
+    height: 34%;
+    opacity: 0.7;
+  }
+
+  [data-theme="marco-verde"].microsite-theme--frame-section-decor
+    .microsite-section::before,
+  [data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
+    .microsite-section::before {
+    opacity: 0.3;
+    background-size: 100% auto;
+  }
+
+  [data-theme="marco-verde"].microsite-theme--frame-section-decor
+    .microsite-section,
+  [data-theme="marco-flores-inferiores"].microsite-theme--frame-section-decor
+    .microsite-section {
+    padding-bottom: 3.25rem;
+  }
 }
 
 .microsite-theme--full-bg .microsite-banner {
@@ -76,6 +209,17 @@
   background-repeat: no-repeat;
   background-size: 100% auto;
   background-position: var(--theme-frame-pos);
+}
+
+@media (max-width: 640px) {
+  .microsite-banner--frame:not(.microsite-banner--has-photo):not(
+      .microsite-banner--photo-only
+    ) {
+    aspect-ratio: auto;
+    min-height: 70vh;
+    max-height: none;
+    background-size: cover;
+  }
 }
 
 .microsite-banner--frame.microsite-banner--has-photo {
@@ -176,12 +320,23 @@
 
 /* Dejar aire para las flores del marco inferior */
 [data-theme="marco-flores-inferiores"] .microsite-banner__content {
-  padding-bottom: 5.5rem;
+  padding-bottom: clamp(6.5rem, 16vw, 9.5rem);
+}
+
+[data-theme="marco-flores-inferiores"] .microsite-nav {
+  position: relative;
+  z-index: 2;
+}
+
+[data-theme="marco-flores-inferiores"] .microsite-nav__link:not(.microsite-nav__link--primary) {
+  background: rgba(40, 28, 18, 0.42);
+  border-color: rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 @media (max-width: 640px) {
   [data-theme="marco-flores-inferiores"] .microsite-banner__content {
-    padding-bottom: 4.25rem;
+    padding-bottom: 6rem;
   }
 }
 
@@ -197,8 +352,14 @@
 }
 
 /* Con foto: forzar contraste claro (nombres / meta siempre legibles) */
-.microsite-banner--with-photo .microsite-banner__content {
+.microsite-banner--with-photo .microsite-banner__content,
+.microsite-banner--with-photo .microsite-banner__eyebrow,
+.microsite-banner--with-photo .microsite-banner__title,
+.microsite-banner--with-photo .microsite-banner__meta {
   color: #fff;
+}
+
+.microsite-banner--with-photo .microsite-banner__content {
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.55),
     0 8px 28px rgba(0, 0, 0, 0.45);
@@ -242,8 +403,8 @@
 .microsite-banner__title {
   margin-top: 0.85rem;
   max-width: 18ch;
-  font-size: clamp(2.4rem, 7vw, 4.4rem);
-  line-height: 1.08;
+  font-size: clamp(2.55rem, 8vw, 4.6rem);
+  line-height: 1.05;
   letter-spacing: var(--theme-letter-spacing);
   font-weight: 600;
 }
@@ -266,6 +427,12 @@
   font-weight: 500;
 }
 
+.microsite-banner__date {
+  font-family: var(--theme-font-heading);
+  font-size: 1.05em;
+  font-weight: 600;
+}
+
 .microsite-banner__meta-sep {
   opacity: 0.7;
 }
@@ -279,16 +446,34 @@
     flex-direction: column;
     gap: 0.2rem;
   }
+
+  .microsite-banner__title {
+    max-width: 12ch;
+  }
 }
 
 .microsite-nav {
   margin-top: 1.75rem;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 42rem;
+}
+
+.microsite-nav__secondary {
+  display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 0.55rem;
-  max-width: 40rem;
+  width: 100%;
+}
+
+.microsite-nav__primary {
+  display: flex;
+  justify-content: center;
 }
 
 .microsite-nav__link {
@@ -297,7 +482,7 @@
   justify-content: center;
   min-height: 2.75rem;
   padding: 0.45rem 1rem;
-  border-radius: 9999px;
+  border-radius: var(--theme-radius-button, 9999px);
   border: 1px solid rgba(255, 255, 255, 0.42);
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
@@ -321,15 +506,17 @@
 
 .microsite-nav__link--primary {
   border-color: transparent;
-  background: var(--theme-accent, #e6dac7);
+  background: var(--theme-button, var(--theme-accent, #e6dac7));
   color: var(--theme-button-text, #3f3a32);
   font-weight: 600;
+  min-width: 8.5rem;
+  padding-inline: 1.35rem;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
 }
 
 .microsite-nav__link--primary:hover {
   filter: brightness(1.06);
-  background: var(--theme-accent, #e6dac7);
+  background: var(--theme-button, var(--theme-accent, #e6dac7));
   border-color: transparent;
   transform: translateY(-1px);
 }
@@ -346,7 +533,7 @@
 
 .microsite-banner:not(.microsite-banner--with-photo) .microsite-nav__link--primary {
   border-color: transparent;
-  background: var(--theme-accent, #e6dac7);
+  background: var(--theme-button, var(--theme-accent, #e6dac7));
   color: var(--theme-button-text, #3f3a32);
 }
 
@@ -356,13 +543,34 @@
   }
 
   .microsite-nav {
-    gap: 0.45rem;
+    gap: 0.65rem;
+  }
+
+  .microsite-nav__secondary {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.4rem;
+    padding: 0.15rem 0.25rem 0.35rem;
+    scrollbar-width: none;
+  }
+
+  .microsite-nav__secondary::-webkit-scrollbar {
+    display: none;
   }
 
   .microsite-nav__link {
-    min-height: 2.75rem;
-    padding: 0.4rem 0.85rem;
-    font-size: 0.82rem;
+    flex-shrink: 0;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .microsite-nav__link--primary {
+    min-height: 2.85rem;
+    min-width: 9rem;
   }
 }
 
@@ -439,10 +647,12 @@
 }
 
 .microsite-countdown-item {
-  border-radius: 1rem;
+  border-radius: var(--theme-radius-card, 1rem);
   background: var(--theme-countdown-box);
   padding: 1.25rem 1rem;
   text-align: center;
+  border: var(--theme-card-border, 1px solid transparent);
+  box-shadow: var(--theme-card-shadow, none);
 }
 
 .microsite-countdown-item strong {
@@ -461,22 +671,24 @@
 }
 
 .microsite-card {
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.88);
+  border-radius: var(--theme-radius-card, 1rem);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.88));
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--theme-card-shadow, 0 8px 30px rgba(0, 0, 0, 0.05));
+  border: var(--theme-card-border, 1px solid transparent);
 }
 
 .microsite-theme--frame .microsite-card,
 .microsite-theme--unified-decor .microsite-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.92));
 }
 
 .microsite-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  min-height: 2.85rem;
+  border-radius: var(--theme-radius-button, 999px);
   background: var(--theme-button);
   color: var(--theme-button-text);
   padding: 0.75rem 1.4rem;
@@ -484,11 +696,12 @@
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, filter 0.2s ease, transform 0.2s ease;
 }
 
 .microsite-btn:hover {
   background: var(--theme-accent-hover);
+  filter: brightness(1.02);
 }
 
 .microsite-story {
@@ -549,8 +762,10 @@
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 1rem;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.88);
+  border-radius: var(--theme-radius-card, 1rem);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.88));
+  border: var(--theme-card-border, 1px solid transparent);
+  box-shadow: var(--theme-card-shadow, none);
   padding: 1.25rem;
 }
 
@@ -590,12 +805,12 @@
 }
 
 .microsite-dress-code {
-  border-radius: 1.25rem;
-  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--theme-radius-card, 1.25rem);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.92));
   padding: 2rem 1.5rem;
   text-align: center;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: var(--theme-card-shadow, 0 8px 30px rgba(0, 0, 0, 0.06));
+  border: var(--theme-card-border, 1px solid rgba(0, 0, 0, 0.06));
 }
 
 .microsite-dress-code__columns {
@@ -679,8 +894,10 @@
 }
 
 .microsite-faq details {
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.88);
+  border-radius: var(--theme-radius-card, 1rem);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.88));
+  border: var(--theme-card-border, 1px solid transparent);
+  box-shadow: var(--theme-card-shadow, none);
   padding: 1rem 1.25rem;
 }
 
@@ -698,10 +915,11 @@
 .microsite-rsvp-box {
   max-width: 32rem;
   margin: 0 auto;
-  border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--theme-radius-card, 1.5rem);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.92));
   padding: 2rem;
   text-align: center;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--theme-card-shadow, 0 12px 40px rgba(0, 0, 0, 0.06));
+  border: var(--theme-card-border, 1px solid transparent);
 }
 

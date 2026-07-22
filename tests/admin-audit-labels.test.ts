@@ -7,10 +7,11 @@ import {
 
 test("traduce acciones y entidades conocidas", () => {
   assert.equal(
-    auditActionLabel("admin.email.queue_processed"),
-    "Procesó manualmente la cola",
+    auditActionLabel("admin.auth.login"),
+    "Inició sesión en el panel",
   );
   assert.equal(auditEntityLabel("email_queue"), "Cola de emails");
+  assert.equal(auditEntityLabel("auth"), "Autenticación");
 });
 
 test("conserva valores desconocidos para no ocultar eventos nuevos", () => {

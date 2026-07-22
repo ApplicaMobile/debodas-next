@@ -26,6 +26,14 @@ export interface ThemeColors {
   bannerText: string;
 }
 
+export interface ThemeUi {
+  radiusCard: string;
+  radiusButton: string;
+  cardBg: string;
+  cardShadow: string;
+  cardBorder: string;
+}
+
 export interface ThemeAssets {
   homeSvg: string;
   infoSvg?: string;
@@ -40,9 +48,12 @@ export interface MicrositeTheme {
   bannerMode: ThemeBannerMode;
   fonts: ThemeFonts;
   colors: ThemeColors;
+  ui: ThemeUi;
   assets: ThemeAssets;
   framePosition?: "top" | "bottom";
   unifiedDecor?: boolean;
+  /** Si false, no pinta el SVG de info en cada sección (solo marco del banner). */
+  sectionDecor?: boolean;
   hideBannerFrameWithPhoto?: boolean;
   showSeparator?: boolean;
   lightBannerNav?: boolean;

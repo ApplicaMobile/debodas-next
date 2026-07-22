@@ -6,6 +6,7 @@ export interface AdminSection {
 
 export const adminSections: AdminSection[] = [
   { href: "/admin", label: "Resumen", exact: true },
+  { href: "/admin/estado", label: "Estado del sistema" },
   { href: "/admin/estadisticas", label: "Estadísticas" },
   { href: "/admin/bodas", label: "Bodas" },
   { href: "/admin/calificaciones", label: "Calificaciones" },

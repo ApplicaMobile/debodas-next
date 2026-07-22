@@ -1,6 +1,14 @@
-import type { MicrositeTheme, ThemeSlug } from "./types";
+import type { MicrositeTheme, ThemeSlug, ThemeUi } from "./types";
 
 const asset = (path: string) => `/assets/img/themes/${path}`;
+
+const defaultUi: ThemeUi = {
+  radiusCard: "1rem",
+  radiusButton: "9999px",
+  cardBg: "rgba(255,255,255,0.92)",
+  cardShadow: "0 12px 40px rgba(0, 0, 0, 0.06)",
+  cardBorder: "1px solid rgba(0, 0, 0, 0.06)",
+};
 
 function createTheme(
   slug: string,
@@ -17,6 +25,7 @@ function createTheme(
     plan,
     showSeparator,
     ...partial,
+    ui: { ...defaultUi, ...partial.ui },
     assets: {
       homeSvg: asset(`${slug}-home.svg`),
       separatorSvg: showSeparator ? asset(`separator_${slug}.svg`) : undefined,
@@ -25,19 +34,24 @@ function createTheme(
   };
 }
 
-const defaultFonts = {
-  heading: "var(--font-playfair)",
-  body: "var(--font-montserrat)",
-};
-
 export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
   base: createTheme("base", "Base", "free", {
     bannerMode: "svg-hero",
-    fonts: defaultFonts,
+    fonts: {
+      heading: "var(--font-playfair)",
+      body: "var(--font-montserrat)",
+    },
+    ui: {
+      radiusCard: "1rem",
+      radiusButton: "9999px",
+      cardBg: "rgba(255,255,255,0.94)",
+      cardShadow: "0 10px 28px rgba(55, 55, 54, 0.08)",
+      cardBorder: "1px solid rgba(108, 195, 158, 0.18)",
+    },
     colors: {
       page: "#f5f5f4",
       text: "#373736",
-      textMuted: "#6b6b6b",
+      textMuted: "#5c5c5c",
       accent: "#6cc39e",
       accentHover: "#5ab58f",
       button: "#6cc39e",
@@ -51,11 +65,23 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
 
   hojas: createTheme("hojas", "Hojas", "basico", {
     bannerMode: "svg-hero",
-    fonts: defaultFonts,
+    fonts: {
+      heading: "'Fraunces', Georgia, serif",
+      body: "'Source Sans 3', 'Segoe UI', sans-serif",
+      googleFontsHref:
+        "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap",
+    },
+    ui: {
+      radiusCard: "1.25rem",
+      radiusButton: "9999px",
+      cardBg: "rgba(255,252,247,0.94)",
+      cardShadow: "0 14px 36px rgba(65, 63, 63, 0.08)",
+      cardBorder: "1px solid rgba(230, 218, 199, 0.7)",
+    },
     colors: {
       page: "#f3f1eb",
       text: "#413f3f",
-      textMuted: "#6b675e",
+      textMuted: "#5f5a52",
       accent: "#e6dac7",
       accentHover: "#d4c4a8",
       button: "#e6dac7",
@@ -75,22 +101,32 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
     bannerMode: "svg-hero",
     bannerPhotoOverlay: false,
     fonts: {
-      heading: "'Times New Roman', Georgia, serif",
+      heading: "'EB Garamond', Georgia, serif",
       body: "var(--font-montserrat)",
+      googleFontsHref:
+        "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&display=swap",
     },
     headingUppercase: true,
+    letterSpacing: "0.08em",
+    ui: {
+      radiusCard: "0.85rem",
+      radiusButton: "0.65rem",
+      cardBg: "rgba(255,255,255,0.95)",
+      cardShadow: "0 12px 32px rgba(128, 95, 172, 0.1)",
+      cardBorder: "1px solid rgba(128, 95, 172, 0.16)",
+    },
     colors: {
       page: "#faf7fb",
-      text: "#805fac",
-      textMuted: "#8f74b0",
+      text: "#6a4a94",
+      textMuted: "#745a96",
       accent: "#805fac",
       accentHover: "#6d4f93",
       button: "#805fac",
       buttonText: "#ffffff",
       sectionSoft: "#f3ebf8",
       countdownBox: "rgba(255,255,255,0.92)",
-      countdownText: "#805fac",
-      bannerText: "#805fac",
+      countdownText: "#6a4a94",
+      bannerText: "#6a4a94",
     },
     assets: {
       homeSvg: asset("flores-home.svg"),
@@ -100,11 +136,23 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
 
   manantial: createTheme("manantial", "Manantial", "premium", {
     bannerMode: "svg-hero",
-    fonts: defaultFonts,
+    fonts: {
+      heading: "'DM Serif Display', Georgia, serif",
+      body: "'Outfit', 'Segoe UI', sans-serif",
+      googleFontsHref:
+        "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600&display=swap",
+    },
+    ui: {
+      radiusCard: "1.5rem",
+      radiusButton: "9999px",
+      cardBg: "rgba(255,255,255,0.9)",
+      cardShadow: "0 16px 40px rgba(47, 72, 88, 0.1)",
+      cardBorder: "1px solid rgba(74, 143, 168, 0.2)",
+    },
     colors: {
       page: "#eef6f8",
       text: "#2f4858",
-      textMuted: "#5c7281",
+      textMuted: "#4f6675",
       accent: "#4a8fa8",
       accentHover: "#3d7a90",
       button: "#4a8fa8",
@@ -124,24 +172,35 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
     bannerMode: "full-background",
     showSeparator: false,
     lightBannerNav: true,
-    fonts: defaultFonts,
+    fonts: {
+      heading: "'Cormorant Garamond', Georgia, serif",
+      body: "var(--font-montserrat)",
+      googleFontsHref:
+        "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap",
+    },
+    ui: {
+      radiusCard: "0.35rem",
+      radiusButton: "0.35rem",
+      cardBg: "rgba(247,246,242,0.94)",
+      cardShadow: "0 10px 28px rgba(112, 112, 112, 0.08)",
+      cardBorder: "1px solid rgba(186, 156, 95, 0.28)",
+    },
     colors: {
       page: "#f7f1e8",
-      text: "#707070",
-      textMuted: "#949494",
+      text: "#5a5a5a",
+      textMuted: "#6e6e6e",
       accent: "#ba9c5f",
       accentHover: "#a8894f",
       button: "#ba9c5f",
       buttonText: "#ffffff",
       sectionSoft: "#f7f6f2",
       countdownBox: "#f7f6f2",
-      countdownText: "#707070",
+      countdownText: "#5a5a5a",
       bannerText: "#ffffff",
     },
     assets: {
       homeSvg: asset("marfil-home.svg"),
-      fullBackground:
-        "https://debodas.com.ar/wp-content/uploads/2025/11/8_banner.png",
+      fullBackground: asset("marfil-banner.png"),
     },
   }),
 
@@ -157,10 +216,17 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
     },
     headingUppercase: true,
     letterSpacing: "0.18em",
+    ui: {
+      radiusCard: "1.1rem",
+      radiusButton: "9999px",
+      cardBg: "rgba(255,255,255,0.93)",
+      cardShadow: "0 12px 34px rgba(58, 77, 99, 0.1)",
+      cardBorder: "1px solid rgba(74, 107, 138, 0.18)",
+    },
     colors: {
       page: "#f7fafc",
       text: "#3a4d63",
-      textMuted: "#6b8ba8",
+      textMuted: "#5b7691",
       accent: "#4a6b8a",
       accentHover: "#3a5872",
       button: "#4a6b8a",
@@ -179,23 +245,29 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
   "marco-verde": createTheme("marco-verde", "Marco verde", "premium", {
     bannerMode: "frame-overlay",
     hideBannerFrameWithPhoto: true,
-    unifiedDecor: true,
     fonts: {
       heading: "'Cinzel', Georgia, serif",
       body: "'Lora', Georgia, serif",
       googleFontsHref:
         "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap",
     },
+    ui: {
+      radiusCard: "0.75rem",
+      radiusButton: "0.5rem",
+      cardBg: "rgba(255,255,255,0.96)",
+      cardShadow: "0 14px 34px rgba(47, 74, 50, 0.12)",
+      cardBorder: "1px solid rgba(74, 103, 65, 0.22)",
+    },
     colors: {
-      page: "#e8f0e5",
+      page: "#f3f6f1",
       text: "#2f4a32",
-      textMuted: "#5f735f",
+      textMuted: "#4f624f",
       accent: "#4a6741",
       accentHover: "#3d5536",
       button: "#4a6741",
       buttonText: "#ffffff",
-      sectionSoft: "#eef4ea",
-      countdownBox: "rgba(255,255,255,0.92)",
+      sectionSoft: "#eef3ea",
+      countdownBox: "rgba(255,255,255,0.97)",
       countdownText: "#2f4a32",
       bannerText: "#2f4a32",
     },
@@ -210,15 +282,22 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
     hideBannerFrameWithPhoto: true,
     unifiedDecor: true,
     fonts: {
-      heading: "'Libre Baskerville', Georgia, serif",
+      heading: "'Dancing Script', cursive",
       body: "'Libre Baskerville', Georgia, serif",
       googleFontsHref:
         "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap",
     },
+    ui: {
+      radiusCard: "1.35rem",
+      radiusButton: "9999px",
+      cardBg: "rgba(255,255,255,0.95)",
+      cardShadow: "0 14px 36px rgba(74, 74, 72, 0.08)",
+      cardBorder: "1px solid rgba(139, 115, 85, 0.18)",
+    },
     colors: {
       page: "#fafaf8",
       text: "#4a4a48",
-      textMuted: "#7a7a76",
+      textMuted: "#6b6b67",
       accent: "#8b7355",
       accentHover: "#756044",
       button: "#8b7355",
@@ -247,16 +326,23 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
         googleFontsHref:
           "https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Infant:ital,wght@0,400;0,600;1,400&display=swap",
       },
+      ui: {
+        radiusCard: "1.6rem",
+        radiusButton: "9999px",
+        cardBg: "rgba(255,255,255,0.97)",
+        cardShadow: "0 16px 40px rgba(79, 64, 53, 0.12)",
+        cardBorder: "1px solid rgba(125, 107, 84, 0.28)",
+      },
       colors: {
-        page: "#f8f5f0",
+        page: "#f3eee6",
         text: "#4f4035",
-        textMuted: "#7a6a5d",
+        textMuted: "#6c5b4d",
         accent: "#7d6b54",
         accentHover: "#695844",
         button: "#7d6b54",
         buttonText: "#ffffff",
-        sectionSoft: "#f1ebe3",
-        countdownBox: "rgba(255,255,255,0.92)",
+        sectionSoft: "#ebe4da",
+        countdownBox: "rgba(255,255,255,0.97)",
         countdownText: "#4f4035",
         bannerText: "#4f4035",
       },
@@ -300,6 +386,11 @@ export function getThemeCssVariables(
     ["--theme-banner-text" as string]: theme.colors.bannerText,
     ["--theme-font-heading" as string]: theme.fonts.heading,
     ["--theme-font-body" as string]: theme.fonts.body,
+    ["--theme-radius-card" as string]: theme.ui.radiusCard,
+    ["--theme-radius-button" as string]: theme.ui.radiusButton,
+    ["--theme-card-bg" as string]: theme.ui.cardBg,
+    ["--theme-card-shadow" as string]: theme.ui.cardShadow,
+    ["--theme-card-border" as string]: theme.ui.cardBorder,
     ["--theme-home-frame" as string]: `url('${theme.assets.homeSvg}')`,
     ["--theme-info-decor" as string]: theme.assets.infoSvg
       ? `url('${theme.assets.infoSvg}')`

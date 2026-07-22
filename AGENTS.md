@@ -29,6 +29,7 @@ npm run lint
 npm run db:push  # schema → MariaDB (XAMPP)
 npm run db:seed  # boda demo + usuario
 npm run db:studio
+npm run db:backup # mysqldump → ./backups
 ```
 
 ## MariaDB local (XAMPP)
@@ -53,7 +54,7 @@ src/
 │   ├── bodas/[slug]/            # Micrositio + gracias regalos
 │   └── api/
 │       ├── webhooks/mercadopago/
-│       └── cron/                # Ratings + worker emails (CRON_SECRET)
+│       └── cron/                # Ratings + emails + maintenance (CRON_SECRET)
 ├── components/
 │   ├── home/                    # Hero, planes, temas, reviews, Instagram
 │   ├── layout/
@@ -82,11 +83,13 @@ public/uploads/                  # Solo local; en prod → storage cloud
 | `/login` `/registro` | Dynamic | Auth MariaDB |
 | `/mi-cuenta/*` | Dynamic | Panel novios (sesión JWT) |
 | `/admin/*` | Dynamic | Panel interno (solo `role=admin`) |
+| `/admin/estado` | Dynamic | Salud del sistema (BD, SMTP, cola, cron, storage, MP) |
 | `/bodas/[slug]` | Dynamic | Micrositio; demo en `/bodas/demo` |
 | `/calificar?bodaId=` | Dynamic | Calificación post-boda |
 | `/api/webhooks/mercadopago` | Route | Pagos regalos/plan |
 | `/api/cron/rating-emails` | Route | Solicitar calificación (Bearer `CRON_SECRET`) |
 | `/api/cron/email-queue` | Route | Procesar cola SMTP (Bearer `CRON_SECRET`) |
+| `/api/cron/maintenance` | Route | Limpieza rate limits / emails / auditoría |
 
 ## Reglas Next.js (App Router)
 
@@ -228,6 +231,8 @@ SMTP_PASSWORD=
 EMAIL_FROM="DeBodas <noreply@debodas.com.ar>"
 EMAIL_ADMIN=hola@debodas.com.ar
 EMAIL_QUEUE_SECRET=...            # opcional; fallback AUTH_SECRET
+EMAIL_LOG_RETENTION_DAYS=90
+AUDIT_LOG_RETENTION_DAYS=180
 
 CRON_SECRET=...                    # Bearer para /api/cron/*
 BLOB_READ_WRITE_TOKEN=...          # Vercel Blob; si falta, uploads locales
@@ -241,7 +246,9 @@ Deploy: ver `docs/DEPLOY.md`.
 ## Auth
 
 - Login: `src/lib/auth/actions.ts` + `verifyCredentials()` → `users`.
-- Sesión: cookie httpOnly `debodas_session` (JWT con `jose`).
+- Sesión: cookie httpOnly `debodas_session` (JWT con `jose` + `sessionVersion`).
+- Al cambiar contraseña (reset) se incrementa `User.sessionVersion` y las sesiones previas quedan inválidas.
+- Accesos admin (`login`/`logout`) se registran en auditoría.
 - Roles: `couple` (default) | `admin` (`User.role`).
 - Protección `/mi-cuenta`: layout de cuenta.
 - Protección `/admin`: `requireAdmin()` — solo `role=admin`.

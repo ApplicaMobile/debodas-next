@@ -12,6 +12,9 @@ const ACTION_LABELS: Record<string, string> = {
   "admin.email.bulk_retried": "Reintentó emails en forma masiva",
   "admin.email.queue_processed": "Procesó manualmente la cola",
   "admin.email.deleted": "Eliminó un registro de email",
+  "admin.auth.login": "Inició sesión en el panel",
+  "admin.auth.logout": "Cerró sesión del panel",
+  "admin.maintenance.run": "Ejecutó mantenimiento",
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -22,6 +25,8 @@ const ENTITY_LABELS: Record<string, string> = {
   user: "Usuario",
   emailLog: "Email",
   email_queue: "Cola de emails",
+  auth: "Autenticación",
+  maintenance: "Mantenimiento",
 };
 
 export function auditActionLabel(action: string): string {

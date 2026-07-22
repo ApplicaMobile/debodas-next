@@ -154,7 +154,10 @@ export async function resetPasswordAction(
     }
     await tx.user.update({
       where: { id: record.userId },
-      data: { passwordHash },
+      data: {
+        passwordHash,
+        sessionVersion: { increment: 1 },
+      },
     });
     await tx.passwordResetToken.deleteMany({
       where: { userId: record.userId, id: { not: record.id } },

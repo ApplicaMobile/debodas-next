@@ -37,7 +37,9 @@ export function ThemeProvider({ slug, children }: ThemeProviderProps) {
     `microsite-theme--${value.slug}`,
     value.theme.bannerMode === "frame-overlay" ? "microsite-theme--frame" : "",
     value.theme.unifiedDecor ? "microsite-theme--unified-decor" : "",
-    value.theme.bannerMode === "frame-overlay" && !value.theme.unifiedDecor
+    value.theme.bannerMode === "frame-overlay" &&
+    !value.theme.unifiedDecor &&
+    value.theme.sectionDecor !== false
       ? "microsite-theme--frame-section-decor"
       : "",
     value.theme.bannerMode === "full-background"

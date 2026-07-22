@@ -40,7 +40,7 @@ destinatarios al inbox de pruebas.
 5. Correr migraciones: `npx prisma db push` (o migrate) contra la BD cloud
 6. Seed solo en staging: `npm run db:seed`
 7. Configurar webhook MP: `{APP_URL}/api/webhooks/mercadopago?bodaId=...`
-8. Verificar crons `/api/cron/rating-emails` y `/api/cron/email-queue` (Bearer `CRON_SECRET`)
+8. Verificar crons `/api/cron/rating-emails`, `/api/cron/email-queue` y `/api/cron/maintenance` (Bearer `CRON_SECRET`)
 
 ## Verificación de emails
 
@@ -50,6 +50,16 @@ destinatarios al inbox de pruebas.
 - [ ] Confirmar que `EMAIL_TEST_TO` no existe en producción
 - [ ] Revisar periódicamente contadores `failed` y `blocked`
 - [ ] Probar el reintento manual desde el panel
+- [ ] Revisar `/admin/estado` (alertas de cola, cron atrasado, SMTP/MP/storage)
+- [ ] Confirmar cron de mantenimiento diario y retención (`EMAIL_LOG_RETENTION_DAYS`, `AUDIT_LOG_RETENTION_DAYS`)
+
+## Backups MariaDB
+
+En Vercel el app no hace dump nativo. Programar backup fuera de la app:
+
+- Local/XAMPP: `npm run db:backup` (usa `mysqldump` → carpeta `backups/`)
+- Producción: snapshot del proveedor (RDS/PlanetScale/Railway) o `mysqldump` diario en un runner
+- Conservar al menos 7–14 días de dumps cifrados fuera del servidor web
 
 ## Cutover DNS
 

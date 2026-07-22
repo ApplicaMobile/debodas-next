@@ -142,19 +142,36 @@ export function ThemeBanner({
 
         {navItems.length ? (
           <nav className="microsite-nav" aria-label="Secciones del micrositio">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className={
-                  item.primary
-                    ? "microsite-nav__link microsite-nav__link--primary"
-                    : "microsite-nav__link"
-                }
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.some((item) => item.primary) ? (
+              <div className="microsite-nav__primary">
+                {navItems
+                  .filter((item) => item.primary)
+                  .map((item) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className="microsite-nav__link microsite-nav__link--primary"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+              </div>
+            ) : null}
+            {navItems.some((item) => !item.primary) ? (
+              <div className="microsite-nav__secondary">
+                {navItems
+                  .filter((item) => !item.primary)
+                  .map((item) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className="microsite-nav__link"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+              </div>
+            ) : null}
           </nav>
         ) : null}
       </div>
