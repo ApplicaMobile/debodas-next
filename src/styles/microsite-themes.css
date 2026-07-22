@@ -49,7 +49,8 @@
 }
 
 /* Misma idea que mariposas: una sola capa fija, sin decor por sección */
-.microsite-theme--unified-decor[data-theme="marco-verde"]::before {
+.microsite-theme--unified-decor[data-theme="marco-verde"]::before,
+.microsite-theme--unified-decor[data-theme="marco-blanco"]::before {
   background-size: cover;
   background-position: center top;
   opacity: 0.72;
@@ -67,6 +68,12 @@
 .microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-dress-code,
 .microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-faq details,
 .microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-rsvp-box,
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-card,
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-countdown-item,
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-schedule-item,
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-dress-code,
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-faq details,
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-rsvp-box,
 .microsite-theme--unified-decor[data-theme="marco-flores-inferiores"] .microsite-card,
 .microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
   .microsite-countdown-item,
@@ -84,6 +91,8 @@
 }
 
 .microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-story,
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-story,
+.microsite-theme--unified-decor[data-theme="mariposas-azules"] .microsite-story,
 .microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
   .microsite-story {
   position: relative;
@@ -132,6 +141,7 @@
   }
 
   .microsite-theme--unified-decor[data-theme="marco-verde"]::before,
+  .microsite-theme--unified-decor[data-theme="marco-blanco"]::before,
   .microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]::before {
     opacity: 0.55;
   }
@@ -510,7 +520,8 @@
 
   .microsite-nav__secondary {
     flex-wrap: nowrap;
-    justify-content: flex-start;
+    justify-content: center;
+    justify-content: safe center;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
