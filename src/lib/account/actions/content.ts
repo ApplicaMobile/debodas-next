@@ -277,5 +277,7 @@ export async function markRsvpSectionReviewedAction(): Promise<void> {
     },
   });
 
-  revalidateBodaPaths(boda.slug, ["/mi-cuenta", "/mi-cuenta/invitados"]);
+  // Sin revalidatePath: esta función se invoca durante el render de
+  // /mi-cuenta/invitados y Next no permite revalidar en ese contexto.
+  // El checklist de /mi-cuenta se actualiza en la próxima navegación.
 }
