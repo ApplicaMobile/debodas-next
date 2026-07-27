@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AccountNotificationsBell } from "@/components/account/AccountNotificationsBell";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import { getBodaNotifications } from "@/lib/notifications/queries";
 
 export default async function MiCuentaLayout({
   children,
@@ -17,8 +19,12 @@ export default async function MiCuentaLayout({
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { boda: { select: { slug: true, title: true } } },
+    include: { boda: { select: { id: true, slug: true, title: true } } },
   });
+
+  const notifications = user?.boda
+    ? await getBodaNotifications(user.boda.id)
+    : { items: [], unreadCount: 0 };
 
   return (
     <div className="min-h-screen bg-[#EBEBEB]">
@@ -40,7 +46,15 @@ export default async function MiCuentaLayout({
               </p>
             ) : null}
           </div>
-          <LogoutButton />
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {user?.boda ? (
+              <AccountNotificationsBell
+                items={notifications.items}
+                unreadCount={notifications.unreadCount}
+              />
+            ) : null}
+            <LogoutButton />
+          </div>
         </div>
       </header>
 

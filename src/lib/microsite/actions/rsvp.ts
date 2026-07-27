@@ -13,6 +13,7 @@ import {
 } from "@/lib/rsvp/menu";
 import { prisma } from "@/lib/db/prisma";
 import { notifyNoviosRsvp } from "@/lib/email/notify";
+import { createRsvpNotification } from "@/lib/notifications/create";
 import {
   checkRateLimit,
   clientIpFromHeaders,
@@ -117,8 +118,16 @@ export async function submitPublicRsvpAction(
       notificationId: guest.id,
     });
 
+    await createRsvpNotification({
+      bodaId: boda.id,
+      guestName: name,
+      status,
+      guestId: guest.id,
+    });
+
     revalidatePath(`/bodas/${boda.slug}`);
     revalidatePath("/mi-cuenta/invitados");
+    revalidatePath("/mi-cuenta");
 
     return {
       success:

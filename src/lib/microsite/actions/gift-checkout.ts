@@ -20,6 +20,7 @@ import {
 import { getAppBaseUrl, getMercadoPagoWebhookUrl } from "@/lib/mercadopago/config";
 import { prisma } from "@/lib/db/prisma";
 import { notifyNoviosGift } from "@/lib/email/notify";
+import { createGiftNotification } from "@/lib/notifications/create";
 import {
   getUploadErrorMessage,
   saveUploadedVoucher,
@@ -384,7 +385,18 @@ export async function submitGiftTransferAction(
       notificationId: confirmedGift.id,
     });
 
+    const currency =
+      fields.method === GIFT_PAYMENT_METHODS.BANK_TRANSFER_USD ? "USD" : "ARS";
+    await createGiftNotification({
+      bodaId: boda.id,
+      participants: fields.participants,
+      pending: true,
+      giftId: confirmedGift.id,
+      amountLabel: `${currency} ${amount}`,
+    });
+
     revalidatePath("/mi-cuenta/regalos-recibidos");
+    revalidatePath("/mi-cuenta");
     revalidatePath(`/bodas/${boda.slug}/regalo/gracias`);
 
     return {

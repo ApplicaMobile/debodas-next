@@ -28,6 +28,14 @@ import {
   collectKnownTableNames,
   groupGuestsByTable,
 } from "@/lib/rsvp/tables";
+import {
+  buildGuestsCsv,
+  downloadTextFile,
+  RSVP_STATUS_FILTERS,
+  TABLE_FILTER_ALL,
+  TABLE_FILTER_NONE,
+  type RsvpStatusFilter,
+} from "@/lib/rsvp/export";
 
 interface GuestRow {
   id: string;
@@ -223,6 +231,10 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
   const knownTables = collectKnownTableNames(guests);
   const tableGroups = tablesEnabled ? groupGuestsByTable(guests) : [];
 
+  const [statusFilter, setStatusFilter] = useState<RsvpStatusFilter>("all");
+  const [tableFilter, setTableFilter] = useState(TABLE_FILTER_ALL);
+  const [query, setQuery] = useState("");
+
   const [addState, addAction, addPending] = useActionState(
     addRsvpGuestAction,
     initialState,
@@ -235,6 +247,49 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
     updateRsvpTableAction,
     initialState,
   );
+
+  const statusCounts = {
+    all: guests.length,
+    confirmed: guests.filter((g) => g.status === "confirmed").length,
+    pending: guests.filter((g) => g.status === "pending").length,
+    declined: guests.filter((g) => g.status === "declined").length,
+  };
+
+  const filteredGuests = guests.filter((guest) => {
+    if (statusFilter !== "all" && guest.status !== statusFilter) {
+      return false;
+    }
+    if (tablesEnabled && tableFilter !== TABLE_FILTER_ALL) {
+      if (tableFilter === TABLE_FILTER_NONE) {
+        if (guest.tableName) return false;
+      } else if (guest.tableName !== tableFilter) {
+        return false;
+      }
+    }
+    const q = query.trim().toLowerCase();
+    if (q) {
+      const haystack = [
+        guest.name,
+        guest.email ?? "",
+        guest.notes ?? "",
+        guest.tableName ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  function exportFilteredCsv() {
+    const csv = buildGuestsCsv(
+      filteredGuests,
+      (status) => statusLabels[status] ?? status,
+      rsvpMenuLabel,
+    );
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadTextFile(`invitados-${stamp}.csv`, csv);
+  }
 
   return (
     <div className="space-y-8">
@@ -263,38 +318,66 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
           </h3>
           <p className="mt-1 text-sm text-stone-600">
             Elegí una mesa del desplegable o creá una nueva con “Otra mesa…”.
+            Tocá una tarjeta para filtrar la lista.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {tableGroups.map((group) => (
-              <div
-                key={group.table}
-                className="rounded-2xl border border-stone-100 bg-stone-50/80 p-4"
-              >
-                <p className="text-sm font-semibold text-stone-800">
-                  {group.table}
-                </p>
-                <p className="mt-0.5 text-xs text-stone-500">
-                  {group.guests.length} invitado
-                  {group.guests.length === 1 ? "" : "s"}
-                </p>
-                <ul className="mt-2 space-y-1 text-sm text-stone-600">
-                  {group.guests.map((guest) => (
-                    <li key={guest.id} className="truncate">
-                      {guest.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {tableGroups.map((group) => {
+              const filterValue =
+                group.table === "Sin mesa" ? TABLE_FILTER_NONE : group.table;
+              const active = tableFilter === filterValue;
+              return (
+                <button
+                  key={group.table}
+                  type="button"
+                  onClick={() =>
+                    setTableFilter((current) =>
+                      current === filterValue ? TABLE_FILTER_ALL : filterValue,
+                    )
+                  }
+                  className={`rounded-2xl border p-4 text-left transition ${
+                    active
+                      ? "border-sky-400 bg-sky-50 ring-2 ring-sky-200"
+                      : "border-stone-100 bg-stone-50/80 hover:border-sky-200"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-stone-800">
+                    {group.table}
+                  </p>
+                  <p className="mt-0.5 text-xs text-stone-500">
+                    {group.guests.length} invitado
+                    {group.guests.length === 1 ? "" : "s"}
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-stone-600">
+                    {group.guests.map((guest) => (
+                      <li key={guest.id} className="truncate">
+                        {guest.name}
+                      </li>
+                    ))}
+                  </ul>
+                </button>
+              );
+            })}
           </div>
         </section>
       ) : null}
 
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-lg font-semibold text-stone-800">
             Lista de invitados
           </h3>
+          {guests.length > 0 ? (
+            <button
+              type="button"
+              onClick={exportFilteredCsv}
+              className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Exportar CSV
+              {filteredGuests.length !== guests.length
+                ? ` (${filteredGuests.length})`
+                : ""}
+            </button>
+          ) : null}
         </div>
         <PlanUsageMeter
           label="invitados"
@@ -304,6 +387,113 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
         {limits.maxRsvpGuests !== null ? (
           <p className="mt-1 text-xs text-stone-500">{rsvpLimitMessage(plan)}</p>
         ) : null}
+
+        {guests.length > 0 ? (
+          <div className="mt-4 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {RSVP_STATUS_FILTERS.map((filter) => {
+                const active = statusFilter === filter.value;
+                const count = statusCounts[filter.value];
+                return (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    onClick={() => setStatusFilter(filter.value)}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                      active ? filter.activeClass : filter.idleClass
+                    }`}
+                  >
+                    {filter.label}
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                        active ? "bg-white/25" : "bg-black/5"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {tablesEnabled ? (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTableFilter(TABLE_FILTER_ALL)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                    tableFilter === TABLE_FILTER_ALL
+                      ? "border-sky-600 bg-sky-600 text-white"
+                      : "border-sky-200 bg-sky-50 text-sky-900 hover:bg-sky-100"
+                  }`}
+                >
+                  Todas las mesas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableFilter(TABLE_FILTER_NONE)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                    tableFilter === TABLE_FILTER_NONE
+                      ? "border-violet-600 bg-violet-600 text-white"
+                      : "border-violet-200 bg-violet-50 text-violet-900 hover:bg-violet-100"
+                  }`}
+                >
+                  Sin mesa
+                </button>
+                {knownTables.map((name, index) => {
+                  const palette = [
+                    "border-teal-200 bg-teal-50 text-teal-900 hover:bg-teal-100",
+                    "border-indigo-200 bg-indigo-50 text-indigo-900 hover:bg-indigo-100",
+                    "border-orange-200 bg-orange-50 text-orange-900 hover:bg-orange-100",
+                    "border-pink-200 bg-pink-50 text-pink-900 hover:bg-pink-100",
+                  ];
+                  const activePalette = [
+                    "border-teal-600 bg-teal-600 text-white",
+                    "border-indigo-600 bg-indigo-600 text-white",
+                    "border-orange-600 bg-orange-600 text-white",
+                    "border-pink-600 bg-pink-600 text-white",
+                  ];
+                  const i = index % palette.length;
+                  const active = tableFilter === name;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() =>
+                        setTableFilter((current) =>
+                          current === name ? TABLE_FILTER_ALL : name,
+                        )
+                      }
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                        active ? activePalette[i] : palette[i]
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar por nombre, email, mesa o notas…"
+              className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm"
+              aria-label="Buscar invitados"
+            />
+            <p className="text-xs text-stone-500">
+              Mostrando {filteredGuests.length} de {guests.length}
+              {statusFilter !== "all" ||
+              tableFilter !== TABLE_FILTER_ALL ||
+              query.trim()
+                ? " · filtro activo"
+                : ""}
+            </p>
+          </div>
+        ) : null}
+
         <FormAlert error={statusState.error} success={statusState.success} />
         <FormAlert error={tableState.error} success={tableState.success} />
         {guests.length === 0 ? (
@@ -324,10 +514,30 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
               ]}
             />
           </div>
+        ) : filteredGuests.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
+            <p className="font-medium text-stone-700">
+              Ningún invitado con estos filtros
+            </p>
+            <p className="mt-1 text-sm text-stone-500">
+              Probá otro estado, mesa o búsqueda.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter("all");
+                setTableFilter(TABLE_FILTER_ALL);
+                setQuery("");
+              }}
+              className="mt-4 rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800"
+            >
+              Limpiar filtros
+            </button>
+          </div>
         ) : (
           <>
-            <ul className="mt-4 space-y-3 md:hidden">
-              {guests.map((guest) => (
+            <ul id="lista-invitados" className="mt-4 space-y-3 md:hidden">
+              {filteredGuests.map((guest) => (
                 <li
                   key={guest.id}
                   className="rounded-2xl border border-stone-100 bg-stone-50/80 p-4"
@@ -402,7 +612,7 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {guests.map((guest) => (
+                  {filteredGuests.map((guest) => (
                     <tr key={guest.id} className="border-b border-stone-50">
                       <td className="py-3 pr-4 font-medium text-stone-800">
                         {guest.name}

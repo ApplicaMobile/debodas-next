@@ -6,6 +6,10 @@ import {
   notifyNoviosGift,
   notifyPlanConfirmed,
 } from "@/lib/email/notify";
+import {
+  createGiftNotification,
+  createNotification,
+} from "@/lib/notifications/create";
 
 const APPROVED_STATUSES = new Set(["approved"]);
 const REJECTED_STATUSES = new Set([
@@ -44,18 +48,19 @@ async function createConfirmedGiftFromPayment(payment: {
   bodaId: string;
   amount: Prisma.Decimal;
   metadata: unknown;
-}): Promise<void> {
+}): Promise<string> {
   const existing = await prisma.confirmedGift.findUnique({
     where: { paymentId: payment.id },
+    select: { id: true },
   });
   if (existing) {
-    return;
+    return existing.id;
   }
 
   const meta = (payment.metadata ?? {}) as GiftPaymentMetadata;
   const items = Array.isArray(meta.items) ? meta.items : [];
 
-  await prisma.confirmedGift.create({
+  const created = await prisma.confirmedGift.create({
     data: {
       bodaId: payment.bodaId,
       paymentId: payment.id,
@@ -69,7 +74,9 @@ async function createConfirmedGiftFromPayment(payment: {
       items,
       confirmed: true,
     },
+    select: { id: true },
   });
+  return created.id;
 }
 
 export async function processMercadoPagoPaymentNotification(
@@ -121,6 +128,15 @@ export async function processMercadoPagoPaymentNotification(
       notificationId: payment.id,
     });
 
+    await createNotification({
+      bodaId: payment.bodaId,
+      type: "plan",
+      title: `Plan actualizado a ${payment.planTarget}`,
+      body: "Tu pago de plan fue acreditado.",
+      href: "/mi-cuenta/plan",
+      entityId: payment.id,
+    });
+
     revalidatePath("/mi-cuenta/plan");
     revalidatePath("/mi-cuenta");
     revalidatePath(`/bodas/${payment.boda.slug}`);
@@ -132,7 +148,7 @@ export async function processMercadoPagoPaymentNotification(
   }
 
   if (nextStatus === "approved" && payment.type === "gift") {
-    await createConfirmedGiftFromPayment(updatedPayment);
+    const giftId = await createConfirmedGiftFromPayment(updatedPayment);
 
     const meta = (updatedPayment.metadata ?? {}) as GiftPaymentMetadata;
     await notifyNoviosGift({
@@ -145,8 +161,17 @@ export async function processMercadoPagoPaymentNotification(
       notificationId: payment.id,
     });
 
+    await createGiftNotification({
+      bodaId: payment.bodaId,
+      participants: meta.participants ?? "Invitado",
+      pending: false,
+      giftId,
+      amountLabel: `ARS ${updatedPayment.amount.toString()}`,
+    });
+
     revalidatePath(`/bodas/${payment.boda.slug}`);
     revalidatePath("/mi-cuenta/regalos-recibidos");
+    revalidatePath("/mi-cuenta");
 
     return {
       handled: true,
