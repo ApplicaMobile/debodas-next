@@ -139,12 +139,19 @@ export default async function GiftThankYouPage({
   const coupleName = getCoupleDisplayName(boda.couple);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center bg-[#f7f3eb] px-4 py-12 sm:px-6 sm:py-16">
-      <div className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12 sm:px-6 sm:py-16">
+      <div className="absolute inset-0 bg-[#f7f3eb]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(230,218,199,0.9),transparent_40%),radial-gradient(circle_at_90%_85%,rgba(6,38,58,0.07),transparent_40%)]" />
+      <div className="relative mx-auto w-full max-w-xl rounded-3xl border border-white/80 bg-white/95 p-6 shadow-[0_20px_60px_rgba(45,45,45,0.08)] sm:p-8">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-xs uppercase tracking-wide text-stone-500">
-            Regalo · {coupleName}
-          </p>
+          <div>
+            <p className="font-serif text-lg font-semibold text-stone-800">
+              DeBodas
+            </p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-stone-500">
+              Regalo · {coupleName}
+            </p>
+          </div>
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles.badge}`}
           >
@@ -170,7 +177,7 @@ export default async function GiftThankYouPage({
           {resolved.kind === "failure" ? (
             <Link
               href={`/bodas/${slug}#regalos`}
-              className="inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
+              className="inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
             >
               Reintentar en la lista de regalos
             </Link>
@@ -180,7 +187,7 @@ export default async function GiftThankYouPage({
             className={
               resolved.kind === "failure"
                 ? "inline-flex justify-center rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-stone-700"
-                : "inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
+                : "inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
             }
           >
             Volver al micrositio

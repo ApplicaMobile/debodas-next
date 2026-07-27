@@ -39,7 +39,17 @@ export function RsvpForm({
         <MicrositeSectionTitle className={titleClass ?? ""}>
           RSVP
         </MicrositeSectionTitle>
-        <FormAlert success={state.success} />
+        <div className="mt-5 rounded-2xl border border-emerald-200/70 bg-emerald-50/70 px-4 py-5 text-center">
+          <p className="text-2xl text-emerald-700" aria-hidden>
+            ✓
+          </p>
+          <p className="mt-2 text-sm font-medium text-emerald-900">
+            {state.success}
+          </p>
+          <p className="mt-2 text-xs text-emerald-800/80">
+            Los novios ya recibieron tu respuesta.
+          </p>
+        </div>
       </div>
     );
   }
@@ -110,28 +120,44 @@ export function RsvpForm({
           <legend className="text-sm font-medium text-stone-700">
             ¿Vas a asistir?
           </legend>
-          <label className="flex min-h-11 items-center gap-3 rounded-lg px-2 text-sm text-stone-700 hover:bg-white/60">
-            <input
-              type="radio"
-              name="status"
-              value="confirmed"
-              checked={status === "confirmed"}
-              onChange={() => setStatus("confirmed")}
-              required
-            />
-            Sí, asistiré
-          </label>
-          <label className="flex min-h-11 items-center gap-3 rounded-lg px-2 text-sm text-stone-700 hover:bg-white/60">
-            <input
-              type="radio"
-              name="status"
-              value="declined"
-              checked={status === "declined"}
-              onChange={() => setStatus("declined")}
-              required
-            />
-            No podré asistir
-          </label>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label
+              className={`flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 text-sm font-medium transition ${
+                status === "confirmed"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                  : "border-stone-200/80 bg-white/90 text-stone-700 hover:bg-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="status"
+                value="confirmed"
+                checked={status === "confirmed"}
+                onChange={() => setStatus("confirmed")}
+                required
+                className="sr-only"
+              />
+              Sí, asistiré
+            </label>
+            <label
+              className={`flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 text-sm font-medium transition ${
+                status === "declined"
+                  ? "border-stone-400 bg-stone-100 text-stone-800"
+                  : "border-stone-200/80 bg-white/90 text-stone-700 hover:bg-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="status"
+                value="declined"
+                checked={status === "declined"}
+                onChange={() => setStatus("declined")}
+                required
+                className="sr-only"
+              />
+              No podré asistir
+            </label>
+          </div>
         </fieldset>
 
         {showMenu ? (

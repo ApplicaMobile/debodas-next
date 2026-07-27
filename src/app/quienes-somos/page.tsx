@@ -34,10 +34,10 @@ export default function QuienesSomosPage() {
     <MarketingPageShell>
       <div className="mx-auto max-w-4xl px-6">
         <header className="text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+          <p className="font-serif text-2xl font-semibold tracking-tight text-stone-800">
             DeBodas
           </p>
-          <h1 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-5xl">
+          <h1 className="mt-4 font-serif text-3xl font-semibold text-stone-800 sm:text-5xl">
             ¿Quiénes somos?
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600">
@@ -45,7 +45,7 @@ export default function QuienesSomosPage() {
           </p>
         </header>
 
-        <section className="mt-12 space-y-5 text-base leading-relaxed text-stone-700 sm:text-lg">
+        <section className="mt-12 space-y-5 rounded-3xl border border-white/70 bg-white/90 p-6 text-base leading-relaxed text-stone-700 shadow-[0_16px_50px_rgba(45,45,45,0.05)] sm:p-10 sm:text-lg">
           <p>
             Sabemos que planificar una boda es un momento único, pero también
             que la lista de tareas puede volverse interminable. DeBodas nació
@@ -69,16 +69,13 @@ export default function QuienesSomosPage() {
           <h2 className="text-center font-serif text-2xl font-semibold text-stone-800 sm:text-3xl">
             ¿Qué encontrás en nuestra plataforma?
           </h2>
-          <div className="mt-10 grid gap-5 sm:grid-cols-3">
+          <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {features.map((feature) => (
-              <article
-                key={feature.number}
-                className="rounded-2xl bg-white p-6 shadow-[0_8px_40px_rgba(0,0,0,0.05)]"
-              >
-                <p className="text-sm font-semibold tracking-widest text-[#e6dac7]">
+              <article key={feature.number} className="text-center sm:text-left">
+                <p className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#06263a] font-serif text-sm font-semibold text-[#e6dac7] sm:mx-0">
                   {feature.number}
                 </p>
-                <h3 className="mt-3 text-lg font-semibold text-stone-800">
+                <h3 className="mt-4 text-lg font-semibold text-stone-800">
                   {feature.title}
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-stone-600">
@@ -92,13 +89,13 @@ export default function QuienesSomosPage() {
         <div className="mt-16 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/registro"
-            className="rounded-full bg-[#e6dac7] px-8 py-3 text-sm font-semibold text-stone-800"
+            className="rounded-full bg-[#e6dac7] px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
           >
             Creá tu sitio hoy
           </Link>
           <Link
             href="/bodas/demo"
-            className="rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-700"
+            className="rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-50"
           >
             Ver ejemplo
           </Link>

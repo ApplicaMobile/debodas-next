@@ -36,9 +36,12 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
 
   if (count === 0) {
     return (
-      <section className="bg-white py-20" id="opiniones">
+      <section className="bg-white py-20 sm:py-24" id="opiniones">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-center font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
+          <p className="text-center text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
+            Opiniones
+          </p>
+          <h2 className="mt-3 text-center font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
             Lo que dicen nuestras parejas
           </h2>
           <div className="mx-auto mt-12 max-w-xl rounded-3xl border border-dashed border-stone-200 bg-stone-50 px-6 py-10 text-center">
@@ -55,9 +58,13 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
   const active = reviews[index] ?? reviews[0];
 
   return (
-    <section className="bg-white py-20" id="opiniones">
-      <div className="mx-auto max-w-6xl px-6">
-        <h2 className="text-center font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
+    <section className="relative overflow-hidden bg-white py-20 sm:py-24" id="opiniones">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#F5F1E8]/80 to-transparent" />
+      <div className="relative mx-auto max-w-6xl px-6">
+        <p className="text-center text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
+          Opiniones
+        </p>
+        <h2 className="mt-3 text-center font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
           Lo que dicen nuestras parejas
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-stone-600">
@@ -67,7 +74,7 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
         <div className="relative mx-auto mt-12 max-w-3xl">
           <article
             key={`${active.name}-${index}`}
-            className="rounded-3xl border border-stone-200 bg-stone-50 px-6 py-10 text-center sm:px-10"
+            className="rounded-3xl border border-stone-200/80 bg-[#FBF9F5] px-6 py-10 text-center shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:px-10"
           >
             <Stars count={active.rating} />
             <p className="mt-6 font-serif text-xl leading-relaxed text-stone-700 sm:text-2xl">

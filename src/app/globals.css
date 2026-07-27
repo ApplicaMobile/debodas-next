@@ -33,3 +33,64 @@ body {
 .font-serif {
   font-family: var(--font-playfair), Georgia, serif;
 }
+
+@keyframes debodas-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes debodas-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes debodas-soft-scale {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.debodas-fade-up {
+  animation: debodas-fade-up 0.7s ease-out both;
+}
+
+.debodas-fade-up-delay-1 {
+  animation: debodas-fade-up 0.7s ease-out 0.12s both;
+}
+
+.debodas-fade-up-delay-2 {
+  animation: debodas-fade-up 0.7s ease-out 0.24s both;
+}
+
+.debodas-fade-up-delay-3 {
+  animation: debodas-fade-up 0.7s ease-out 0.36s both;
+}
+
+.debodas-hero-bg {
+  animation: debodas-soft-scale 1.4s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .debodas-fade-up,
+  .debodas-fade-up-delay-1,
+  .debodas-fade-up-delay-2,
+  .debodas-fade-up-delay-3,
+  .debodas-hero-bg {
+    animation: none;
+  }
+}

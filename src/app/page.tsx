@@ -25,9 +25,13 @@ export default async function HomePage() {
         <ReviewsSection reviews={reviews} />
         <InstagramSection />
 
-        <section className="bg-[#06263a] py-16 text-center text-white">
-          <div className="mx-auto max-w-3xl px-6">
-            <h2 className="font-serif text-3xl font-semibold sm:text-4xl">
+        <section className="relative overflow-hidden bg-[#06263a] py-20 text-center text-white sm:py-24">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(230,218,199,0.18),transparent_55%)]" />
+          <div className="relative mx-auto max-w-3xl px-6">
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/55">
+              DeBodas
+            </p>
+            <h2 className="mt-3 font-serif text-3xl font-semibold sm:text-4xl">
               ¿Listos para empezar?
             </h2>
             <p className="mt-4 text-white/80">
@@ -37,13 +41,13 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
                 href="/registro"
-                className="rounded-full bg-[#e6dac7] px-8 py-3 text-sm font-semibold text-stone-800"
+                className="rounded-full bg-[#e6dac7] px-8 py-3.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
               >
                 Crear mi sitio
               </Link>
               <Link
                 href="/bodas/demo"
-                className="rounded-full border border-white/30 px-8 py-3 text-sm font-semibold text-white"
+                className="rounded-full border border-white/30 px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Ver ejemplo
               </Link>

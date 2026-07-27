@@ -947,10 +947,16 @@
   margin: 0 auto;
   border-radius: var(--theme-radius-card, 1.5rem);
   background: var(--theme-card-bg, rgba(255, 255, 255, 0.92));
-  padding: 2rem;
-  text-align: center;
+  padding: 1.5rem;
+  text-align: left;
   box-shadow: var(--theme-card-shadow, 0 12px 40px rgba(0, 0, 0, 0.06));
   border: var(--theme-card-border, 1px solid transparent);
+}
+
+@media (min-width: 640px) {
+  .microsite-rsvp-box {
+    padding: 2rem;
+  }
 }
 
 .microsite-gallery {

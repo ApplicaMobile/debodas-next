@@ -18,10 +18,13 @@ export function PlansSection() {
   });
 
   return (
-    <section id="planes" className="bg-white py-20">
+    <section id="planes" className="bg-white py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center">
-          <h2 className="font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
+            Precios claros
+          </p>
+          <h2 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
             Nuestros planes
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600">
@@ -38,7 +41,11 @@ export function PlansSection() {
           {pricedPlans.map((plan) => (
             <article
               key={plan.slug}
-              className="relative overflow-hidden rounded-3xl bg-stone-900 text-white shadow-xl"
+              className={`relative overflow-hidden rounded-3xl bg-stone-900 text-white shadow-xl ${
+                plan.slug === "basico"
+                  ? "ring-2 ring-[#e6dac7]/70 lg:-translate-y-1"
+                  : ""
+              }`}
             >
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-35"

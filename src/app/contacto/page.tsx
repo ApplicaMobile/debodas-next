@@ -13,9 +13,12 @@ export const metadata: Metadata = {
 export default function ContactoPage() {
   return (
     <MarketingPageShell>
-      <div className="mx-auto grid max-w-5xl gap-10 px-6 lg:grid-cols-[1fr_1.1fr]">
+      <div className="mx-auto grid max-w-5xl gap-8 px-6 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+          <p className="font-serif text-xl font-semibold tracking-tight text-stone-800">
+            DeBodas
+          </p>
+          <p className="mt-4 text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
             Contacto
           </p>
           <h1 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
@@ -72,7 +75,7 @@ export default function ContactoPage() {
           </ul>
         </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
+        <div className="rounded-3xl border border-white/70 bg-white/95 p-6 shadow-[0_16px_50px_rgba(45,45,45,0.06)] sm:p-8">
           <ContactForm />
         </div>
       </div>

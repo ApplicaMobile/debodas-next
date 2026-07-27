@@ -6,10 +6,22 @@ import { socialLinks } from "@/data/social";
 export function SiteFooter() {
   return (
     <footer className="bg-[#06263a] text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-2">
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.2fr_1fr]">
         <div>
-          <h3 className="text-lg font-semibold tracking-wide">DEBODAS</h3>
-          <ul className="mt-5 space-y-2 text-sm text-white/80">
+          <Link href="/" className="inline-block">
+            <Image
+              src="/assets/img/logo-white.svg"
+              alt="DeBodas"
+              width={160}
+              height={48}
+              className="h-10 w-auto"
+            />
+          </Link>
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-white/70">
+            Micrositios de boda, RSVP y lista de regalos en un solo link para
+            tus invitados.
+          </p>
+          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/80">
             {footerLinks.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="transition hover:text-white">
@@ -21,7 +33,7 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col items-start md:items-end">
-          <p className="text-sm uppercase tracking-widest text-white/70">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/55">
             Redes sociales
           </p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/80">
@@ -42,14 +54,11 @@ export function SiteFooter() {
               {socialLinks.facebook.label}
             </a>
           </div>
-          <Link href="/" className="mt-8">
-            <Image
-              src="/assets/img/logo-white.svg"
-              alt="DeBodas"
-              width={160}
-              height={48}
-              className="h-10 w-auto"
-            />
+          <Link
+            href="/registro"
+            className="mt-8 inline-flex rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+          >
+            Crear mi sitio
           </Link>
         </div>
       </div>

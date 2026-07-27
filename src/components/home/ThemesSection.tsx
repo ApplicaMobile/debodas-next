@@ -5,10 +5,13 @@ import { planLabels } from "@/lib/plans/features";
 
 export function ThemesSection() {
   return (
-    <section id="themes" className="bg-[#EBEBEB] py-20">
+    <section id="themes" className="bg-[#EBEBEB] py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center">
-          <h2 className="font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
+            Diseños
+          </p>
+          <h2 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
             Elegí tu diseño
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600">
