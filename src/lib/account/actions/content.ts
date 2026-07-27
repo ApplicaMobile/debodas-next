@@ -8,7 +8,11 @@ import {
   canAddRsvpGuest,
   rsvpLimitError,
 } from "@/lib/plans/limits";
-import { sanitizeRsvpMenu } from "@/lib/rsvp/menu";
+import { canChooseRsvpMenu, sanitizeRsvpMenu } from "@/lib/rsvp/menu";
+import {
+  canManageRsvpTables,
+  sanitizeTableName,
+} from "@/lib/rsvp/tables";
 import { sanitizeScheduleIcon } from "@/lib/schedule/icons";
 import { prisma } from "@/lib/db/prisma";
 
@@ -179,7 +183,12 @@ export async function addRsvpGuestAction(
   const email = String(formData.get("email") ?? "").trim();
   const status = String(formData.get("status") ?? "pending").trim();
   const notes = String(formData.get("notes") ?? "").trim();
-  const menu = sanitizeRsvpMenu(String(formData.get("menu") ?? "general"));
+  const menu = canChooseRsvpMenu(boda.plan)
+    ? sanitizeRsvpMenu(String(formData.get("menu") ?? "general"))
+    : "general";
+  const tableName = canManageRsvpTables(boda.plan)
+    ? sanitizeTableName(String(formData.get("table_name") ?? ""))
+    : null;
 
   if (!name) {
     return { error: "El nombre es obligatorio." };
@@ -198,6 +207,7 @@ export async function addRsvpGuestAction(
         email: email || null,
         status: status || "pending",
         menu,
+        tableName,
         notes: notes || null,
       },
     });
@@ -228,24 +238,74 @@ export async function deleteRsvpGuestAction(formData: FormData): Promise<void> {
   revalidateBodaPaths(boda.slug, ["/mi-cuenta/invitados"]);
 }
 
-export async function updateRsvpStatusAction(formData: FormData): Promise<void> {
+export async function updateRsvpStatusAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
   const { error, boda } = await requireOwnedBoda();
   if (error || !boda) {
-    return;
+    return { error: error ?? "No encontramos tu boda." };
   }
 
   const guestId = String(formData.get("guest_id") ?? "");
   const status = String(formData.get("status") ?? "pending");
   if (!guestId) {
-    return;
+    return { error: "Invitado no válido." };
   }
 
-  await prisma.rsvpGuest.updateMany({
+  const allowed = new Set(["pending", "confirmed", "declined"]);
+  if (!allowed.has(status)) {
+    return { error: "Estado no válido." };
+  }
+
+  const updated = await prisma.rsvpGuest.updateMany({
     where: { id: guestId, bodaId: boda.id },
     data: { status },
   });
 
+  if (updated.count === 0) {
+    return { error: "No encontramos ese invitado." };
+  }
+
   revalidateBodaPaths(boda.slug, ["/mi-cuenta/invitados"]);
+  return { success: "Estado del invitado actualizado." };
+}
+
+export async function updateRsvpTableAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { error, boda } = await requireOwnedBoda();
+  if (error || !boda) {
+    return { error: error ?? "No encontramos tu boda." };
+  }
+
+  if (!canManageRsvpTables(boda.plan)) {
+    return { error: "La gestión de mesas está disponible en el plan Premium." };
+  }
+
+  const guestId = String(formData.get("guest_id") ?? "");
+  if (!guestId) {
+    return { error: "Invitado no válido." };
+  }
+
+  const tableName = sanitizeTableName(String(formData.get("table_name") ?? ""));
+
+  const updated = await prisma.rsvpGuest.updateMany({
+    where: { id: guestId, bodaId: boda.id },
+    data: { tableName },
+  });
+
+  if (updated.count === 0) {
+    return { error: "No encontramos ese invitado." };
+  }
+
+  revalidateBodaPaths(boda.slug, ["/mi-cuenta/invitados"]);
+  return {
+    success: tableName
+      ? `Mesa actualizada: ${tableName}.`
+      : "Mesa quitada del invitado.",
+  };
 }
 
 /** Marca la sección RSVP como revisada (checklist de onboarding). */

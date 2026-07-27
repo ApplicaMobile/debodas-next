@@ -173,6 +173,14 @@ export const footerLinks = [
   { label: "Inicio", href: "/" },
   { label: "Planes", href: "/#planes" },
   { label: "Temas", href: "/#themes" },
+  { label: "Quiénes somos", href: "/quienes-somos" },
   { label: "Micrositio demo", href: "/bodas/demo" },
   { label: "Registro", href: "/registro" },
+  { label: "Contacto", href: "/contacto" },
+];
+
+export const footerLegalLinks = [
+  { label: "Términos", href: "/terminos" },
+  { label: "Privacidad", href: "/privacidad" },
+  { label: "Contacto", href: "/contacto" },
 ];

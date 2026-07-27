@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { formatPrice } from "@/data/bodas";
 import { confirmReceivedGiftAction } from "@/lib/microsite/actions/gift-checkout";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 
 interface ConfirmedGiftRow {
@@ -62,14 +63,18 @@ function ConfirmGiftButton({ giftId }: { giftId: string }) {
 export function ConfirmedGiftsPanel({ gifts }: ConfirmedGiftsPanelProps) {
   if (gifts.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-10 text-center sm:rounded-3xl">
-        <p className="font-medium text-stone-700">
-          Todavía no recibiste regalos
-        </p>
-        <p className="mt-1 text-sm text-stone-500">
-          Cuando un invitado complete un regalo, va a aparecer acá.
-        </p>
-      </div>
+      <AccountEmptyState
+        title="Todavía no recibiste regalos"
+        description="Cuando un invitado complete un regalo, va a aparecer acá."
+        actions={[
+          {
+            label: "Armar lista de regalos",
+            href: "/mi-cuenta/regalos",
+            primary: true,
+          },
+          { label: "Compartir / invitar", href: "/mi-cuenta/invitar" },
+        ]}
+      />
     );
   }
 

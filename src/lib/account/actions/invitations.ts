@@ -268,3 +268,28 @@ export async function deleteCanvaLinkAction(): Promise<void> {
 
   revalidateBodaPaths(boda.slug, ["/mi-cuenta/invitar"]);
 }
+
+/** Marca el paso “invitar” del checklist cuando la pareja copia o comparte el link. */
+export async function markInviteSharedAction(): Promise<void> {
+  const { error, boda } = await requireOwnedBoda();
+  if (error || !boda) {
+    return;
+  }
+
+  const misc = parseMisc(boda.misc);
+  if (misc.inviteSharedAt) {
+    return;
+  }
+
+  await prisma.boda.update({
+    where: { id: boda.id },
+    data: {
+      misc: {
+        ...misc,
+        inviteSharedAt: new Date().toISOString(),
+      } as object,
+    },
+  });
+
+  revalidateBodaPaths(boda.slug, ["/mi-cuenta", "/mi-cuenta/invitar"]);
+}

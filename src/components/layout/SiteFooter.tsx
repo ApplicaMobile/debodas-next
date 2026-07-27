@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { footerLinks } from "@/data/home";
+import { footerLegalLinks, footerLinks } from "@/data/home";
 import { socialLinks } from "@/data/social";
 
 export function SiteFooter() {
@@ -55,9 +55,22 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-5 text-sm text-white/70 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} DeBodas. Todos los derechos reservados.</p>
-          <p>Micrositios de boda · Lista de regalos · RSVP</p>
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-5 text-sm text-white/70 md:flex-row md:items-center md:justify-between">
+          <p>
+            © {new Date().getFullYear()} DeBodas. Todos los derechos
+            reservados.
+          </p>
+          <nav className="flex flex-wrap gap-x-4 gap-y-2">
+            {footerLegalLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="transition hover:text-white"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>

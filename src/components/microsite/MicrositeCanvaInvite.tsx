@@ -33,14 +33,20 @@ export function MicrositeCanvaInvite({
           allowFullScreen
         />
       </div>
-      <a
-        href={canvaLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex text-sm font-semibold underline"
-      >
-        Abrir en Canva ↗
-      </a>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+        <a
+          href={canvaLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex text-sm font-semibold underline"
+        >
+          Abrir en Canva ↗
+        </a>
+      </div>
+      <p className="mt-2 text-xs text-[var(--theme-text-muted)]">
+        Para descargar la invitación (PNG/PDF), usá la opción de descarga en
+        Canva.
+      </p>
     </div>
   );
 }

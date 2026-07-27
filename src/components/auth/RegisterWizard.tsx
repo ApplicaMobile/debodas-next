@@ -412,6 +412,38 @@ export function RegisterWizard() {
               </label>
             ))}
           </div>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 p-4 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              name="accept_terms"
+              value="1"
+              required
+              className="mt-1"
+              onChange={clearStepError}
+            />
+            <span>
+              Acepto los{" "}
+              <a
+                href="/terminos"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[#6f5f47] underline"
+              >
+                términos y condiciones
+              </a>{" "}
+              y la{" "}
+              <a
+                href="/privacidad"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[#6f5f47] underline"
+              >
+                política de privacidad
+              </a>
+              .
+            </span>
+          </label>
           {step === 3 && stepError ? <StepError message={stepError} /> : null}
         </div>
 

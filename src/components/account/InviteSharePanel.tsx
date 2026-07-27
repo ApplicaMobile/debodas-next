@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { markInviteSharedAction } from "@/lib/account/actions/invitations";
 import {
   buildDefaultWhatsAppMessage,
   buildWhatsAppShareUrl,
@@ -34,6 +35,7 @@ export function InviteSharePanel({
         setCopiedMessage(true);
         window.setTimeout(() => setCopiedMessage(false), 2000);
       }
+      void markInviteSharedAction();
     } catch {
       window.prompt("Copiá el texto:", value);
     }
@@ -60,7 +62,7 @@ export function InviteSharePanel({
           <div className="flex shrink-0 gap-2">
             <button
               type="button"
-              onClick={() => copyText(micrositeUrl, "link")}
+              onClick={() => void copyText(micrositeUrl, "link")}
               className="rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800"
             >
               {copiedLink ? "¡Copiado!" : "Copiar link"}
@@ -118,13 +120,14 @@ export function InviteSharePanel({
             href={buildWhatsAppShareUrl(message)}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => void markInviteSharedAction()}
             className="inline-flex rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-105"
           >
             Compartir por WhatsApp
           </a>
           <button
             type="button"
-            onClick={() => copyText(message, "message")}
+            onClick={() => void copyText(message, "message")}
             className="rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
             {copiedMessage ? "¡Mensaje copiado!" : "Copiar mensaje"}

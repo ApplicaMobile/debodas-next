@@ -50,7 +50,7 @@ export function HowItLooksSection() {
           </div>
           <iframe
             title="Vista del micrositio demo"
-            src="/bodas/demo"
+            src="/bodas/demo?embedded=1"
             className="h-[28rem] w-full border-0 bg-white sm:h-[32rem]"
             loading="lazy"
           />

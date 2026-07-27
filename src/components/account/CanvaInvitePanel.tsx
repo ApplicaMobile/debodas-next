@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import {
   deleteCanvaLinkAction,
+  markInviteSharedAction,
   saveCanvaLinkAction,
 } from "@/lib/account/actions/invitations";
 import type { FormState } from "@/lib/account/form-state";
+import { buildWhatsAppShareUrl } from "@/lib/account/invite-message";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { FormAlert } from "@/components/account/FormAlert";
 import { toCanvaEmbedUrl } from "@/lib/invitations/parse";
@@ -14,6 +16,8 @@ import { toCanvaEmbedUrl } from "@/lib/invitations/parse";
 interface CanvaInvitePanelProps {
   canvaLink: string;
   isPremium: boolean;
+  micrositeUrl?: string;
+  coupleName?: string;
 }
 
 const initialState: FormState = {};
@@ -21,11 +25,14 @@ const initialState: FormState = {};
 export function CanvaInvitePanel({
   canvaLink,
   isPremium,
+  micrositeUrl = "",
+  coupleName = "Nosotros",
 }: CanvaInvitePanelProps) {
   const [state, formAction, pending] = useActionState(
     saveCanvaLinkAction,
     initialState,
   );
+  const [copied, setCopied] = useState(false);
 
   if (!isPremium) {
     return (
@@ -48,6 +55,39 @@ export function CanvaInvitePanel({
   }
 
   const embedUrl = canvaLink ? toCanvaEmbedUrl(canvaLink) : "";
+  const inviteSectionUrl = micrositeUrl
+    ? `${micrositeUrl.split("#")[0]}#invitacion-canva`
+    : "";
+  const whatsappUrl = inviteSectionUrl
+    ? buildWhatsAppShareUrl(
+        [
+          `✨ Invitación de ${coupleName.trim() || "Nosotros"}`,
+          "",
+          "Mirá nuestro diseño:",
+          inviteSectionUrl,
+        ].join("\n"),
+      )
+    : canvaLink
+      ? buildWhatsAppShareUrl(
+          [
+            `✨ Invitación de ${coupleName.trim() || "Nosotros"}`,
+            "",
+            canvaLink,
+          ].join("\n"),
+        )
+      : "";
+
+  async function copyCanvaLink() {
+    if (!canvaLink) return;
+    try {
+      await navigator.clipboard.writeText(canvaLink);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+      void markInviteSharedAction();
+    } catch {
+      window.prompt("Copiá el link de Canva:", canvaLink);
+    }
+  }
 
   return (
     <section className="rounded-2xl border border-dashed border-stone-300 bg-white p-4 sm:rounded-3xl sm:p-8">
@@ -55,7 +95,8 @@ export function CanvaInvitePanel({
         ¿Tenés un diseño en Canva?
       </h3>
       <p className="mt-1 text-sm text-stone-600">
-        Pegá el link de “Ver” de Canva para embeber tu diseño.
+        Pegá el link de “Ver” de Canva para embeber tu diseño. La descarga del
+        archivo (PNG/PDF) se hace desde Canva.
       </p>
 
       <FormAlert error={state.error} success={state.success} />
@@ -79,7 +120,33 @@ export function CanvaInvitePanel({
       </form>
 
       {canvaLink ? (
-        <div className="mt-3">
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void copyCanvaLink()}
+            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+          >
+            {copied ? "¡Copiado!" : "Copiar link"}
+          </button>
+          <a
+            href={canvaLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+          >
+            Abrir en Canva ↗
+          </a>
+          {whatsappUrl ? (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => void markInviteSharedAction()}
+              className="rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1ebe57]"
+            >
+              WhatsApp
+            </a>
+          ) : null}
           <ConfirmDeleteForm
             action={deleteCanvaLinkAction}
             message="¿Eliminar el diseño de Canva?"
@@ -87,9 +154,9 @@ export function CanvaInvitePanel({
           >
             <button
               type="submit"
-              className="text-sm font-medium text-red-700 hover:underline"
+              className="rounded-full px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
             >
-              Eliminar diseño
+              Eliminar
             </button>
           </ConfirmDeleteForm>
         </div>

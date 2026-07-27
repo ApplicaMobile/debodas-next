@@ -129,6 +129,13 @@ export function validateRegisterStep3(formData: FormData): string | null {
   if (!isValidRegisterPlanSlug(data.selectedPlan)) {
     return "Seleccioná un plan.";
   }
+  const accepted =
+    formData.get("accept_terms") === "on" ||
+    formData.get("accept_terms") === "1" ||
+    formData.get("accept_terms") === "true";
+  if (!accepted) {
+    return "Debés aceptar los términos y la política de privacidad.";
+  }
   return null;
 }
 

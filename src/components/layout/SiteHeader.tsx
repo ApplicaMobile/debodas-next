@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth/session";
 const navLinks = [
   { label: "Planes", href: "/#planes" },
   { label: "Temas", href: "/#themes" },
+  { label: "Quiénes somos", href: "/quienes-somos" },
   { label: "Demo", href: "/bodas/demo" },
 ];
 

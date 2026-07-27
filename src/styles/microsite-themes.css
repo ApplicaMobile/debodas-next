@@ -31,6 +31,33 @@
   background: transparent;
 }
 
+/* En iframe, background-attachment:fixed falla; misma técnica que unified-decor */
+.microsite-theme--embedded.microsite-theme--full-bg {
+  background-image: none !important;
+  background-attachment: scroll !important;
+}
+
+.microsite-theme--embedded.microsite-theme--full-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--theme-full-bg);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+.microsite-theme--embedded.microsite-theme--full-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+.microsite-theme--full-bg .microsite-section--soft {
+  background: transparent;
+}
+
 .microsite-theme--unified-decor::before {
   content: "";
   position: fixed;

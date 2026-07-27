@@ -3,7 +3,9 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
+  useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -23,6 +25,17 @@ interface ThemeContextValue {
   theme: MicrositeTheme;
   slug: ThemeSlug;
   fontSlug: MicrositeFontSlug;
+  embedded: boolean;
+}
+
+function detectEmbedded(embeddedProp: boolean): boolean {
+  if (embeddedProp) return true;
+  if (typeof window === "undefined") return false;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -30,19 +43,34 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 interface ThemeProviderProps {
   slug?: string | null;
   fontSlug?: string | null;
+  /** Vista embebida en iframe (home / panel tema). Evita background-attachment: fixed. */
+  embedded?: boolean;
   children: ReactNode;
 }
 
 export function ThemeProvider({
   slug,
   fontSlug: fontSlugProp,
+  embedded: embeddedProp = false,
   children,
 }: ThemeProviderProps) {
+  const [embedded, setEmbedded] = useState(() => detectEmbedded(embeddedProp));
+
+  useEffect(() => {
+    if (embeddedProp) return;
+    setEmbedded(detectEmbedded(false));
+  }, [embeddedProp]);
+
   const value = useMemo(() => {
     const theme = getTheme(slug);
     const fontSlug = sanitizeMicrositeFont(fontSlugProp);
-    return { theme, slug: theme.slug as ThemeSlug, fontSlug };
-  }, [slug, fontSlugProp]);
+    return {
+      theme,
+      slug: theme.slug as ThemeSlug,
+      fontSlug,
+      embedded,
+    };
+  }, [slug, fontSlugProp, embedded]);
 
   const cssVars = useMemo(() => {
     const base = getThemeCssVariables(value.theme) as CSSProperties;
@@ -72,6 +100,7 @@ export function ThemeProvider({
       ? "microsite-theme--frame-bottom"
       : "",
     value.fontSlug !== "tema-default" ? "microsite-theme--custom-font" : "",
+    embedded ? "microsite-theme--embedded" : "",
   ]
     .filter(Boolean)
     .join(" ");

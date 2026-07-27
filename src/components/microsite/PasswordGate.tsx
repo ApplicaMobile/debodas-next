@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   unlockMicrositeAction,
@@ -21,6 +21,12 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
     initialState,
   );
   const refreshed = useRef(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (state.success && !refreshed.current) {
@@ -30,15 +36,15 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
   }, [state.success, router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f7f3eb] px-4">
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-sm">
+    <main className="flex min-h-[100dvh] items-center justify-center bg-[#f7f3eb] px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]">
+      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-sm sm:p-8">
         <p className="text-xs uppercase tracking-[0.2em] text-stone-400">
           DeBodas
         </p>
-        <h1 className="mt-3 font-serif text-3xl font-semibold text-stone-800">
+        <h1 className="mt-3 font-serif text-2xl font-semibold text-stone-800 sm:text-3xl">
           {coupleName}
         </h1>
-        <p className="mt-3 text-sm text-stone-600">
+        <p className="mt-3 text-sm leading-relaxed text-stone-600">
           Este micrositio está protegido. Ingresá la contraseña que te
           compartieron los novios.
         </p>
@@ -47,14 +53,25 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
           <input type="hidden" name="slug" value={slug} />
           <label className="block text-sm font-medium text-stone-700">
             Contraseña
-            <input
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              required
-              className="mt-2 w-full rounded-xl border border-stone-200 px-4 py-3"
-              placeholder="••••••••"
-            />
+            <div className="relative mt-2">
+              <input
+                ref={inputRef}
+                type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete="current-password"
+                enterKeyHint="go"
+                required
+                className="w-full rounded-xl border border-stone-200 px-4 py-3.5 pr-20 text-base"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-2 my-auto rounded-lg px-3 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </button>
+            </div>
           </label>
 
           {state.error ? (
@@ -66,7 +83,7 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
+            className="w-full rounded-full bg-[#e6dac7] px-5 py-3.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
           >
             {isPending ? "Verificando…" : "Entrar"}
           </button>

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState, startTransition } from "react";
 import { updateThemeAction } from "@/lib/account/actions/theme";
 import type { FormState } from "@/lib/account/form-state";
 import { themeList } from "@/lib/themes/registry";
@@ -37,24 +37,39 @@ export function ThemePanel({
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
   const [selectedFont, setSelectedFont] =
     useState<MicrositeFontSlug>(currentFont);
+  const [savedTheme, setSavedTheme] = useState(currentTheme);
+  const [savedFont, setSavedFont] = useState(currentFont);
+
+  useEffect(() => {
+    if (state.success) {
+      setSavedTheme(selectedTheme);
+      setSavedFont(selectedFont);
+    }
+  }, [state.success, selectedTheme, selectedFont]);
 
   const previewHref = useMemo(
-    () => `/bodas/${slug}?theme=${selectedTheme}`,
+    () => `/bodas/${slug}?theme=${selectedTheme}&embedded=1`,
     [selectedTheme, slug],
   );
+
+  function applySelection(themeSlug: string, fontSlug: MicrositeFontSlug) {
+    const fd = new FormData();
+    fd.set("microsite_theme", themeSlug);
+    fd.set("microsite_font", fontSlug);
+    startTransition(() => {
+      formAction(fd);
+    });
+  }
 
   return (
     <section className="space-y-6">
       <div className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <p className="text-sm text-stone-600">
-          Elegí el tema visual de tu micrositio. Tocá una tarjeta para
-          previsualizarlo y guardá cuando te guste.
+          Tocá un diseño o tipografía para aplicarlo al momento. Abajo ves la
+          vista previa en vivo.
         </p>
 
-        <form action={formAction} className="mt-6 space-y-8">
-          <input type="hidden" name="microsite_theme" value={selectedTheme} />
-          <input type="hidden" name="microsite_font" value={selectedFont} />
-
+        <div className="mt-6 space-y-8">
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
               Diseño
@@ -63,21 +78,24 @@ export function ThemePanel({
               {themeList.map((theme) => {
                 const allowed = canUseTheme(userPlan, theme.plan);
                 const selected = selectedTheme === theme.slug;
+                const applied = savedTheme === theme.slug;
                 const assets = getThemePreviewAssets(theme.slug);
 
                 return (
                   <button
                     key={theme.slug}
                     type="button"
-                    disabled={!allowed}
+                    disabled={!allowed || isPending}
                     onClick={() => {
-                      if (allowed) setSelectedTheme(theme.slug);
+                      if (!allowed || isPending) return;
+                      setSelectedTheme(theme.slug);
+                      applySelection(theme.slug, selectedFont);
                     }}
                     className={`group overflow-hidden rounded-2xl border text-left transition ${
                       selected
                         ? "border-[#e6dac7] ring-2 ring-[#e6dac7]/60"
                         : "border-stone-200 hover:border-stone-300"
-                    } ${!allowed ? "cursor-not-allowed opacity-50" : ""}`}
+                    } ${!allowed || isPending ? "cursor-not-allowed opacity-50" : ""}`}
                   >
                     <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
                       <div
@@ -107,9 +125,13 @@ export function ThemePanel({
                           {!allowed ? " · Requiere upgrade" : ""}
                         </p>
                       </div>
-                      {selected ? (
+                      {applied ? (
                         <span className="shrink-0 rounded-full bg-[#e6dac7] px-2.5 py-1 text-[11px] font-semibold text-stone-800">
-                          Elegido
+                          Aplicado
+                        </span>
+                      ) : selected && isPending ? (
+                        <span className="shrink-0 rounded-full bg-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
+                          Guardando…
                         </span>
                       ) : null}
                     </div>
@@ -124,7 +146,7 @@ export function ThemePanel({
               Tipografía
             </h3>
             <p className="mt-1 text-sm text-stone-600">
-              Podés cambiar la fuente de títulos y textos (según tu plan).
+              También se guarda al tocar (según tu plan).
             </p>
             {fontList
               .filter((font) => font.googleFontsHref)
@@ -139,6 +161,7 @@ export function ThemePanel({
               {fontList.map((font) => {
                 const allowed = canUseFont(userPlan, font.plan);
                 const selected = selectedFont === font.slug;
+                const applied = savedFont === font.slug;
                 const sampleStyle =
                   font.inherit || !font.family
                     ? undefined
@@ -150,18 +173,25 @@ export function ThemePanel({
                   <button
                     key={font.slug}
                     type="button"
-                    disabled={!allowed}
+                    disabled={!allowed || isPending}
                     onClick={() => {
-                      if (allowed) setSelectedFont(font.slug);
+                      if (!allowed || isPending) return;
+                      setSelectedFont(font.slug);
+                      applySelection(selectedTheme, font.slug);
                     }}
                     className={`rounded-2xl border px-4 py-3 text-left transition ${
                       selected
                         ? "border-[#e6dac7] bg-[#e6dac7]/10"
                         : "border-stone-200 hover:border-stone-300"
-                    } ${!allowed ? "cursor-not-allowed opacity-50" : ""}`}
+                    } ${!allowed || isPending ? "cursor-not-allowed opacity-50" : ""}`}
                   >
                     <p className="text-sm font-medium text-stone-800">
                       {font.label}
+                      {applied ? (
+                        <span className="ml-2 text-[11px] font-semibold text-[#6f5f47]">
+                          · Aplicada
+                        </span>
+                      ) : null}
                     </p>
                     <p
                       className="mt-1 text-lg text-stone-700"
@@ -180,23 +210,14 @@ export function ThemePanel({
           </div>
 
           <FormAlert error={state.error} success={state.success} />
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={isPending}
-              className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
-            >
-              {isPending ? "Guardando…" : "Aplicar tema y tipografía"}
-            </button>
-            <Link
-              href={previewHref}
-              target="_blank"
-              className="text-sm font-medium text-[#6f5f47] hover:underline"
-            >
-              Abrir vista previa en pestaña ↗
-            </Link>
-          </div>
-        </form>
+          <Link
+            href={previewHref}
+            target="_blank"
+            className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
+          >
+            Abrir vista previa en pestaña ↗
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm sm:rounded-3xl">
@@ -206,7 +227,8 @@ export function ThemePanel({
               Vista previa en vivo
             </p>
             <p className="text-xs text-stone-500">
-              Tema seleccionado: {selectedTheme}
+              Tema: {selectedTheme}
+              {isPending ? " · Guardando…" : ""}
             </p>
           </div>
           <Link

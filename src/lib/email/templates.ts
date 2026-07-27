@@ -141,3 +141,20 @@ export function ratingAdminEmail(input: {
     html: layout("Nueva calificación", body),
   };
 }
+
+export function contactFormEmail(input: {
+  name: string;
+  email: string;
+  message: string;
+}): { subject: string; html: string } {
+  const body = `
+    <p><strong>Nombre:</strong> ${escapeHtml(input.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(input.email)}</p>
+    <p><strong>Mensaje:</strong></p>
+    <p style="white-space:pre-wrap;">${escapeHtml(input.message)}</p>
+  `;
+  return {
+    subject: `Nuevo contacto — ${input.name}`,
+    html: layout("Nuevo mensaje de contacto", body),
+  };
+}

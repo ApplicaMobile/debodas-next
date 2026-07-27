@@ -9,7 +9,8 @@ interface ThemeSwitcherProps {
 }
 
 export function ThemeSwitcher({ weddingSlug }: ThemeSwitcherProps) {
-  const { slug: activeSlug } = useMicrositeTheme();
+  const { slug: activeSlug, embedded } = useMicrositeTheme();
+  const embeddedQuery = embedded ? "&embedded=1" : "";
 
   return (
     <div className="sticky top-0 z-[100] border-b border-stone-200 bg-white/95 backdrop-blur-md">
@@ -33,7 +34,7 @@ export function ThemeSwitcher({ weddingSlug }: ThemeSwitcherProps) {
             return (
               <Link
                 key={theme.slug}
-                href={`/bodas/${weddingSlug}?theme=${theme.slug}`}
+                href={`/bodas/${weddingSlug}?theme=${theme.slug}${embeddedQuery}`}
                 className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
                   isActive
                     ? "bg-[#e6dac7] text-stone-800"

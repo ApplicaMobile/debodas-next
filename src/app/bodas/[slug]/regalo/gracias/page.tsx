@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getCoupleDisplayName } from "@/data/bodas";
 import { getBodaBySlug } from "@/lib/bodas/queries";
 import { prisma } from "@/lib/db/prisma";
 
@@ -13,13 +14,20 @@ interface GiftThankYouPageProps {
   }>;
 }
 
-function resolveThankYouMessage(input: {
+type ThankYouKind = "success" | "pending" | "failure" | "transfer";
+
+function resolveThankYou(input: {
   transfer?: string;
   status?: string;
   paymentStatus?: string | null;
-}): string {
+}): { kind: ThankYouKind; message: string; title: string } {
   if (input.transfer === "1") {
-    return "¡Gracias! Registramos tu regalo. Realizá la transferencia según las instrucciones y, si subiste comprobante, los novios lo revisarán pronto.";
+    return {
+      kind: "transfer",
+      title: "¡Gracias!",
+      message:
+        "Registramos tu regalo. Realizá la transferencia según las instrucciones y, si subiste comprobante, los novios lo revisarán pronto.",
+    };
   }
 
   const status = input.status?.trim();
@@ -30,7 +38,12 @@ function resolveThankYouMessage(input: {
     status === "approved" ||
     paymentStatus === "approved"
   ) {
-    return "¡Gracias! Recibimos tu pago. Los novios verán tu regalo en su panel.";
+    return {
+      kind: "success",
+      title: "¡Pago recibido!",
+      message:
+        "Recibimos tu pago. Los novios verán tu regalo en su panel. ¡Gracias!",
+    };
   }
 
   if (
@@ -38,7 +51,12 @@ function resolveThankYouMessage(input: {
     status === "rejected" ||
     paymentStatus === "rejected"
   ) {
-    return "El pago no se completó. Podés volver al micrositio e intentarlo de nuevo.";
+    return {
+      kind: "failure",
+      title: "No se completó el pago",
+      message:
+        "El pago no se completó. Podés volver al micrositio e intentarlo de nuevo desde la lista de regalos.",
+    };
   }
 
   if (
@@ -46,11 +64,50 @@ function resolveThankYouMessage(input: {
     paymentStatus === "pending" ||
     paymentStatus === "in_process"
   ) {
-    return "Tu pago está pendiente. Te avisaremos cuando Mercado Pago lo confirme.";
+    return {
+      kind: "pending",
+      title: "Pago pendiente",
+      message:
+        "Tu pago está pendiente. Te avisaremos cuando Mercado Pago lo confirme.",
+    };
   }
 
-  return "¡Gracias! Registramos tu regalo. Los novios lo verán en su panel.";
+  return {
+    kind: "success",
+    title: "¡Gracias!",
+    message: "Registramos tu regalo. Los novios lo verán en su panel.",
+  };
 }
+
+const kindStyles: Record<
+  ThankYouKind,
+  { badge: string; badgeText: string; iconBg: string; icon: string }
+> = {
+  success: {
+    badge: "bg-emerald-50 text-emerald-800",
+    badgeText: "Confirmado",
+    iconBg: "bg-emerald-100 text-emerald-800",
+    icon: "✓",
+  },
+  transfer: {
+    badge: "bg-sky-50 text-sky-800",
+    badgeText: "Transferencia",
+    iconBg: "bg-sky-100 text-sky-800",
+    icon: "↗",
+  },
+  pending: {
+    badge: "bg-amber-50 text-amber-900",
+    badgeText: "Pendiente",
+    iconBg: "bg-amber-100 text-amber-900",
+    icon: "…",
+  },
+  failure: {
+    badge: "bg-red-50 text-red-800",
+    badgeText: "No completado",
+    iconBg: "bg-red-100 text-red-800",
+    icon: "!",
+  },
+};
 
 export default async function GiftThankYouPage({
   params,
@@ -73,26 +130,62 @@ export default async function GiftThankYouPage({
     paymentStatus = payment?.status ?? null;
   }
 
-  const message = resolveThankYouMessage({
+  const resolved = resolveThankYou({
     transfer: query.transfer,
     status: query.status,
     paymentStatus,
   });
+  const styles = kindStyles[resolved.kind];
+  const coupleName = getCoupleDisplayName(boda.couple);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-16">
-      <div className="rounded-3xl bg-white p-8 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-stone-500">Regalo</p>
-        <h1 className="mt-2 font-serif text-3xl font-semibold text-stone-800">
-          ¡Gracias!
-        </h1>
-        <p className="mt-4 text-sm leading-relaxed text-stone-600">{message}</p>
-        <Link
-          href={`/bodas/${slug}`}
-          className="mt-8 inline-flex rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center bg-[#f7f3eb] px-4 py-12 sm:px-6 sm:py-16">
+      <div className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-xs uppercase tracking-wide text-stone-500">
+            Regalo · {coupleName}
+          </p>
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles.badge}`}
+          >
+            {styles.badgeText}
+          </span>
+        </div>
+
+        <div
+          className={`mt-5 flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold ${styles.iconBg}`}
+          aria-hidden
         >
-          Volver al micrositio
-        </Link>
+          {styles.icon}
+        </div>
+
+        <h1 className="mt-4 font-serif text-3xl font-semibold text-stone-800">
+          {resolved.title}
+        </h1>
+        <p className="mt-4 text-sm leading-relaxed text-stone-600">
+          {resolved.message}
+        </p>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          {resolved.kind === "failure" ? (
+            <Link
+              href={`/bodas/${slug}#regalos`}
+              className="inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
+            >
+              Reintentar en la lista de regalos
+            </Link>
+          ) : null}
+          <Link
+            href={`/bodas/${slug}`}
+            className={
+              resolved.kind === "failure"
+                ? "inline-flex justify-center rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-stone-700"
+                : "inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
+            }
+          >
+            Volver al micrositio
+          </Link>
+        </div>
       </div>
     </main>
   );

@@ -31,7 +31,7 @@ function toAbsoluteUrl(url: string | null): string | null {
 
 interface BodaPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ theme?: string; pass?: string }>;
+  searchParams: Promise<{ theme?: string; pass?: string; embedded?: string }>;
 }
 
 function shouldShowThemeSwitcher(slug: string, themeParam?: string) {
@@ -59,6 +59,8 @@ export async function generateMetadata({
   const theme = getTheme(themeParam ?? boda.microsite_theme);
   const coupleName = getCoupleDisplayName(boda.couple);
   const bannerUrl = toAbsoluteUrl(getBannerUrl(boda));
+  const ogFallback = toAbsoluteUrl("/assets/img/marketing/hero.jpg");
+  const ogImageUrl = bannerUrl ?? ogFallback;
   const pageUrl = `${getAppUrl()}/bodas/${slug}`;
   const eventPlace = String(boda.event?.place ?? "").trim();
   const eventDate = String(boda.event?.date ?? "").trim();
@@ -80,22 +82,22 @@ export async function generateMetadata({
       url: pageUrl,
       siteName: "DeBodas",
       locale: "es_AR",
-      ...(bannerUrl
-        ? {
-            images: [
-              {
-                url: bannerUrl,
-                alt: `Banner de ${coupleName}`,
-              },
-            ],
-          }
-        : {}),
+      images: [
+        {
+          url: ogImageUrl!,
+          width: 1200,
+          height: 630,
+          alt: bannerUrl
+            ? `Banner de ${coupleName}`
+            : `DeBodas — ${coupleName}`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${coupleName} | DeBodas`,
       description,
-      ...(bannerUrl ? { images: [bannerUrl] } : {}),
+      images: [ogImageUrl!],
     },
     other: {
       "theme-color": theme.colors.accent,
@@ -105,7 +107,8 @@ export async function generateMetadata({
 
 export default async function BodaPage({ params, searchParams }: BodaPageProps) {
   const { slug } = await params;
-  const { theme: themeParam, pass: passParam } = await searchParams;
+  const { theme: themeParam, pass: passParam, embedded: embeddedParam } =
+    await searchParams;
   const boda = await getBodaBySlug(slug);
 
   if (!boda) {
@@ -142,8 +145,14 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
     getFontFromMisc((boda.misc ?? {}) as Record<string, unknown>),
   );
 
+  const embedded = embeddedParam === "1";
+
   return (
-    <ThemeProvider slug={resolvedTheme} fontSlug={fontSlug}>
+    <ThemeProvider
+      slug={resolvedTheme}
+      fontSlug={fontSlug}
+      embedded={embedded}
+    >
       {showThemeSwitcher ? <ThemeSwitcher weddingSlug={slug} /> : null}
       <main>
         <MicrositeDemo boda={boda} rsvpOpen={rsvpOpen} />

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { formatPrice } from "@/data/bodas";
 import {
@@ -10,6 +9,7 @@ import {
   updateGiftsListTitleAction,
 } from "@/lib/account/actions/gifts";
 import type { FormState } from "@/lib/account/form-state";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { PlanUsageMeter } from "@/components/account/PlanUsageMeter";
@@ -182,26 +182,20 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
           <p className="mt-1 text-xs text-stone-500">{giftLimitMessage(plan)}</p>
         ) : null}
         {gifts.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
-            <p className="font-medium text-stone-700">Todavía no hay regalos</p>
-            <p className="mt-1 text-sm text-stone-500">
-              Agregá el primero con el formulario de abajo. Mientras tanto
-              podés seguir armando el sitio.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <Link
-                href="/mi-cuenta/invitados"
-                className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                Configurar RSVP
-              </Link>
-              <Link
-                href="/mi-cuenta/cronograma"
-                className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                Armar cronograma
-              </Link>
-            </div>
+          <div className="mt-6">
+            <AccountEmptyState
+              title="Todavía no hay regalos"
+              description="Agregá el primero con el formulario de abajo. Mientras tanto podés seguir armando el sitio."
+              actions={[
+                {
+                  label: "Agregar primer regalo",
+                  href: "#agregar-regalo",
+                  primary: true,
+                },
+                { label: "Configurar RSVP", href: "/mi-cuenta/invitados" },
+                { label: "Armar cronograma", href: "/mi-cuenta/cronograma" },
+              ]}
+            />
           </div>
         ) : (
           <ul className="mt-4 divide-y divide-stone-100">
@@ -261,7 +255,11 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
           </ul>
         )}
 
-        <form action={addAction} className="mt-6 grid gap-3 sm:grid-cols-4">
+        <form
+          id="agregar-regalo"
+          action={addAction}
+          className="mt-6 scroll-mt-24 grid gap-3 sm:grid-cols-4"
+        >
           <input
             name="title"
             className="rounded-xl border border-stone-200 px-4 py-3 sm:col-span-2"

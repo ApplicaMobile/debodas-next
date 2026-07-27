@@ -8,6 +8,7 @@ import {
   deleteScheduleItemAction,
 } from "@/lib/account/actions/content";
 import type { FormState } from "@/lib/account/form-state";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import {
@@ -37,14 +38,18 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
     <div className="space-y-8">
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
-            <p className="font-medium text-stone-700">
-              Todavía no hay momentos en el cronograma
-            </p>
-            <p className="mt-1 text-sm text-stone-500">
-              Agregá ceremonia, recepción u otros hitos del día.
-            </p>
-          </div>
+          <AccountEmptyState
+            title="Todavía no hay momentos en el cronograma"
+            description="Agregá ceremonia, recepción u otros hitos del día con el formulario de abajo."
+            actions={[
+              {
+                label: "Agregar primer momento",
+                href: "#agregar-cronograma",
+                primary: true,
+              },
+              { label: "Compartir sitio", href: "/mi-cuenta/invitar" },
+            ]}
+          />
         ) : (
           <ul className="divide-y divide-stone-100">
             {items.map((item) => (
@@ -81,7 +86,11 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
           </ul>
         )}
 
-        <form action={addAction} className="mt-6 grid gap-3 sm:grid-cols-2">
+        <form
+          id="agregar-cronograma"
+          action={addAction}
+          className="mt-6 scroll-mt-24 grid gap-3 sm:grid-cols-2"
+        >
           <input
             name="time"
             required
@@ -140,12 +149,17 @@ export function FaqPanel({
     <div className="space-y-8">
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
-            <p className="font-medium text-stone-700">Todavía no hay FAQs</p>
-            <p className="mt-1 text-sm text-stone-500">
-              Respondé las dudas frecuentes de tus invitados.
-            </p>
-          </div>
+          <AccountEmptyState
+            title="Todavía no hay FAQs"
+            description="Respondé las dudas frecuentes de tus invitados con el formulario de abajo."
+            actions={[
+              {
+                label: "Agregar primera pregunta",
+                href: "#agregar-faq",
+                primary: true,
+              },
+            ]}
+          />
         ) : (
           <ul className="divide-y divide-stone-100">
             {items.map((item) => (
@@ -174,7 +188,11 @@ export function FaqPanel({
           </ul>
         )}
 
-        <form action={addAction} className="mt-6 space-y-3">
+        <form
+          id="agregar-faq"
+          action={addAction}
+          className="mt-6 scroll-mt-24 space-y-3"
+        >
           <input
             name="question"
             required

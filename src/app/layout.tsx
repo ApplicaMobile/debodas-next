@@ -14,7 +14,10 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "DeBodas",
+  title: {
+    default: "DeBodas",
+    template: "%s | DeBodas",
+  },
   description: "Micrositios de bodas, listas de regalos y RSVP",
 };
 

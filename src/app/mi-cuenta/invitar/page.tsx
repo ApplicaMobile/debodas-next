@@ -61,7 +61,12 @@ export default async function MiCuentaInvitarPage() {
         isPremium={isPremium}
       />
 
-      <CanvaInvitePanel canvaLink={canvaLink} isPremium={isPremium} />
+      <CanvaInvitePanel
+        canvaLink={canvaLink}
+        isPremium={isPremium}
+        micrositeUrl={micrositeUrl}
+        coupleName={coupleName}
+      />
     </div>
   );
 }

@@ -59,6 +59,7 @@ export default async function MiCuentaPage() {
   const hasRsvpReviewed = Boolean(
     misc.rsvpSectionReviewedAt || hasRsvpGuests,
   );
+  const hasInviteShared = Boolean(misc.inviteSharedAt);
   const checklist = boda
     ? [
         {
@@ -102,16 +103,14 @@ export default async function MiCuentaPage() {
         {
           id: "invitar",
           label: "Compartí el link con tus invitados",
-          done: false,
+          done: hasInviteShared,
           href: "/mi-cuenta/invitar",
           alwaysShow: true,
         },
       ]
     : [];
 
-  const pendingSetup = checklist.filter(
-    (item) => !item.done && !(item.optional && item.done),
-  );
+  const pendingSetup = checklist.filter((item) => !item.done);
   const pendingRequired = checklist.filter(
     (item) => !item.optional && !item.done && item.id !== "invitar",
   );
@@ -222,14 +221,14 @@ export default async function MiCuentaPage() {
                     <span
                       aria-hidden
                       className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                        item.done || item.id === "invitar"
-                          ? item.id === "invitar"
+                        item.done
+                          ? "bg-emerald-100 text-emerald-800"
+                          : item.id === "invitar"
                             ? "bg-[#e6dac7] text-stone-800"
-                            : "bg-emerald-100 text-emerald-800"
-                          : "bg-stone-100 text-stone-500"
+                            : "bg-stone-100 text-stone-500"
                       }`}
                     >
-                      {item.done && item.id !== "invitar" ? "✓" : item.id === "invitar" ? "↗" : "·"}
+                      {item.done ? "✓" : item.id === "invitar" ? "↗" : "·"}
                     </span>
                     {item.label}
                     {item.optional ? (
@@ -237,7 +236,7 @@ export default async function MiCuentaPage() {
                     ) : null}
                   </span>
                   <span className="text-xs font-medium text-[#6f5f47]">
-                    {item.done && item.id !== "invitar" ? "Listo" : "Ir →"}
+                    {item.done ? "Listo" : "Ir →"}
                   </span>
                 </Link>
               </li>

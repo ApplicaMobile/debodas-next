@@ -9,6 +9,7 @@ import {
   uploadGalleryFileAction,
 } from "@/lib/account/actions/banner";
 import type { FormState } from "@/lib/account/form-state";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
@@ -105,13 +106,18 @@ export function BannerPanel({
         <h3 className="text-lg font-semibold text-stone-800">Galería</h3>
         <ul className="mt-4 space-y-3">
           {pictures.length === 0 ? (
-            <li className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
-              <p className="font-medium text-stone-700">
-                Todavía no hay fotos en la galería
-              </p>
-              <p className="mt-1 text-sm text-stone-500">
-                Subí la primera imagen con el formulario de abajo.
-              </p>
+            <li>
+              <AccountEmptyState
+                title="Todavía no hay fotos en la galería"
+                description="Subí la primera imagen con el formulario de abajo."
+                actions={[
+                  {
+                    label: "Subir primera foto",
+                    href: "#agregar-galeria",
+                    primary: true,
+                  },
+                ]}
+              />
             </li>
           ) : (
             pictures.map((picture) => (
@@ -146,8 +152,9 @@ export function BannerPanel({
         </ul>
 
         <form
+          id="agregar-galeria"
           action={uploadGalleryAction}
-          className="mt-6 space-y-4 border-t border-stone-100 pt-6"
+          className="mt-6 scroll-mt-24 space-y-4 border-t border-stone-100 pt-6"
         >
           <ImageFileInput
             name="gallery_file"
