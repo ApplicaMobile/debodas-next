@@ -58,13 +58,15 @@ export function ThemeBanner({
       : (theme.bannerPhotoOverlay ?? 0.32);
 
   const showOverlay =
-    theme.bannerMode === "full-background" ||
-    (hasPhoto &&
-      theme.bannerMode !== "frame-overlay" &&
-      overlayOpacity !== null);
+    overlayOpacity !== null &&
+    (theme.bannerMode === "full-background" ||
+      (hasPhoto && theme.bannerMode !== "frame-overlay"));
 
-  /** Scrim inferior: mejora contraste del texto sobre cualquier foto */
-  const showScrim = showPhotoLayer;
+  /** Scrim inferior: mejora contraste; marfil / full-bg sin overlay no lo usan */
+  const showScrim =
+    showPhotoLayer &&
+    overlayOpacity !== null &&
+    theme.bannerMode !== "full-background";
 
   const navItems: BannerNavItem[] = [
     { href: "#regalos", label: "Regalos" },

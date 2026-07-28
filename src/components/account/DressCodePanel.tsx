@@ -57,9 +57,22 @@ function PaletteEditor({
       </div>
 
       {colors.length === 0 ? (
-        <p className="mt-4 text-sm text-stone-500">
-          Todavía no hay colores. Podés agregar una paleta si querés.
-        </p>
+        <div className="mt-4 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-6 text-center">
+          <p className="text-sm font-medium text-stone-700">
+            Todavía no hay colores
+          </p>
+          <p className="mt-1 text-sm text-stone-500">
+            Agregá una paleta si querés sugerir tonos a tus invitados.
+          </p>
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={colors.length >= 8}
+            className="mt-4 rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800 disabled:opacity-50"
+          >
+            Agregar primer color
+          </button>
+        </div>
       ) : (
         <ul className="mt-4 space-y-3">
           {colors.map((color, index) => (

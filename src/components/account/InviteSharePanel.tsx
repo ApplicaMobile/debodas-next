@@ -43,58 +43,80 @@ export function InviteSharePanel({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <h3 className="text-lg font-semibold text-stone-800">
-          Link del micrositio
-        </h3>
-        <p className="mt-1 text-sm text-stone-600">
-          Compartí esta URL con tus invitados. Pueden confirmar asistencia y
-          enviar regalos desde ahí.
-        </p>
-
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <input
-            readOnly
-            value={micrositeUrl}
-            className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-800"
-            aria-label="Link del micrositio"
-          />
-          <div className="flex shrink-0 gap-2">
-            <button
-              type="button"
-              onClick={() => void copyText(micrositeUrl, "link")}
-              className="rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800"
-            >
-              {copiedLink ? "¡Copiado!" : "Copiar link"}
-            </button>
-            <a
-              href={micrositeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
-            >
-              Abrir ↗
-            </a>
-          </div>
+      <section className="overflow-hidden rounded-2xl bg-white shadow-sm sm:rounded-3xl">
+        <div className="border-b border-stone-100 bg-gradient-to-r from-[#06263a] to-[#0a3550] px-4 py-5 text-white sm:px-8">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+            Vista previa
+          </p>
+          <p className="mt-2 font-serif text-2xl font-semibold">{coupleName}</p>
+          <p className="mt-1 text-sm text-white/75">
+            Así llega el link a tus invitados.
+          </p>
         </div>
+        <div className="p-4 sm:p-8">
+          <div className="rounded-2xl border border-stone-200 bg-[#f7f3eb] p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
+              debodas.com.ar
+            </p>
+            <p className="mt-2 font-serif text-lg font-semibold text-stone-800">
+              {coupleName}
+            </p>
+            <p className="mt-1 truncate text-sm text-[#6f5f47]">
+              {micrositeUrl.replace(/^https?:\/\//, "")}
+            </p>
+            {hasPassword ? (
+              <p className="mt-3 text-xs text-amber-800">
+                Incluye acceso con contraseña en el mensaje.
+              </p>
+            ) : null}
+          </div>
 
-        {hasPassword ? (
-          <p className="mt-3 text-sm text-amber-800">
-            Tu sitio tiene contraseña. El link incluye el acceso para que tus
-            invitados no tengan que escribirla.
+          <h3 className="mt-6 text-lg font-semibold text-stone-800">
+            Link del micrositio
+          </h3>
+          <p className="mt-1 text-sm text-stone-600">
+            Compartí esta URL. Desde ahí pueden confirmar y regalar.
           </p>
-        ) : (
-          <p className="mt-3 text-sm text-stone-500">
-            Tip: podés proteger el sitio con una contraseña desde{" "}
-            <Link
-              href="/mi-cuenta/boda"
-              className="font-medium text-[#6f5f47] hover:underline"
-            >
-              Datos de la boda
-            </Link>
-            .
-          </p>
-        )}
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <input
+              readOnly
+              value={micrositeUrl}
+              className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-800"
+              aria-label="Link del micrositio"
+            />
+            <div className="flex shrink-0 gap-2">
+              <button
+                type="button"
+                onClick={() => void copyText(micrositeUrl, "link")}
+                className="rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800"
+              >
+                {copiedLink ? "¡Copiado!" : "Copiar link"}
+              </button>
+              <a
+                href={micrositeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              >
+                Abrir ↗
+              </a>
+            </div>
+          </div>
+
+          {!hasPassword ? (
+            <p className="mt-3 text-sm text-stone-500">
+              Tip: podés proteger el sitio con contraseña desde{" "}
+              <Link
+                href="/mi-cuenta/boda"
+                className="font-medium text-[#6f5f47] hover:underline"
+              >
+                Datos de la boda
+              </Link>
+              .
+            </p>
+          ) : null}
+        </div>
       </section>
 
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">

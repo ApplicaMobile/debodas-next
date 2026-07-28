@@ -1,9 +1,38 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 /**
- * Bloque “cómo se ve” — puente entre marketing y el micrositio real.
+ * Preview del micrositio: el iframe solo carga cuando entra en viewport.
  */
 export function HowItLooksSection() {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const node = frameRef.current;
+    if (!node || shouldLoad) return;
+
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
   return (
     <section
       id="como-se-ve"
@@ -25,6 +54,26 @@ export function HowItLooksSection() {
             que compartís por WhatsApp. Probá el demo con cualquiera de los
             temas.
           </p>
+          <ol className="mt-6 space-y-3 text-sm text-white/80">
+            <li className="flex gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-semibold text-[#e6dac7]">
+                1
+              </span>
+              <span>Abrí el demo y recorré las secciones.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-semibold text-[#e6dac7]">
+                2
+              </span>
+              <span>Probá RSVP o la lista de regalos como invitado.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-semibold text-[#e6dac7]">
+                3
+              </span>
+              <span>Creá tu cuenta y personalizá el tuyo en minutos.</span>
+            </li>
+          </ol>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/bodas/demo"
@@ -41,7 +90,10 @@ export function HowItLooksSection() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[1.5rem] border border-white/15 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+        <div
+          ref={frameRef}
+          className="overflow-hidden rounded-[1.5rem] border border-white/15 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
+        >
           <div className="flex items-center gap-2 border-b border-stone-100 bg-stone-50 px-4 py-3">
             <span className="h-2.5 w-2.5 rounded-full bg-stone-300" />
             <span className="h-2.5 w-2.5 rounded-full bg-stone-300" />
@@ -50,12 +102,25 @@ export function HowItLooksSection() {
               debodas.com.ar/bodas/demo
             </span>
           </div>
-          <iframe
-            title="Vista del micrositio demo"
-            src="/bodas/demo?embedded=1"
-            className="h-[28rem] w-full border-0 bg-white sm:h-[34rem]"
-            loading="lazy"
-          />
+          {shouldLoad ? (
+            <iframe
+              title="Vista del micrositio demo"
+              src="/bodas/demo?embedded=1"
+              className="h-[28rem] w-full border-0 bg-white sm:h-[34rem]"
+              loading="lazy"
+            />
+          ) : (
+            <div
+              className="flex h-[28rem] items-center justify-center bg-stone-100 sm:h-[34rem]"
+              aria-hidden
+            >
+              <div className="space-y-3 text-center">
+                <div className="mx-auto h-10 w-40 animate-pulse rounded-full bg-stone-200" />
+                <div className="mx-auto h-3 w-56 animate-pulse rounded bg-stone-200" />
+                <div className="mx-auto h-3 w-40 animate-pulse rounded bg-stone-200" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

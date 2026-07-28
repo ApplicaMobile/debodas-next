@@ -49,8 +49,8 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
           {coupleName}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
-          Este micrositio está protegido. Ingresá la contraseña que te
-          compartieron los novios.
+          Este micrositio está protegido. Pedile la contraseña a los novios si no
+          la tenés — suele estar en la invitación o en el mensaje de WhatsApp.
         </p>
 
         <form action={formAction} className="mt-6 space-y-4">

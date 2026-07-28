@@ -60,10 +60,15 @@ export function RsvpForm({
         <MicrositeSectionTitle className={titleClass ?? ""}>
           RSVP
         </MicrositeSectionTitle>
-        <p className="mt-3 text-sm text-[var(--theme-text-muted)]">
-          La lista de confirmaciones está completa por ahora. Contactá a los
-          novios si necesitás más información.
-        </p>
+        <div className="mt-4 rounded-2xl border border-stone-200/80 bg-white/80 px-4 py-5 text-center">
+          <p className="text-sm font-medium text-stone-800">
+            Lista de confirmaciones completa
+          </p>
+          <p className="mt-2 text-sm text-[var(--theme-text-muted)]">
+            Los novios ya alcanzaron el cupo de invitados de su plan. Si necesitás
+            más información, contactalos directamente.
+          </p>
+        </div>
       </div>
     );
   }

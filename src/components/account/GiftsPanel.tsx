@@ -186,6 +186,7 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
             <AccountEmptyState
               title="Todavía no hay regalos"
               description="Agregá el primero con el formulario de abajo. Mientras tanto podés seguir armando el sitio."
+              icon="★"
               actions={[
                 {
                   label: "Agregar primer regalo",

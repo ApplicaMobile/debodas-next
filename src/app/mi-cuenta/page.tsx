@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountSetupSticky } from "@/components/account/AccountSetupSticky";
 import { getSession } from "@/lib/auth/session";
 import { accountSections } from "@/lib/account/sections";
 import { prisma } from "@/lib/db/prisma";
@@ -119,9 +120,14 @@ export default async function MiCuentaPage() {
     ? Boolean(getMicrositePassword(boda.options))
     : false;
   const doneCount = checklist.filter((item) => item.done).length;
+  const nextSetupStep =
+    pendingRequired[0] ??
+    (!hasInviteShared
+      ? checklist.find((item) => item.id === "invitar")
+      : undefined);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 pb-20 sm:space-y-8 sm:pb-0">
       <section className="overflow-hidden rounded-2xl bg-white shadow-sm sm:rounded-3xl">
         <div className="border-b border-stone-100 bg-gradient-to-r from-[#06263a] to-[#0a3550] px-4 py-5 text-white sm:px-8 sm:py-7">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
@@ -326,6 +332,14 @@ export default async function MiCuentaPage() {
           ))}
         </ul>
       </section>
+
+      {nextSetupStep ? (
+        <AccountSetupSticky
+          label={nextSetupStep.label}
+          href={nextSetupStep.href}
+          ready={setupReady && hasInviteShared}
+        />
+      ) : null}
     </div>
   );
 }

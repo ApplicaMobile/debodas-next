@@ -9,11 +9,15 @@ import {
   isAccountSectionActive,
 } from "@/lib/account/sections";
 
+export type AccountSidebarBadges = Partial<Record<string, number>>;
+
 function SectionNavList({
   pathname,
+  badges,
   onNavigate,
 }: {
   pathname: string;
+  badges?: AccountSidebarBadges;
   onNavigate?: () => void;
 }) {
   return (
@@ -24,6 +28,7 @@ function SectionNavList({
           section.href,
           section.exact,
         );
+        const badge = badges?.[section.href];
         const className = active
           ? "bg-[#e6dac7]/25 font-semibold text-stone-800"
           : section.available
@@ -50,9 +55,17 @@ function SectionNavList({
             <Link
               href={section.href}
               onClick={onNavigate}
-              className={`block rounded-xl px-3 py-2.5 text-sm transition ${className}`}
+              className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm transition ${className}`}
             >
-              {section.label}
+              <span>{section.label}</span>
+              {badge && badge > 0 ? (
+                <span
+                  className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white"
+                  aria-label={`${badge} pendientes`}
+                >
+                  {badge > 9 ? "9+" : badge}
+                </span>
+              ) : null}
             </Link>
           </li>
         );
@@ -61,11 +74,16 @@ function SectionNavList({
   );
 }
 
-export function AccountSidebar() {
+export function AccountSidebar({
+  badges,
+}: {
+  badges?: AccountSidebarBadges;
+}) {
   const pathname = usePathname();
   const activeSection = getActiveAccountSection(pathname);
   const [open, setOpen] = useState(false);
   const titleId = useId();
+  const activeBadge = badges?.[activeSection.href];
 
   useEffect(() => {
     setOpen(false);
@@ -92,7 +110,6 @@ export function AccountSidebar() {
 
   return (
     <>
-      {/* Mobile: botón + drawer */}
       <div className="mb-4 lg:hidden">
         <button
           type="button"
@@ -105,8 +122,13 @@ export function AccountSidebar() {
             <span className="block text-[10px] font-semibold uppercase tracking-wide text-stone-400">
               Sección
             </span>
-            <span className="mt-0.5 block text-sm font-semibold text-stone-800">
+            <span className="mt-0.5 flex items-center gap-2 text-sm font-semibold text-stone-800">
               {activeSection.label}
+              {activeBadge && activeBadge > 0 ? (
+                <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {activeBadge}
+                </span>
+              ) : null}
             </span>
           </span>
           <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600">
@@ -152,6 +174,7 @@ export function AccountSidebar() {
             <nav className="flex-1 overflow-y-auto p-3">
               <SectionNavList
                 pathname={pathname}
+                badges={badges}
                 onNavigate={() => setOpen(false)}
               />
             </nav>
@@ -159,12 +182,11 @@ export function AccountSidebar() {
         </div>
       ) : null}
 
-      {/* Desktop */}
       <nav className="hidden rounded-3xl bg-white p-4 shadow-sm lg:block">
         <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
           Panel
         </p>
-        <SectionNavList pathname={pathname} />
+        <SectionNavList pathname={pathname} badges={badges} />
       </nav>
     </>
   );

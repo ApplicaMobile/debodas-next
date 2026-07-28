@@ -78,15 +78,9 @@
 /* Misma idea que mariposas: una sola capa fija, sin decor por sección */
 .microsite-theme--unified-decor[data-theme="marco-verde"]::before,
 .microsite-theme--unified-decor[data-theme="marco-blanco"]::before {
-  background-size: cover;
+  background-size: 100% auto;
   background-position: center top;
-  opacity: 0.72;
-}
-
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]::before {
-  background-size: cover;
-  background-position: center bottom;
-  opacity: 0.72;
+  opacity: 1;
 }
 
 .microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-card,
@@ -100,28 +94,14 @@
 .microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-schedule-item,
 .microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-dress-code,
 .microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-faq details,
-.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-rsvp-box,
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"] .microsite-card,
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
-  .microsite-countdown-item,
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
-  .microsite-schedule-item,
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
-  .microsite-dress-code,
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
-  .microsite-faq
-  details,
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
-  .microsite-rsvp-box {
+.microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-rsvp-box {
   background: var(--theme-card-bg);
   backdrop-filter: blur(2px);
 }
 
 .microsite-theme--unified-decor[data-theme="marco-verde"] .microsite-story,
 .microsite-theme--unified-decor[data-theme="marco-blanco"] .microsite-story,
-.microsite-theme--unified-decor[data-theme="mariposas-azules"] .microsite-story,
-.microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]
-  .microsite-story {
+.microsite-theme--unified-decor[data-theme="mariposas-azules"] .microsite-story {
   position: relative;
   z-index: 1;
   padding: 0.95rem 1.15rem;
@@ -141,15 +121,10 @@
 }
 
 .microsite-theme--frame-bottom .microsite-banner--has-photo .microsite-banner__frame {
-  height: 32%;
-  opacity: 0.82;
-  -webkit-mask-image: linear-gradient(
-    to top,
-    #000 0%,
-    #000 40%,
-    transparent 85%
-  );
-  mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 85%);
+  height: 50%;
+  opacity: 1;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .microsite-theme--frame-bottom.microsite-theme--frame-section-decor
@@ -163,14 +138,13 @@
   .microsite-theme--frame-bottom
     .microsite-banner--has-photo
     .microsite-banner__frame {
-    height: 34%;
-    opacity: 0.7;
+    height: 42%;
+    opacity: 0.92;
   }
 
   .microsite-theme--unified-decor[data-theme="marco-verde"]::before,
-  .microsite-theme--unified-decor[data-theme="marco-blanco"]::before,
-  .microsite-theme--unified-decor[data-theme="marco-flores-inferiores"]::before {
-    opacity: 0.55;
+  .microsite-theme--unified-decor[data-theme="marco-blanco"]::before {
+    opacity: 0.9;
   }
 }
 
@@ -181,6 +155,54 @@
 .microsite-theme--full-bg .microsite-banner__content {
   min-height: 72vh;
   justify-content: flex-end;
+}
+
+/* Marfil: tipografía script + sin scrim oscuro */
+[data-theme="marfil"] .microsite-banner__title {
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+[data-theme="marfil"] .microsite-section__title {
+  text-shadow: 0 4px 4px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="marfil"].microsite-theme--full-bg .microsite-banner--with-photo .microsite-banner__content,
+[data-theme="marfil"].microsite-theme--full-bg .microsite-banner--with-photo .microsite-banner__eyebrow,
+[data-theme="marfil"].microsite-theme--full-bg .microsite-banner--with-photo .microsite-banner__title,
+[data-theme="marfil"].microsite-theme--full-bg .microsite-banner--with-photo .microsite-banner__meta {
+  color: var(--theme-banner-text, #fff);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* Manantial: título decorativo cian + meta oscura */
+[data-theme="manantial"] .microsite-banner__eyebrow,
+[data-theme="manantial"] .microsite-banner__title {
+  color: #cbf1f5;
+  text-shadow: 0 2px 16px rgba(16, 38, 56, 0.35);
+}
+
+[data-theme="manantial"] .microsite-banner__title {
+  font-size: clamp(3.2rem, 10vw, 6rem);
+  font-weight: 700;
+  line-height: 0.95;
+}
+
+[data-theme="manantial"] .microsite-banner__meta {
+  color: #102638;
+  text-shadow: none;
+  font-weight: 500;
+}
+
+[data-theme="manantial"] .microsite-banner--with-photo .microsite-banner__meta {
+  color: #102638;
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.55);
+}
+
+[data-theme="manantial"] .microsite-banner--with-photo .microsite-banner__eyebrow,
+[data-theme="manantial"] .microsite-banner--with-photo .microsite-banner__title {
+  color: #cbf1f5;
 }
 
 .microsite-theme--unified-decor > * {
@@ -588,6 +610,7 @@
 .microsite-section {
   position: relative;
   padding: 4rem 0;
+  scroll-margin-top: 5rem;
 }
 
 .microsite-section--decor {
@@ -732,6 +755,18 @@
 .microsite-btn:hover {
   background: var(--theme-accent-hover);
   filter: brightness(1.02);
+}
+
+.microsite-btn:focus-visible,
+.microsite-nav__link:focus-visible,
+.microsite-gift-card button:focus-visible,
+.microsite-gallery__item:focus-visible,
+.microsite-rsvp-box input:focus-visible,
+.microsite-rsvp-box select:focus-visible,
+.microsite-rsvp-box textarea:focus-visible,
+.microsite-rsvp-box button:focus-visible {
+  outline: 3px solid var(--theme-accent, #6f5f47);
+  outline-offset: 3px;
 }
 
 .microsite-story {

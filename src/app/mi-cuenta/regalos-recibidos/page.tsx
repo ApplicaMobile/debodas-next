@@ -17,11 +17,12 @@ export default async function MiCuentaRegalosRecibidosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
+        <h2 className="font-serif text-xl font-semibold text-stone-800 sm:text-2xl">
           Regalos recibidos
         </h2>
         <p className="mt-2 text-sm text-stone-600">
-          Regalos de invitados por Mercado Pago o transferencia.
+          Regalos de invitados por Mercado Pago o transferencia. Revisá los
+          pendientes y acreditalos cuando confirmes el pago.
         </p>
       </div>
       <ConfirmedGiftsPanel

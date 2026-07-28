@@ -43,23 +43,26 @@ export default async function AdminDashboardPage() {
   ]);
 
   const cards = [
-    { label: "Bodas", value: bodasCount, href: "/admin/bodas" },
-    { label: "Usuarios", value: usersCount, href: "/admin/usuarios" },
+    { label: "Bodas", value: bodasCount, href: "/admin/bodas", tone: "neutral" as const },
+    { label: "Usuarios", value: usersCount, href: "/admin/usuarios", tone: "neutral" as const },
     {
       label: "Ratings pendientes",
       value: pendingRatings,
       href: "/admin/calificaciones?status=pending",
+      tone: pendingRatings > 0 ? ("warn" as const) : ("neutral" as const),
     },
     {
       label: "Ratings aprobados",
       value: approvedRatings,
       href: "/admin/calificaciones?status=approved",
+      tone: "neutral" as const,
     },
-    { label: "Pagos registrados", value: paymentsCount, href: "/admin/pagos" },
+    { label: "Pagos registrados", value: paymentsCount, href: "/admin/pagos", tone: "neutral" as const },
     {
       label: "Regalos por confirmar",
       value: pendingGifts,
       href: "/admin/pagos",
+      tone: pendingGifts > 0 ? ("warn" as const) : ("neutral" as const),
     },
   ];
 
@@ -129,14 +132,27 @@ export default async function AdminDashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="rounded-3xl bg-white p-5 shadow-sm transition hover:bg-stone-50"
+            className={`rounded-3xl p-5 shadow-sm transition ${
+              card.tone === "warn"
+                ? "border border-amber-200 bg-amber-50 hover:bg-amber-100/70"
+                : "bg-white hover:bg-stone-50"
+            }`}
           >
             <p className="text-xs uppercase tracking-wide text-stone-500">
               {card.label}
             </p>
-            <p className="mt-2 text-3xl font-semibold text-stone-800">
+            <p
+              className={`mt-2 text-3xl font-semibold ${
+                card.tone === "warn" ? "text-amber-950" : "text-stone-800"
+              }`}
+            >
               {card.value}
             </p>
+            {card.tone === "warn" ? (
+              <p className="mt-2 text-xs font-medium text-amber-800">
+                Requiere atención →
+              </p>
+            ) : null}
           </Link>
         ))}
       </section>

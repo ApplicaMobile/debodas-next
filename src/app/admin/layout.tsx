@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { requireAdmin } from "@/lib/admin/require-admin";
+import { prisma } from "@/lib/db/prisma";
 
 export default async function AdminLayout({
   children,
@@ -9,6 +10,18 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const admin = await requireAdmin();
+
+  const [pendingRatings, pendingGifts] = await Promise.all([
+    prisma.rating.count({ where: { status: "pending" } }),
+    prisma.confirmedGift.count({ where: { confirmed: false } }),
+  ]);
+
+  const badges = {
+    ...(pendingRatings > 0
+      ? { "/admin/calificaciones": pendingRatings }
+      : {}),
+    ...(pendingGifts > 0 ? { "/admin/pagos": pendingGifts } : {}),
+  };
 
   return (
     <div className="min-h-screen bg-[#EBEBEB]">
@@ -34,7 +47,7 @@ export default async function AdminLayout({
 
       <main className="mx-auto w-full max-w-[1800px] px-4 py-4 sm:px-6 sm:py-10">
         <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-6">
-          <AdminSidebar />
+          <AdminSidebar badges={badges} />
           <div className="min-w-0">{children}</div>
         </div>
       </main>

@@ -8,6 +8,7 @@ import {
   markNotificationReadAction,
 } from "@/lib/notifications/actions";
 import type { PanelNotificationItem } from "@/lib/notifications/queries";
+import { useToast } from "@/components/ui/ToastProvider";
 
 const POLL_MS = 25_000;
 
@@ -48,16 +49,24 @@ export function AccountNotificationsBell({
   unreadCount: initialUnreadCount,
 }: AccountNotificationsBellProps) {
   const router = useRouter();
+  const { pushToast } = useToast();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState(initialItems);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const [pending, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
+  const knownIdsRef = useRef<Set<string>>(
+    new Set(initialItems.map((item) => item.id)),
+  );
+  const primedRef = useRef(false);
   const titleId = useId();
 
   useEffect(() => {
     setItems(initialItems);
     setUnreadCount(initialUnreadCount);
+    for (const item of initialItems) {
+      knownIdsRef.current.add(item.id);
+    }
   }, [initialItems, initialUnreadCount]);
 
   useEffect(() => {
@@ -75,6 +84,19 @@ export function AccountNotificationsBell({
           unreadCount: number;
         };
         if (cancelled) return;
+
+        const fresh = data.items.filter(
+          (item) => !knownIdsRef.current.has(item.id) && !item.readAt,
+        );
+        for (const item of data.items) {
+          knownIdsRef.current.add(item.id);
+        }
+
+        if (primedRef.current && fresh.length > 0) {
+          pushToast(fresh[0].title, "info");
+        }
+        primedRef.current = true;
+
         setItems(data.items);
         setUnreadCount(data.unreadCount);
       } catch {
@@ -99,7 +121,7 @@ export function AccountNotificationsBell({
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []);
+  }, [pushToast]);
 
   useEffect(() => {
     if (!open) return;
@@ -133,6 +155,9 @@ export function AccountNotificationsBell({
               items: PanelNotificationItem[];
               unreadCount: number;
             };
+            for (const item of data.items) {
+              knownIdsRef.current.add(item.id);
+            }
             setItems(data.items);
             setUnreadCount(data.unreadCount);
           })
@@ -253,7 +278,10 @@ export function AccountNotificationsBell({
               {items.map((item) => {
                 const unread = !item.readAt;
                 return (
-                  <li key={item.id} className="border-b border-stone-50 last:border-0">
+                  <li
+                    key={item.id}
+                    className="border-b border-stone-50 last:border-0"
+                  >
                     <button
                       type="button"
                       onClick={() => openItem(item)}

@@ -47,6 +47,11 @@ export function PlansSection() {
                   : ""
               }`}
             >
+              {plan.slug === "basico" ? (
+                <span className="absolute right-4 top-4 z-10 rounded-full bg-[#e6dac7] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-stone-800">
+                  Más elegido
+                </span>
+              ) : null}
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-35"
                 style={{ backgroundImage: `url('${plan.image}')` }}
@@ -69,7 +74,9 @@ export function PlansSection() {
                 <ul className="mt-4 space-y-2 text-sm text-white/85">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex gap-2">
-                      <span className="text-[#6CC39E]">✓</span>
+                      <span className="text-[#6CC39E]" aria-hidden>
+                        ✓
+                      </span>
                       <span>{feature}</span>
                     </li>
                   ))}

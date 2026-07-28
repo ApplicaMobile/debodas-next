@@ -26,6 +26,17 @@ export default async function MiCuentaLayout({
     ? await getBodaNotifications(user.boda.id)
     : { items: [], unreadCount: 0 };
 
+  const pendingGiftsCount = user?.boda
+    ? await prisma.confirmedGift.count({
+        where: { bodaId: user.boda.id, confirmed: false },
+      })
+    : 0;
+
+  const sidebarBadges =
+    pendingGiftsCount > 0
+      ? { "/mi-cuenta/regalos-recibidos": pendingGiftsCount }
+      : undefined;
+
   return (
     <div className="min-h-screen bg-[#EBEBEB]">
       <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur-sm supports-[backdrop-filter]:bg-white/90">
@@ -88,7 +99,7 @@ export default async function MiCuentaLayout({
 
       <main className="mx-auto w-full max-w-[1800px] px-4 py-4 sm:px-6 sm:py-10">
         <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
-          <AccountSidebar />
+          <AccountSidebar badges={sidebarBadges} />
           <div className="min-w-0">{children}</div>
         </div>
       </main>

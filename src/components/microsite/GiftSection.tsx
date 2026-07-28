@@ -166,37 +166,74 @@ export function GiftSection({
       )}
 
       {cart.length > 0 ? (
-        <div className="microsite-card mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-stone-700">
-              {cart.length} regalo{cart.length === 1 ? "" : "s"} en el carrito
-            </p>
-            <p className="text-lg font-semibold text-[var(--theme-accent)]">
-              Subtotal: {formatPrice(cartTotal)}
-            </p>
-            {paymentOptions.methods.includes(GIFT_PAYMENT_METHODS.MP_CHECKOUT) ? (
-              <p className="text-xs text-[var(--theme-text-muted)]">
-                Mercado Pago incluye recargo del {GIFT_MP_SURCHARGE_RATE * 100}%
+        <>
+          <div
+            className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.1)] backdrop-blur-sm md:hidden"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-stone-500">
+                  {cart.length} regalo{cart.length === 1 ? "" : "s"}
+                </p>
+                <p className="text-lg font-semibold text-[var(--theme-accent)]">
+                  {formatPrice(cartTotal)}
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCart([])}
+                  className="rounded-full border border-stone-300 px-3 py-2 text-xs font-medium"
+                >
+                  Vaciar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCheckoutOpen(true)}
+                  className="microsite-btn !px-5 !py-2.5 !text-sm"
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="h-20 md:hidden" aria-hidden />
+
+          <div
+            className="microsite-card mt-8 hidden flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:flex"
+          >
+            <div>
+              <p className="text-sm font-medium text-stone-700">
+                {cart.length} regalo{cart.length === 1 ? "" : "s"} en el carrito
               </p>
-            ) : null}
+              <p className="text-lg font-semibold text-[var(--theme-accent)]">
+                Subtotal: {formatPrice(cartTotal)}
+              </p>
+              {paymentOptions.methods.includes(GIFT_PAYMENT_METHODS.MP_CHECKOUT) ? (
+                <p className="text-xs text-[var(--theme-text-muted)]">
+                  Mercado Pago incluye recargo del {GIFT_MP_SURCHARGE_RATE * 100}%
+                </p>
+              ) : null}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setCart([])}
+                className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+              >
+                Vaciar
+              </button>
+              <button
+                type="button"
+                onClick={() => setCheckoutOpen(true)}
+                className="microsite-btn"
+              >
+                Continuar
+              </button>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setCart([])}
-              className="rounded-full border border-stone-300 px-4 py-2 text-sm"
-            >
-              Vaciar
-            </button>
-            <button
-              type="button"
-              onClick={() => setCheckoutOpen(true)}
-              className="microsite-btn"
-            >
-              Continuar
-            </button>
-          </div>
-        </div>
+        </>
       ) : null}
 
       <GiftCheckoutModal

@@ -208,6 +208,72 @@ function AddGuestTableFields({
   );
 }
 
+function GuestQuickActions({
+  guestId,
+  status,
+  statusAction,
+}: {
+  guestId: string;
+  status: string;
+  statusAction: (payload: FormData) => void;
+}) {
+  if (status === "confirmed") {
+    return (
+      <form action={statusAction} className="mt-3">
+        <input type="hidden" name="guest_id" value={guestId} />
+        <input type="hidden" name="status" value="declined" />
+        <button
+          type="submit"
+          className="text-xs font-medium text-stone-500 hover:text-stone-800"
+        >
+          Marcar como no asiste
+        </button>
+      </form>
+    );
+  }
+
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {status !== "confirmed" ? (
+        <form action={statusAction}>
+          <input type="hidden" name="guest_id" value={guestId} />
+          <input type="hidden" name="status" value="confirmed" />
+          <button
+            type="submit"
+            className="rounded-full bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            Confirmar
+          </button>
+        </form>
+      ) : null}
+      {status !== "declined" ? (
+        <form action={statusAction}>
+          <input type="hidden" name="guest_id" value={guestId} />
+          <input type="hidden" name="status" value="declined" />
+          <button
+            type="submit"
+            className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700"
+          >
+            No asiste
+          </button>
+        </form>
+      ) : null}
+      {status !== "pending" ? (
+        <form action={statusAction}>
+          <input type="hidden" name="guest_id" value={guestId} />
+          <input type="hidden" name="status" value="pending" />
+          <button
+            type="submit"
+            className="rounded-full px-3 py-1.5 text-xs font-medium text-stone-500 hover:bg-stone-100"
+          >
+            Pendiente
+          </button>
+        </form>
+      ) : null}
+    </div>
+  );
+}
+
 function GuestDeleteButton({ guestId }: { guestId: string }) {
   return (
     <ConfirmDeleteForm
@@ -501,6 +567,7 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
             <AccountEmptyState
               title="Todavía no hay invitados"
               description="Cargalos manualmente abajo o compartí el micrositio para que confirmen solos."
+              icon="✓"
               actions={[
                 {
                   label: "Agregar primer invitado",
@@ -548,9 +615,25 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                       <p className="mt-0.5 truncate text-sm text-stone-500">
                         {guest.email ?? "Sin email"}
                       </p>
+                      <span
+                        className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          guest.status === "confirmed"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : guest.status === "declined"
+                              ? "bg-stone-200 text-stone-700"
+                              : "bg-amber-100 text-amber-900"
+                        }`}
+                      >
+                        {statusLabels[guest.status] ?? guest.status}
+                      </span>
                     </div>
                     <GuestDeleteButton guestId={guest.id} />
                   </div>
+                  <GuestQuickActions
+                    guestId={guest.id}
+                    status={guest.status}
+                    statusAction={statusAction}
+                  />
                   <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <dt className="text-xs uppercase tracking-wide text-stone-400">
@@ -664,20 +747,22 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
           Agregar invitado
         </h3>
         <form action={addAction} className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input
-            name="name"
-            required
-            className="rounded-xl border border-stone-200 px-4 py-3"
-            placeholder="Nombre"
-            disabled={atGuestLimit}
-          />
-          <input
-            name="email"
-            type="email"
-            className="rounded-xl border border-stone-200 px-4 py-3"
-            placeholder="Email (opcional)"
-            disabled={atGuestLimit}
-          />
+            <input
+              name="name"
+              required
+              className="rounded-xl border border-stone-200 px-4 py-3"
+              placeholder="Nombre"
+              disabled={atGuestLimit}
+              aria-label="Nombre del invitado"
+            />
+            <input
+              name="email"
+              type="email"
+              className="rounded-xl border border-stone-200 px-4 py-3"
+              placeholder="Email (opcional)"
+              disabled={atGuestLimit}
+              aria-label="Email del invitado"
+            />
           <select
             name="status"
             defaultValue="pending"
