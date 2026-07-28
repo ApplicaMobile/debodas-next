@@ -138,13 +138,38 @@
   .microsite-theme--frame-bottom
     .microsite-banner--has-photo
     .microsite-banner__frame {
-    height: 42%;
-    opacity: 0.92;
+    height: 48%;
+    opacity: 0.95;
   }
 
   .microsite-theme--unified-decor[data-theme="marco-verde"]::before,
   .microsite-theme--unified-decor[data-theme="marco-blanco"]::before {
-    opacity: 0.9;
+    opacity: 0.85;
+    background-size: cover;
+    background-position: center top;
+  }
+
+  .microsite-theme--full-bg .microsite-banner,
+  .microsite-theme--full-bg .microsite-banner__content {
+    min-height: 58vh;
+  }
+
+  .microsite-banner--svg-hero,
+  .microsite-banner--photo-overlay,
+  .microsite-banner--photo-only.microsite-banner--frame {
+    min-height: 58vh;
+  }
+
+  [data-theme="marfil"] .microsite-banner__title {
+    font-size: clamp(2.35rem, 11vw, 3.5rem);
+  }
+
+  [data-theme="manantial"] .microsite-banner__title {
+    font-size: clamp(2.5rem, 12vw, 3.75rem);
+  }
+
+  [data-theme="manantial"] .microsite-banner__meta {
+    font-size: 0.95rem;
   }
 }
 
@@ -237,9 +262,20 @@
       .microsite-banner--photo-only
     ) {
     aspect-ratio: auto;
-    min-height: 70vh;
+    min-height: 62vh;
     max-height: none;
     background-size: cover;
+    background-position: center top;
+  }
+
+  [data-theme="marco-flores-inferiores"] .microsite-banner__content {
+    padding-bottom: 5.25rem;
+  }
+
+  [data-theme="marco-verde"] .microsite-banner__content,
+  [data-theme="marco-blanco"] .microsite-banner__content,
+  [data-theme="marco-flores-inferiores"] .microsite-banner__content {
+    padding-inline: 1rem;
   }
 }
 
@@ -353,12 +389,6 @@
   background: rgba(40, 28, 18, 0.42);
   border-color: rgba(255, 255, 255, 0.55);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-}
-
-@media (max-width: 640px) {
-  [data-theme="marco-flores-inferiores"] .microsite-banner__content {
-    padding-bottom: 6rem;
-  }
 }
 
 @keyframes microsite-banner-in {

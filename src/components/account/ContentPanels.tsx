@@ -12,6 +12,12 @@ import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import {
+  FormField,
+  FormInput,
+  FormTextarea,
+  formControlClassName,
+} from "@/components/account/FormField";
+import {
   SCHEDULE_ICON_OPTIONS,
   scheduleIconLabel,
 } from "@/lib/schedule/icons";
@@ -89,34 +95,37 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
         <form
           id="agregar-cronograma"
           action={addAction}
-          className="mt-6 scroll-mt-24 grid gap-3 sm:grid-cols-2"
+          className="mt-6 scroll-mt-24 grid gap-4 sm:grid-cols-2"
         >
-          <input
+          <FormInput
+            label="Horario"
             name="time"
             required
-            className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="18:00"
           />
-          <input
+          <FormInput
+            label="Título"
             name="title"
             required
-            className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Ceremonia"
           />
-          <select
-            name="icon"
-            defaultValue="anillos"
-            className="rounded-xl border border-stone-200 px-4 py-3"
-          >
-            {SCHEDULE_ICON_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <input
+          <FormField label="Ícono" htmlFor="schedule-icon">
+            <select
+              id="schedule-icon"
+              name="icon"
+              defaultValue="anillos"
+              className={formControlClassName}
+            >
+              {SCHEDULE_ICON_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormInput
+            label="Detalle"
             name="description"
-            className="rounded-xl border border-stone-200 px-4 py-3"
             placeholder="Lugar / detalle (opcional)"
           />
           <div className="sm:col-span-2">
@@ -191,20 +200,20 @@ export function FaqPanel({
         <form
           id="agregar-faq"
           action={addAction}
-          className="mt-6 scroll-mt-24 space-y-3"
+          className="mt-6 scroll-mt-24 space-y-4"
         >
-          <input
+          <FormInput
+            label="Pregunta"
             name="question"
             required
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
-            placeholder="Pregunta"
+            placeholder="¿Hay estacionamiento?"
           />
-          <textarea
+          <FormTextarea
+            label="Respuesta"
             name="answer"
             required
             rows={3}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
-            placeholder="Respuesta"
+            placeholder="Sí, hay cochera gratuita frente al salón."
           />
           <FormAlert error={addState.error} success={addState.success} />
           <button

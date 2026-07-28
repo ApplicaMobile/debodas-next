@@ -28,6 +28,19 @@ Copiar desde `.env.example` y completar:
 
 Sin `BLOB_READ_WRITE_TOKEN` los uploads van a `public/uploads/` (no persistente en Vercel).
 
+### Rehost de imágenes migradas (WP → Blob)
+
+Tras `npm run db:import-wp`, las fotos suelen quedar en `https://debodas.com.ar/wp-content/uploads/...`.
+Para copiarlas a Blob (o a `public/uploads` sin token):
+
+```powershell
+npm run db:rehost-blob -- --dry-run
+npm run db:rehost-blob -- --limit=50
+npm run db:rehost-blob
+```
+
+Opcional: `--hosts=debodas.com.ar,test.debodas.com.ar`
+
 No definir `EMAIL_TEST_TO` en producción: esa variable redirige todos los
 destinatarios al inbox de pruebas.
 

@@ -43,13 +43,13 @@ export function BodaForm({ initialValues }: BodaFormProps) {
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-stone-700">
+        <label className="mb-1.5 block text-sm font-medium text-stone-700">
           Título del micrositio
         </label>
         <input
           name="title"
           defaultValue={initialValues.title}
-          className="w-full rounded-xl border border-stone-200 px-4 py-3"
+          className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
           placeholder="María & Juan"
           required
         />
@@ -57,24 +57,24 @@ export function BodaForm({ initialValues }: BodaFormProps) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-stone-700">
             Nombre novia/o 1
           </label>
           <input
             name="bride_name"
             defaultValue={initialValues.brideName}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
+            className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             required
           />
         </div>
         <div>
-          <label className="mb-2 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-stone-700">
             Nombre novia/o 2
           </label>
           <input
             name="groom_name"
             defaultValue={initialValues.groomName}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
+            className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             required
           />
         </div>
@@ -82,56 +82,56 @@ export function BodaForm({ initialValues }: BodaFormProps) {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <label className="mb-2 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-stone-700">
             Fecha
           </label>
           <input
             name="event_date"
             defaultValue={initialValues.eventDate}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
+            className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             placeholder="15/11/2026"
             required
           />
         </div>
         <div>
-          <label className="mb-2 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-stone-700">
             Hora
           </label>
           <input
             name="event_time"
             defaultValue={initialValues.eventTime}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
+            className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             placeholder="19:30"
           />
         </div>
         <div className="sm:col-span-1">
-          <label className="mb-2 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-stone-700">
             Lugar
           </label>
           <input
             name="event_place"
             defaultValue={initialValues.eventPlace}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
+            className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             placeholder="Estancia La Paz, Pilar"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-stone-700">
+        <label className="mb-1.5 block text-sm font-medium text-stone-700">
           Nuestra historia
         </label>
         <textarea
           name="our_story"
           defaultValue={initialValues.ourStory}
           rows={5}
-          className="w-full rounded-xl border border-stone-200 px-4 py-3"
+          className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
           placeholder="Contá brevemente su historia..."
         />
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-stone-700">
+        <label className="mb-1.5 block text-sm font-medium text-stone-700">
           Playlist de Spotify
           {!isPremium ? (
             <span className="ml-2 text-xs font-normal text-stone-500">
@@ -144,7 +144,7 @@ export function BodaForm({ initialValues }: BodaFormProps) {
           type="text"
           defaultValue={initialValues.spotifyUrl}
           disabled={!isPremium}
-          className="w-full rounded-xl border border-stone-200 px-4 py-3 disabled:bg-stone-50 disabled:text-stone-400"
+          className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25 disabled:bg-stone-50 disabled:text-stone-400"
           placeholder="ID o URL de la playlist (ej: open.spotify.com/playlist/...)"
           autoComplete="off"
         />
@@ -156,14 +156,14 @@ export function BodaForm({ initialValues }: BodaFormProps) {
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-stone-700">
+        <label className="mb-1.5 block text-sm font-medium text-stone-700">
           Contraseña del micrositio
         </label>
         <input
           name="password"
           type="text"
           defaultValue={initialValues.password}
-          className="w-full rounded-xl border border-stone-200 px-4 py-3"
+          className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
           placeholder="Opcional — dejá vacío para acceso público"
           autoComplete="off"
         />

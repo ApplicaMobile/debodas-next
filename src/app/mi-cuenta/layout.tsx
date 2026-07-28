@@ -32,10 +32,14 @@ export default async function MiCuentaLayout({
       })
     : 0;
 
-  const sidebarBadges =
-    pendingGiftsCount > 0
+  const sidebarBadges = {
+    ...(pendingGiftsCount > 0
       ? { "/mi-cuenta/regalos-recibidos": pendingGiftsCount }
-      : undefined;
+      : {}),
+    ...(notifications.unreadCount > 0
+      ? { "/mi-cuenta/notificaciones": notifications.unreadCount }
+      : {}),
+  };
 
   return (
     <div className="min-h-screen bg-[#EBEBEB]">
@@ -99,7 +103,11 @@ export default async function MiCuentaLayout({
 
       <main className="mx-auto w-full max-w-[1800px] px-4 py-4 sm:px-6 sm:py-10">
         <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
-          <AccountSidebar badges={sidebarBadges} />
+          <AccountSidebar
+            badges={
+              Object.keys(sidebarBadges).length > 0 ? sidebarBadges : undefined
+            }
+          />
           <div className="min-w-0">{children}</div>
         </div>
       </main>

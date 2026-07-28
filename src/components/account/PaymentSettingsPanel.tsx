@@ -5,6 +5,7 @@ import { updatePaymentSettingsAction } from "@/lib/account/actions/payment-setti
 import type { FormState } from "@/lib/account/form-state";
 import type { BodaPaymentSettings } from "@/lib/bodas/payment-settings";
 import { FormAlert } from "@/components/account/FormAlert";
+import { FormInput } from "@/components/account/FormField";
 import { normalizePlan } from "@/lib/plans/features";
 
 interface PaymentSettingsPanelProps {
@@ -13,33 +14,6 @@ interface PaymentSettingsPanelProps {
 }
 
 const initialState: FormState = {};
-
-function Field({
-  label,
-  name,
-  defaultValue,
-  type = "text",
-  placeholder,
-}: {
-  label: string;
-  name: string;
-  defaultValue?: string;
-  type?: string;
-  placeholder?: string;
-}) {
-  return (
-    <label className="block text-sm text-stone-700">
-      {label}
-      <input
-        type={type}
-        name={name}
-        defaultValue={defaultValue ?? ""}
-        placeholder={placeholder}
-        className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-2.5"
-      />
-    </label>
-  );
-}
 
 export function PaymentSettingsPanel({
   plan,
@@ -62,12 +36,12 @@ export function PaymentSettingsPanel({
           pagan con un recargo del 6%.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field
+          <FormInput
             label="Public Key"
             name="mp_public_key"
             defaultValue={settings.mp_tokens?.public_key}
           />
-          <Field
+          <FormInput
             label="Access Token"
             name="mp_access_token"
             defaultValue={settings.mp_tokens?.access_token}
@@ -90,12 +64,12 @@ export function PaymentSettingsPanel({
           Mercado Pago · Transferencia
         </h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field
+          <FormInput
             label="Titular"
             name="mp_transfer_owner"
             defaultValue={settings.mp_alias_cvu?.owner_mp}
           />
-          <Field
+          <FormInput
             label="Alias / CVU"
             name="mp_transfer_alias"
             defaultValue={settings.mp_alias_cvu?.alias_cvu_mp}
@@ -108,22 +82,22 @@ export function PaymentSettingsPanel({
           Transferencia bancaria (ARS)
         </h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field
+          <FormInput
             label="Titular"
             name="bank_owner_ars"
             defaultValue={settings.bank_account?.owner}
           />
-          <Field
+          <FormInput
             label="Banco"
             name="bank_name_ars"
             defaultValue={settings.bank_account?.bank}
           />
-          <Field
+          <FormInput
             label="CBU"
             name="bank_cbu_ars"
             defaultValue={settings.bank_account?.cbu}
           />
-          <Field
+          <FormInput
             label="Alias"
             name="bank_alias_ars"
             defaultValue={settings.bank_account?.alias}
@@ -140,17 +114,17 @@ export function PaymentSettingsPanel({
             Disponible en planes Básico y Premium.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field
+            <FormInput
               label="Titular"
               name="bank_owner_usd"
               defaultValue={settings.bank_account_usd?.owner}
             />
-            <Field
+            <FormInput
               label="Banco"
               name="bank_name_usd"
               defaultValue={settings.bank_account_usd?.bank}
             />
-            <Field
+            <FormInput
               label="CBU / cuenta"
               name="bank_cbu_usd"
               defaultValue={settings.bank_account_usd?.cbu}
@@ -162,13 +136,13 @@ export function PaymentSettingsPanel({
       <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
         <h3 className="text-lg font-semibold text-stone-800">PayPal</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field
+          <FormInput
             label="PayPal.me (usuario)"
             name="paypal_me"
             defaultValue={settings.paypal?.paypal_me}
             placeholder="tuusuario"
           />
-          <Field
+          <FormInput
             label="Titular"
             name="paypal_owner"
             defaultValue={settings.paypal?.owner}

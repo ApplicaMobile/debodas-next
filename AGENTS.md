@@ -30,6 +30,7 @@ npm run db:push  # schema → MariaDB (XAMPP)
 npm run db:seed  # boda demo + usuario
 npm run db:studio
 npm run db:backup # mysqldump → ./backups
+npm run db:rehost-blob # WP images → Blob/local (ver docs/DEPLOY.md)
 ```
 
 ## MariaDB local (XAMPP)

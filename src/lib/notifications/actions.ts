@@ -20,6 +20,7 @@ export async function markNotificationReadAction(
   });
 
   revalidatePath("/mi-cuenta");
+  revalidatePath("/mi-cuenta/notificaciones");
 }
 
 export async function markAllNotificationsReadAction(): Promise<void> {
@@ -32,4 +33,5 @@ export async function markAllNotificationsReadAction(): Promise<void> {
   });
 
   revalidatePath("/mi-cuenta");
+  revalidatePath("/mi-cuenta/notificaciones");
 }

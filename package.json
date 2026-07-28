@@ -17,6 +17,7 @@
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:backup": "tsx scripts/backup-mariadb.ts",
     "db:import-wp": "dotenv -e .env.local -- tsx scripts/import-wp.ts",
+    "db:rehost-blob": "dotenv -e .env.local -- tsx scripts/rehost-images-to-blob.ts",
     "email:test": "tsx scripts/test-smtp.ts",
     "share": "npm run build && next start"
   },

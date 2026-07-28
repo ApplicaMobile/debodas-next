@@ -183,6 +183,22 @@ export async function saveUploadedImage(
   return persistFile(buffer, safeSubdir, filename, file.type);
 }
 
+export async function putUploadedBuffer(input: {
+  buffer: Buffer;
+  subdir: string;
+  filename: string;
+  contentType: string;
+}): Promise<string> {
+  const safeSubdir = input.subdir.replace(/[^a-zA-Z0-9/_-]/g, "");
+  const safeName = input.filename.replace(/[^a-zA-Z0-9._-]/g, "");
+  return persistFile(
+    input.buffer,
+    safeSubdir,
+    safeName,
+    input.contentType,
+  );
+}
+
 export async function deleteLocalUpload(url: string): Promise<void> {
   if (!isManagedUpload(url)) {
     return;

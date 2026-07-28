@@ -8,6 +8,11 @@ import {
   markNotificationReadAction,
 } from "@/lib/notifications/actions";
 import type { PanelNotificationItem } from "@/lib/notifications/queries";
+import {
+  formatNotificationRelative,
+  notificationTypeBadgeClass,
+  notificationTypeLabel,
+} from "@/lib/notifications/format";
 import { useToast } from "@/components/ui/ToastProvider";
 
 const POLL_MS = 25_000;
@@ -15,33 +20,6 @@ const POLL_MS = 25_000;
 interface AccountNotificationsBellProps {
   items: PanelNotificationItem[];
   unreadCount: number;
-}
-
-function typeLabel(type: string): string {
-  if (type === "rsvp") return "RSVP";
-  if (type === "gift") return "Regalo";
-  if (type === "plan") return "Plan";
-  return "Aviso";
-}
-
-function typeBadgeClass(type: string): string {
-  if (type === "rsvp") return "bg-emerald-50 text-emerald-800";
-  if (type === "gift") return "bg-amber-50 text-amber-900";
-  if (type === "plan") return "bg-sky-50 text-sky-900";
-  return "bg-stone-100 text-stone-700";
-}
-
-function formatRelative(iso: string): string {
-  const date = new Date(iso);
-  const diffMs = Date.now() - date.getTime();
-  const mins = Math.floor(diffMs / 60_000);
-  if (mins < 1) return "Ahora";
-  if (mins < 60) return `Hace ${mins} min`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `Hace ${hours} h`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `Hace ${days} d`;
-  return date.toLocaleDateString("es-AR");
 }
 
 export function AccountNotificationsBell({
@@ -291,12 +269,12 @@ export function AccountNotificationsBell({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${typeBadgeClass(item.type)}`}
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${notificationTypeBadgeClass(item.type)}`}
                         >
-                          {typeLabel(item.type)}
+                          {notificationTypeLabel(item.type)}
                         </span>
                         <span className="text-[11px] text-stone-400">
-                          {formatRelative(item.createdAt)}
+                          {formatNotificationRelative(item.createdAt)}
                         </span>
                       </div>
                       <p
@@ -322,11 +300,11 @@ export function AccountNotificationsBell({
 
           <div className="border-t border-stone-100 px-4 py-2.5">
             <Link
-              href="/mi-cuenta"
+              href="/mi-cuenta/notificaciones"
               onClick={() => setOpen(false)}
               className="text-xs font-medium text-stone-600 hover:text-stone-900"
             >
-              Ir al resumen →
+              Ver historial →
             </Link>
           </div>
         </div>

@@ -80,7 +80,7 @@ function PaletteEditor({
               key={`${prefix}-${index}`}
               className="flex flex-wrap items-end gap-3 rounded-xl border border-stone-100 p-3"
             >
-              <label className="text-sm text-stone-700">
+              <label className="text-sm font-medium text-stone-700">
                 Color
                 <input
                   type="color"
@@ -90,26 +90,26 @@ function PaletteEditor({
                       : "#C4A484"
                   }
                   onChange={(e) => onUpdate(index, "hex", e.target.value)}
-                  className="mt-1 block h-10 w-14 cursor-pointer rounded border border-stone-200 bg-white p-1"
+                  className="mt-1.5 block h-10 w-14 cursor-pointer rounded border border-stone-200 bg-white p-1"
                 />
               </label>
-              <label className="min-w-[7rem] flex-1 text-sm text-stone-700">
+              <label className="min-w-[7rem] flex-1 text-sm font-medium text-stone-700">
                 Hex
                 <input
                   name={`${prefix}_color_hex_${index}`}
                   value={color.hex}
                   onChange={(e) => onUpdate(index, "hex", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2"
+                  className="mt-1.5 w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
                   placeholder="#C4A484"
                 />
               </label>
-              <label className="min-w-[10rem] flex-[2] text-sm text-stone-700">
+              <label className="min-w-[10rem] flex-[2] text-sm font-medium text-stone-700">
                 Nombre
                 <input
                   name={`${prefix}_color_name_${index}`}
                   value={color.name}
                   onChange={(e) => onUpdate(index, "name", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2"
+                  className="mt-1.5 w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
                   placeholder="Champagne"
                 />
               </label>
@@ -186,24 +186,24 @@ export function DressCodePanel({
         </label>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <label className="block text-sm text-stone-700">
+          <label className="block text-sm font-medium text-stone-700">
             Caballeros
             <textarea
               name="caballeros"
               rows={4}
               defaultValue={dressCode.caballeros}
               placeholder="Ej: Traje formal oscuro"
-              className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-3"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             />
           </label>
-          <label className="block text-sm text-stone-700">
+          <label className="block text-sm font-medium text-stone-700">
             Damas
             <textarea
               name="damas"
               rows={4}
               defaultValue={dressCode.damas}
               placeholder="Ej: Vestido de cóctel"
-              className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-3"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             />
           </label>
         </div>
