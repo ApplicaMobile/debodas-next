@@ -917,6 +917,33 @@
   .microsite-dress-code__columns {
     grid-template-columns: 1fr 1fr;
   }
+
+  .microsite-dress-code__columns--single {
+    grid-template-columns: minmax(0, 22rem);
+    justify-content: center;
+  }
+}
+
+.microsite-dress-code--compact {
+  padding: 1.25rem 1rem;
+  box-shadow: none;
+}
+
+.microsite-dress-code--compact .microsite-dress-code__columns {
+  margin-top: 1.25rem;
+}
+
+.microsite-dress-code--compact .microsite-dress-code__col {
+  padding: 0.9rem 0.75rem;
+}
+
+.microsite-dress-code--compact .microsite-dress-code__col-title {
+  font-size: 1.05rem;
+}
+
+.microsite-dress-code--compact .microsite-dress-code__swatch {
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .microsite-dress-code__col {

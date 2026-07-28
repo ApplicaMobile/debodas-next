@@ -41,8 +41,8 @@ npm run db:rehost-blob
 
 Opcional: `--hosts=debodas.com.ar,test.debodas.com.ar`
 
-No definir `EMAIL_TEST_TO` en producción: esa variable redirige todos los
-destinatarios al inbox de pruebas.
+No definir `EMAIL_TEST_TO` en producción: esa variable redirige la mayoría de
+los correos al inbox de pruebas (excepto `password_reset`, que siempre va al usuario).
 
 ## Deploy
 

@@ -56,6 +56,8 @@ export async function deliverEmail(input: {
   subject: string;
   html: string;
   replyTo?: string;
+  /** Si true, no redirige a EMAIL_TEST_TO (p. ej. reset de contraseña). */
+  skipTestRedirect?: boolean;
 }): Promise<{ id: string; recipients: string[]; subject: string }> {
   const to = Array.isArray(input.to) ? input.to : [input.to];
   const requestedRecipients = to
@@ -66,7 +68,9 @@ export async function deliverEmail(input: {
     throw new Error("El email no tiene destinatarios válidos");
   }
 
-  const testRecipient = process.env.EMAIL_TEST_TO?.trim().toLowerCase();
+  const testRecipient = input.skipTestRedirect
+    ? null
+    : process.env.EMAIL_TEST_TO?.trim().toLowerCase() || null;
   const recipients = testRecipient ? [testRecipient] : requestedRecipients;
   const deliverySubject = testRecipient
     ? `[PRUEBA] ${input.subject}`

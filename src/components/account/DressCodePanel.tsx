@@ -1,22 +1,40 @@
 "use client";
 
-import { useActionState, useState, type Dispatch, type SetStateAction } from "react";
+import Link from "next/link";
+import {
+  useActionState,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { updateDressCodeAction } from "@/lib/account/actions/dress-code";
 import type { FormState } from "@/lib/account/form-state";
-import type {
-  DressCodeColor,
-  DressCodeContent,
+import {
+  hasDressCodeContent,
+  type DressCodeColor,
+  type DressCodeContent,
 } from "@/lib/bodas/dress-code";
 import { FormAlert } from "@/components/account/FormAlert";
+import { DressCodeSection } from "@/components/microsite/DressCodeSection";
 
 interface DressCodePanelProps {
   dressCode: DressCodeContent;
   showDressCode: boolean;
+  micrositeSlug: string;
 }
 
 const initialState: FormState = {};
+const MAX_COLORS = 8;
 
 type PaletteKey = "damas" | "caballeros";
+
+function normalizeHex(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "#C4A484";
+  const withHash = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
+  return /^#[0-9A-Fa-f]{6}$/.test(withHash) ? withHash : "#C4A484";
+}
 
 function PaletteEditor({
   title,
@@ -40,7 +58,7 @@ function PaletteEditor({
   ) => void;
 }) {
   return (
-    <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+    <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-stone-800">{title}</h3>
@@ -49,15 +67,15 @@ function PaletteEditor({
         <button
           type="button"
           onClick={onAdd}
-          disabled={colors.length >= 8}
-          className="shrink-0 rounded-full border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 disabled:opacity-50"
+          disabled={colors.length >= MAX_COLORS}
+          className="shrink-0 rounded-full border border-stone-200 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
         >
           Agregar color
         </button>
       </div>
 
       {colors.length === 0 ? (
-        <div className="mt-4 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-6 text-center">
+        <div className="mt-4 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-5 text-center">
           <p className="text-sm font-medium text-stone-700">
             Todavía no hay colores
           </p>
@@ -67,56 +85,46 @@ function PaletteEditor({
           <button
             type="button"
             onClick={onAdd}
-            disabled={colors.length >= 8}
-            className="mt-4 rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800 disabled:opacity-50"
+            disabled={colors.length >= MAX_COLORS}
+            className="mt-3 rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800 disabled:opacity-50"
           >
             Agregar primer color
           </button>
         </div>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <ul className="mt-4 space-y-2">
           {colors.map((color, index) => (
             <li
               key={`${prefix}-${index}`}
-              className="flex flex-wrap items-end gap-3 rounded-xl border border-stone-100 p-3"
+              className="grid grid-cols-[auto_minmax(5.5rem,7rem)_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-stone-100 bg-stone-50/60 px-2.5 py-2 sm:gap-3 sm:px-3"
             >
-              <label className="text-sm font-medium text-stone-700">
-                Color
-                <input
-                  type="color"
-                  value={
-                    /^#[0-9A-Fa-f]{6}$/.test(color.hex)
-                      ? color.hex
-                      : "#C4A484"
-                  }
-                  onChange={(e) => onUpdate(index, "hex", e.target.value)}
-                  className="mt-1.5 block h-10 w-14 cursor-pointer rounded border border-stone-200 bg-white p-1"
-                />
-              </label>
-              <label className="min-w-[7rem] flex-1 text-sm font-medium text-stone-700">
-                Hex
-                <input
-                  name={`${prefix}_color_hex_${index}`}
-                  value={color.hex}
-                  onChange={(e) => onUpdate(index, "hex", e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
-                  placeholder="#C4A484"
-                />
-              </label>
-              <label className="min-w-[10rem] flex-[2] text-sm font-medium text-stone-700">
-                Nombre
-                <input
-                  name={`${prefix}_color_name_${index}`}
-                  value={color.name}
-                  onChange={(e) => onUpdate(index, "name", e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
-                  placeholder="Champagne"
-                />
-              </label>
+              <input
+                type="color"
+                aria-label={`Color ${index + 1}`}
+                value={normalizeHex(color.hex)}
+                onChange={(e) => onUpdate(index, "hex", e.target.value)}
+                className="h-9 w-9 cursor-pointer rounded-lg border border-stone-200 bg-white p-0.5"
+              />
+              <input
+                name={`${prefix}_color_hex_${index}`}
+                value={color.hex}
+                onChange={(e) => onUpdate(index, "hex", e.target.value)}
+                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 font-mono text-xs text-stone-800 focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
+                placeholder="#C4A484"
+                aria-label={`Hex ${index + 1}`}
+              />
+              <input
+                name={`${prefix}_color_name_${index}`}
+                value={color.name}
+                onChange={(e) => onUpdate(index, "name", e.target.value)}
+                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-sm text-stone-800 focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
+                placeholder="Champagne"
+                aria-label={`Nombre ${index + 1}`}
+              />
               <button
                 type="button"
                 onClick={() => onRemove(index)}
-                className="pb-2 text-sm text-red-600 hover:underline"
+                className="shrink-0 px-1.5 text-sm font-medium text-red-600 hover:underline"
               >
                 Quitar
               </button>
@@ -130,12 +138,16 @@ function PaletteEditor({
 
 export function DressCodePanel({
   dressCode,
-  showDressCode,
+  showDressCode: initialShow,
+  micrositeSlug,
 }: DressCodePanelProps) {
   const [state, formAction, isPending] = useActionState(
     updateDressCodeAction,
     initialState,
   );
+  const [showDressCode, setShowDressCode] = useState(initialShow);
+  const [caballeros, setCaballeros] = useState(dressCode.caballeros);
+  const [damas, setDamas] = useState(dressCode.damas);
   const [colorsDamas, setColorsDamas] = useState<DressCodeColor[]>(
     dressCode.colors_damas,
   );
@@ -149,7 +161,9 @@ export function DressCodePanel({
     return {
       onAdd: () => {
         setColors((prev) =>
-          prev.length >= 8 ? prev : [...prev, { hex: "#C4A484", name: "" }],
+          prev.length >= MAX_COLORS
+            ? prev
+            : [...prev, { hex: "#C4A484", name: "" }],
         );
       },
       onRemove: (index: number) => {
@@ -172,26 +186,82 @@ export function DressCodePanel({
   const damasHelpers = makePaletteHelpers(setColorsDamas);
   const caballerosHelpers = makePaletteHelpers(setColorsCaballeros);
 
+  const preview: DressCodeContent = useMemo(
+    () => ({
+      caballeros: caballeros.trim(),
+      damas: damas.trim(),
+      colors_caballeros: colorsCaballeros
+        .map((c) => ({
+          hex: c.hex.trim().startsWith("#") ? c.hex.trim() : `#${c.hex.trim()}`,
+          name: c.name.trim() || c.hex.trim(),
+        }))
+        .filter((c) => /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(c.hex)),
+      colors_damas: colorsDamas
+        .map((c) => ({
+          hex: c.hex.trim().startsWith("#") ? c.hex.trim() : `#${c.hex.trim()}`,
+          name: c.name.trim() || c.hex.trim(),
+        }))
+        .filter((c) => /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(c.hex)),
+    }),
+    [caballeros, damas, colorsCaballeros, colorsDamas],
+  );
+
+  const hasContent = hasDressCodeContent(preview);
+  const publicHref = `/bodas/${micrositeSlug}#dress-code`;
+
   return (
-    <form action={formAction} className="space-y-6">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <label className="flex items-center gap-3 text-sm text-stone-700">
+    <form action={formAction} className="space-y-6 pb-24">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+        <label className="flex cursor-pointer items-start gap-3 text-sm text-stone-700">
           <input
             type="checkbox"
             name="show_dress_code"
-            defaultChecked={showDressCode}
-            className="h-4 w-4 rounded border-stone-300"
+            checked={showDressCode}
+            onChange={(e) => setShowDressCode(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-stone-300"
           />
-          Mostrar sección Dress Code en el micrositio
+          <span>
+            <span className="font-medium text-stone-800">
+              Mostrar sección Dress Code en el micrositio
+            </span>
+            <span className="mt-0.5 block text-stone-500">
+              Si está apagado, los invitados no ven esta sección aunque tengas
+              contenido.
+            </span>
+          </span>
         </label>
+
+        {showDressCode && !hasContent ? (
+          <p
+            role="status"
+            className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+          >
+            La sección está activada, pero todavía no hay texto ni colores. No
+            se publica hasta que completes algo.
+          </p>
+        ) : null}
+
+        {showDressCode && hasContent ? (
+          <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+            Se va a mostrar en el micrositio.{" "}
+            <Link
+              href={publicHref}
+              target="_blank"
+              className="font-semibold underline underline-offset-2"
+            >
+              Ver en el sitio ↗
+            </Link>
+          </p>
+        ) : null}
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium text-stone-700">
             Caballeros
             <textarea
               name="caballeros"
-              rows={4}
-              defaultValue={dressCode.caballeros}
+              rows={3}
+              value={caballeros}
+              onChange={(e) => setCaballeros(e.target.value)}
               placeholder="Ej: Traje formal oscuro"
               className="mt-1.5 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             />
@@ -200,8 +270,9 @@ export function DressCodePanel({
             Damas
             <textarea
               name="damas"
-              rows={4}
-              defaultValue={dressCode.damas}
+              rows={3}
+              value={damas}
+              onChange={(e) => setDamas(e.target.value)}
               placeholder="Ej: Vestido de cóctel"
               className="mt-1.5 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25"
             />
@@ -209,31 +280,69 @@ export function DressCodePanel({
         </div>
       </section>
 
-      <PaletteEditor
-        title="Paleta caballeros"
-        description="Opcional. Colores sugeridos para caballeros (hasta 8)."
-        prefix="caballeros"
-        colors={colorsCaballeros}
-        {...caballerosHelpers}
-      />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] xl:items-start">
+        <div className="space-y-6">
+          <PaletteEditor
+            title="Paleta caballeros"
+            description={`Opcional. Colores sugeridos para caballeros (hasta ${MAX_COLORS}).`}
+            prefix="caballeros"
+            colors={colorsCaballeros}
+            {...caballerosHelpers}
+          />
 
-      <PaletteEditor
-        title="Paleta damas"
-        description="Opcional. Colores sugeridos para damas (hasta 8)."
-        prefix="damas"
-        colors={colorsDamas}
-        {...damasHelpers}
-      />
+          <PaletteEditor
+            title="Paleta damas"
+            description={`Opcional. Colores sugeridos para damas (hasta ${MAX_COLORS}).`}
+            prefix="damas"
+            colors={colorsDamas}
+            {...damasHelpers}
+          />
+        </div>
 
-      <div className="space-y-3">
-        <FormAlert error={state.error} success={state.success} />
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
-        >
-          {isPending ? "Guardando…" : "Guardar dress code"}
-        </button>
+        <aside className="xl:sticky xl:top-24">
+          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
+              <p className="text-sm font-semibold text-stone-800">
+                Vista previa
+              </p>
+              <span className="text-[11px] font-medium uppercase tracking-wide text-stone-400">
+                En vivo
+              </span>
+            </div>
+            <div className="bg-[#F5F1EA] px-2 py-4 sm:px-3">
+              {!showDressCode ? (
+                <p className="px-3 py-8 text-center text-sm text-stone-500">
+                  La sección está oculta en el micrositio.
+                </p>
+              ) : !hasContent ? (
+                <p className="px-3 py-8 text-center text-sm text-stone-500">
+                  Completá un texto o un color para ver la preview.
+                </p>
+              ) : (
+                <DressCodeSection
+                  dressCode={preview}
+                  titleClass="text-center font-serif text-2xl font-semibold text-stone-800"
+                  compact
+                />
+              )}
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur-sm supports-[backdrop-filter]:bg-white/90">
+        <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-3 lg:pl-[calc(240px+2rem)]">
+          <div className="min-w-0 flex-1">
+            <FormAlert error={state.error} success={state.success} />
+          </div>
+          <button
+            type="submit"
+            disabled={isPending}
+            className="shrink-0 rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
+          >
+            {isPending ? "Guardando…" : "Guardar dress code"}
+          </button>
+        </div>
       </div>
     </form>
   );

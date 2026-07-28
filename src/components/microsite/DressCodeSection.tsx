@@ -7,6 +7,8 @@ import { MicrositeSectionTitle } from "@/components/themes/ThemeSection";
 interface DressCodeSectionProps {
   dressCode: DressCodeContent;
   titleClass: string;
+  /** Preview en panel: menos padding / sin max-width externo */
+  compact?: boolean;
 }
 
 function ColorPalette({
@@ -32,7 +34,9 @@ function ColorPalette({
             <span
               className="microsite-dress-code__swatch"
               style={{ backgroundColor: color.hex }}
-              aria-hidden="true"
+              title={color.name || color.hex}
+              role="img"
+              aria-label={color.name || color.hex}
             />
             <span className="microsite-dress-code__color-name">
               {color.name}
@@ -47,22 +51,36 @@ function ColorPalette({
 export function DressCodeSection({
   dressCode,
   titleClass,
+  compact = false,
 }: DressCodeSectionProps) {
-  const showColumns = Boolean(dressCode.caballeros || dressCode.damas);
+  const showCaballeros = Boolean(dressCode.caballeros);
+  const showDamas = Boolean(dressCode.damas);
+  const columnCount = Number(showCaballeros) + Number(showDamas);
+  const showColumns = columnCount > 0;
   const showPalettes = Boolean(
     dressCode.colors_caballeros.length || dressCode.colors_damas.length,
   );
 
   return (
-    <div className="mx-auto max-w-2xl px-6">
-      <div className="microsite-dress-code">
-        <MicrositeSectionTitle className={titleClass}>
-          Dress Code
-        </MicrositeSectionTitle>
+    <div className={compact ? "mx-auto w-full" : "mx-auto max-w-2xl px-6"}>
+      <div
+        className={`microsite-dress-code ${compact ? "microsite-dress-code--compact" : ""}`}
+      >
+        {compact ? (
+          <h2 className={titleClass}>Dress Code</h2>
+        ) : (
+          <MicrositeSectionTitle className={titleClass}>
+            Dress Code
+          </MicrositeSectionTitle>
+        )}
 
         {showColumns ? (
-          <div className="microsite-dress-code__columns mt-8">
-            {dressCode.caballeros ? (
+          <div
+            className={`microsite-dress-code__columns mt-8 ${
+              columnCount === 1 ? "microsite-dress-code__columns--single" : ""
+            }`}
+          >
+            {showCaballeros ? (
               <div className="microsite-dress-code__col">
                 <h3 className="microsite-dress-code__col-title">Caballeros</h3>
                 <p className="microsite-dress-code__col-text">
@@ -70,7 +88,7 @@ export function DressCodeSection({
                 </p>
               </div>
             ) : null}
-            {dressCode.damas ? (
+            {showDamas ? (
               <div className="microsite-dress-code__col">
                 <h3 className="microsite-dress-code__col-title">Damas</h3>
                 <p className="microsite-dress-code__col-text">

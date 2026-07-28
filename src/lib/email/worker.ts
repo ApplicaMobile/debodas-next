@@ -80,6 +80,7 @@ async function processJob(
       subject: job.subject,
       html: decryptEmailContent(job.contentEncrypted),
       replyTo: job.replyTo ?? undefined,
+      skipTestRedirect: job.type === "password_reset",
     });
 
     await prisma.$transaction(async (tx) => {

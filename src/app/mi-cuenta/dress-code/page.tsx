@@ -43,6 +43,7 @@ export default async function MiCuentaDressCodePage() {
       <DressCodePanel
         dressCode={dressCode}
         showDressCode={optionEnabled(options.show_dress_code)}
+        micrositeSlug={boda.slug}
       />
     </div>
   );
