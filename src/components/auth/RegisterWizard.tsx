@@ -111,6 +111,11 @@ export function RegisterWizard() {
     formData.set("site_source_other", readFormValue(form, "site_source_other"));
     formData.set("selected_plan", readFormValue(form, "selected_plan") || "gratuito");
 
+    const acceptTerms = form?.elements.namedItem("accept_terms");
+    if (acceptTerms instanceof HTMLInputElement && acceptTerms.checked) {
+      formData.set("accept_terms", acceptTerms.value || "1");
+    }
+
     const bannerInput = form?.elements.namedItem("banner_file");
     if (
       bannerInput instanceof HTMLInputElement &&
