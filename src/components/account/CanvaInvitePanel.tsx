@@ -175,7 +175,7 @@ export function CanvaInvitePanel({
           <iframe
             title="Invitación Canva"
             src={embedUrl}
-            className="h-[520px] w-full border-0"
+            className="h-[360px] w-full border-0 xl:h-[420px]"
             loading="lazy"
             allow="fullscreen"
             allowFullScreen

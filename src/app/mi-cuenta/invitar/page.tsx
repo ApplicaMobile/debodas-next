@@ -59,13 +59,14 @@ export default async function MiCuentaInvitarPage() {
         brideName={brideName}
         groomName={groomName}
         isPremium={isPremium}
-      />
-
-      <CanvaInvitePanel
-        canvaLink={canvaLink}
-        isPremium={isPremium}
-        micrositeUrl={micrositeUrl}
-        coupleName={coupleName}
+        aside={
+          <CanvaInvitePanel
+            canvaLink={canvaLink}
+            isPremium={isPremium}
+            micrositeUrl={micrositeUrl}
+            coupleName={coupleName}
+          />
+        }
       />
     </div>
   );

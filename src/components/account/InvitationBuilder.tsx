@@ -2,7 +2,13 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { toPng } from "html-to-image";
 import {
   deleteInvitationAction,
@@ -41,6 +47,8 @@ interface InvitationBuilderProps {
   brideName: string;
   groomName: string;
   isPremium: boolean;
+  /** Panel lateral (p. ej. Canva) al lado de las invitaciones creadas */
+  aside?: ReactNode;
 }
 
 const initialState: FormState = {};
@@ -97,6 +105,7 @@ export function InvitationBuilder({
   brideName,
   groomName,
   isPremium,
+  aside,
 }: InvitationBuilderProps) {
   const [state, formAction, pending] = useActionState(
     saveInvitationAction,
@@ -435,77 +444,93 @@ export function InvitationBuilder({
         ) : null}
       </section>
 
-      <section className="space-y-4">
-        {invitations.length === 0 ? (
-          <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-stone-500 shadow-sm">
-            Todavía no hay invitaciones digitales.
-          </p>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2">
-            {invitations.map((invitation) => (
-              <article
-                key={invitation.id}
-                className="overflow-hidden rounded-2xl bg-white shadow-sm"
-              >
-                <div className="border-b border-stone-100 px-4 py-3">
-                  <h4 className="font-semibold text-stone-800">
-                    {invitation.name}
-                  </h4>
-                  {invitation.isVisibleInMicrosite ? (
-                    <p className="mt-0.5 text-xs text-[#6f5f47]">
-                      Visible en micrositio
-                    </p>
-                  ) : null}
-                </div>
-                <div className="p-4">
-                  <InvitationCardPreview
-                    cardId={`invitation-card-${invitation.id}`}
-                    invitation={invitation}
-                    brideName={brideName || "Novia"}
-                    groomName={groomName || "Novio"}
-                    showAddress={isPremium}
-                  />
-                </div>
-                <div className="space-y-2 border-t border-stone-100 p-4">
-                  <button
-                    type="button"
-                    onClick={() => openEdit(invitation)}
-                    className="w-full rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => downloadPng(invitation)}
-                    disabled={downloadingId === invitation.id}
-                    className="w-full rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
-                  >
-                    {downloadingId === invitation.id
-                      ? "Generando PNG…"
-                      : "Descargar invitación"}
-                  </button>
-                  <ConfirmDeleteForm
-                    action={deleteInvitationAction}
-                    message="¿Eliminar esta invitación?"
-                  >
-                    <input
-                      type="hidden"
-                      name="invitation_id"
-                      value={invitation.id}
+      <div
+        className={
+          aside
+            ? "grid gap-6 xl:grid-cols-2 xl:items-start"
+            : "space-y-4"
+        }
+      >
+        <section className="space-y-4">
+          {invitations.length === 0 ? (
+            <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-stone-500 shadow-sm">
+              Todavía no hay invitaciones digitales.
+            </p>
+          ) : (
+            <div
+              className={
+                aside
+                  ? "grid gap-6"
+                  : "grid gap-6 sm:grid-cols-2"
+              }
+            >
+              {invitations.map((invitation) => (
+                <article
+                  key={invitation.id}
+                  className="overflow-hidden rounded-2xl bg-white shadow-sm"
+                >
+                  <div className="border-b border-stone-100 px-4 py-3">
+                    <h4 className="font-semibold text-stone-800">
+                      {invitation.name}
+                    </h4>
+                    {invitation.isVisibleInMicrosite ? (
+                      <p className="mt-0.5 text-xs text-[#6f5f47]">
+                        Visible en micrositio
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="p-4">
+                    <InvitationCardPreview
+                      cardId={`invitation-card-${invitation.id}`}
+                      invitation={invitation}
+                      brideName={brideName || "Novia"}
+                      groomName={groomName || "Novio"}
+                      showAddress={isPremium}
                     />
+                  </div>
+                  <div className="space-y-2 border-t border-stone-100 p-4">
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={() => openEdit(invitation)}
                       className="w-full rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
                     >
-                      Eliminar
+                      Editar
                     </button>
-                  </ConfirmDeleteForm>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+                    <button
+                      type="button"
+                      onClick={() => downloadPng(invitation)}
+                      disabled={downloadingId === invitation.id}
+                      className="w-full rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
+                    >
+                      {downloadingId === invitation.id
+                        ? "Generando PNG…"
+                        : "Descargar invitación"}
+                    </button>
+                    <ConfirmDeleteForm
+                      action={deleteInvitationAction}
+                      message="¿Eliminar esta invitación?"
+                    >
+                      <input
+                        type="hidden"
+                        name="invitation_id"
+                        value={invitation.id}
+                      />
+                      <button
+                        type="submit"
+                        className="w-full rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                      >
+                        Eliminar
+                      </button>
+                    </ConfirmDeleteForm>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {aside ? <div className="min-w-0">{aside}</div> : null}
+      </div>
     </div>
   );
 }
