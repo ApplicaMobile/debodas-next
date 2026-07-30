@@ -139,59 +139,60 @@ export default async function GiftThankYouPage({
   const coupleName = getCoupleDisplayName(boda.couple);
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12 sm:px-6 sm:py-16">
+    <main className="relative flex min-h-svh items-center justify-center overflow-hidden px-4 py-10 sm:px-6 sm:py-16">
       <div className="absolute inset-0 bg-[#f7f3eb]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(230,218,199,0.9),transparent_40%),radial-gradient(circle_at_90%_85%,rgba(6,38,58,0.07),transparent_40%)]" />
-      <div className="relative mx-auto w-full max-w-xl rounded-3xl border border-white/80 bg-white/95 p-6 shadow-[0_20px_60px_rgba(45,45,45,0.08)] sm:p-8">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="font-serif text-lg font-semibold text-stone-800">
-              DeBodas
-            </p>
-            <p className="mt-1 text-xs uppercase tracking-wide text-stone-500">
-              Regalo · {coupleName}
-            </p>
-          </div>
-          <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles.badge}`}
-          >
-            {styles.badgeText}
-          </span>
-        </div>
 
-        <div
-          className={`mt-5 flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold ${styles.iconBg}`}
-          aria-hidden
-        >
-          {styles.icon}
-        </div>
-
-        <h1 className="mt-4 font-serif text-3xl font-semibold text-stone-800">
-          {resolved.title}
-        </h1>
-        <p className="mt-4 text-sm leading-relaxed text-stone-600">
-          {resolved.message}
+      <div className="relative mx-auto w-full max-w-xl">
+        <p className="text-center font-serif text-2xl font-semibold tracking-tight text-stone-800 sm:text-3xl">
+          {coupleName}
+        </p>
+        <p className="mt-1 text-center text-xs uppercase tracking-[0.18em] text-stone-500">
+          Regalo · DeBodas
         </p>
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          {resolved.kind === "failure" ? (
-            <Link
-              href={`/bodas/${slug}#regalos`}
-              className="inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+        <div className="mt-6 rounded-[1.75rem] border border-white/80 bg-white/95 p-5 shadow-[0_20px_60px_rgba(45,45,45,0.08)] sm:mt-8 sm:rounded-3xl sm:p-8">
+          <div className="flex items-center justify-between gap-3">
+            <div
+              className={`flex h-11 w-11 items-center justify-center rounded-full text-lg font-bold sm:h-12 sm:w-12 ${styles.iconBg}`}
+              aria-hidden
             >
-              Reintentar en la lista de regalos
+              {styles.icon}
+            </div>
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${styles.badge}`}
+            >
+              {styles.badgeText}
+            </span>
+          </div>
+
+          <h1 className="mt-5 font-serif text-[1.75rem] font-semibold leading-tight text-stone-800 sm:text-3xl">
+            {resolved.title}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-stone-600 sm:mt-4 sm:text-[0.95rem]">
+            {resolved.message}
+          </p>
+
+          <div className="mt-7 flex flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-3">
+            {resolved.kind === "failure" ? (
+              <Link
+                href={`/bodas/${slug}#regalos`}
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+              >
+                Reintentar en la lista de regalos
+              </Link>
+            ) : null}
+            <Link
+              href={`/bodas/${slug}`}
+              className={
+                resolved.kind === "failure"
+                  ? "inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-stone-700"
+                  : "inline-flex min-h-11 items-center justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+              }
+            >
+              Volver al micrositio
             </Link>
-          ) : null}
-          <Link
-            href={`/bodas/${slug}`}
-            className={
-              resolved.kind === "failure"
-                ? "inline-flex justify-center rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-stone-700"
-                : "inline-flex justify-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
-            }
-          >
-            Volver al micrositio
-          </Link>
+          </div>
         </div>
       </div>
     </main>

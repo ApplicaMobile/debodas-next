@@ -104,11 +104,11 @@ export function DressCodeSection({
             className={`microsite-dress-code__palettes ${showColumns ? "mt-6" : "mt-8"}`}
           >
             <ColorPalette
-              label="Paleta sugerida: Caballeros"
+              label="Caballeros"
               colors={dressCode.colors_caballeros}
             />
             <ColorPalette
-              label="Paleta sugerida: Damas"
+              label="Damas"
               colors={dressCode.colors_damas}
             />
           </div>

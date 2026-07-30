@@ -234,7 +234,7 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
             <MicrositeSectionTitle className={titleClass}>
               Cronograma
             </MicrositeSectionTitle>
-            <div className="mt-10 space-y-4">
+            <div className="mt-8 space-y-3 sm:mt-10 sm:space-y-4">
               {boda.schedule.map((item, index) => {
                 const entry = item as {
                   time?: string;
@@ -258,7 +258,9 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
                       <p className="text-sm font-semibold text-[var(--theme-accent)]">
                         {entry.time}
                       </p>
-                      <h3 className="text-lg font-semibold">{entry.title}</h3>
+                      <h3 className="mt-0.5 text-base font-semibold sm:text-lg">
+                        {entry.title}
+                      </h3>
                       {entry.description ? (
                         <p className="mt-1 text-sm text-[var(--theme-text-muted)]">
                           {entry.description}
@@ -307,7 +309,7 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
         <ThemeSection id="faq">
           <div className="mx-auto max-w-3xl px-6">
             <MicrositeSectionTitle className={titleClass}>FAQ</MicrositeSectionTitle>
-            <div className="microsite-faq mt-10 space-y-4">
+            <div className="microsite-faq mt-8 sm:mt-10">
               {boda.faq_items.map((item, index) => {
                 const faq = item as { question?: string; answer?: string };
                 return (
