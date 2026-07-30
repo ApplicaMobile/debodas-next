@@ -11,6 +11,7 @@ import {
   deleteLocalUpload,
   getUploadErrorMessage,
   isManagedUpload,
+  isSafeLocalUploadUrl,
   saveUploadedImage,
 } from "@/lib/upload/local";
 import { prisma } from "@/lib/db/prisma";
@@ -21,7 +22,7 @@ function parseImageUrl(raw: string): string | null {
     return null;
   }
   if (value.startsWith("/uploads/")) {
-    return value;
+    return isSafeLocalUploadUrl(value) ? value : null;
   }
   try {
     const parsed = new URL(value);

@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
+import {
+  checkRateLimit,
+  clientIpFromHeaders,
+} from "@/lib/security/rate-limit";
 
 const NOMINATIM = "https://nominatim.openstreetmap.org";
 const USER_AGENT = "DeBodasWeb/1.0 (hola@debodas.com.ar)";
+const MAX_QUERY_LENGTH = 200;
 
 /** Bounding box aprox. Argentina (west,south,east,north). */
 const AR_VIEWBOX = "-73.5,-55.1,-53.6,-21.8";
@@ -188,12 +193,30 @@ function toResults(
 }
 
 export async function GET(request: Request) {
+  const ip = clientIpFromHeaders(request.headers);
+  const limited = await checkRateLimit(`geocode:${ip}`, 30, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Demasiadas búsquedas. Probá en unos segundos.", results: [] },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limited.retryAfterSec) },
+      },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
-  const q = String(searchParams.get("q") ?? "").trim();
+  const q = String(searchParams.get("q") ?? "").trim().slice(0, MAX_QUERY_LENGTH);
   const lat = String(searchParams.get("lat") ?? "").trim();
   const lng = String(searchParams.get("lng") ?? "").trim();
 
   if (lat && lng) {
+    if (!/^-?\d+(\.\d+)?$/.test(lat) || !/^-?\d+(\.\d+)?$/.test(lng)) {
+      return NextResponse.json(
+        { error: "Coordenadas inválidas." },
+        { status: 400 },
+      );
+    }
     try {
       const url = new URL(`${NOMINATIM}/reverse`);
       url.searchParams.set("lat", lat);

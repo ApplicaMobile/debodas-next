@@ -139,7 +139,7 @@ prisma/
 1. En `/mi-cuenta/pagos` configurá transferencia y/o credenciales MP de la pareja.
 2. En el micrositio, los invitados agregan regalos al carrito y pagan (MP checkout o transferencia).
 3. Los novios ven y confirman regalos en `/mi-cuenta/regalos-recibidos`.
-4. Webhook MP: `/api/webhooks/mercadopago?bodaId=...` (requiere `NEXT_PUBLIC_APP_URL` pública en prod).
+4. Webhook MP: `/api/webhooks/mercadopago?bodaId=...` (requiere `NEXT_PUBLIC_APP_URL` pública en prod). Configurá `MERCADOPAGO_WEBHOOK_SECRET` desde el panel MP.
 5. Upgrade de plan: `/mi-cuenta/plan` usa `MERCADOPAGO_ACCESS_TOKEN` de la app.
 
 Tras cambios al schema Prisma:

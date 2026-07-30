@@ -6,10 +6,9 @@ import { getAppUrl } from "@/lib/email/client";
 import {
   getMicrositePassword,
   isMicrositeUnlocked,
-  passwordsMatch,
-  unlockMicrosite,
 } from "@/lib/microsite/password";
 import { canAddRsvpGuest } from "@/lib/plans/limits";
+import { buildPublicMicrositePayload } from "@/lib/bodas/public-microsite";
 import { getTheme, isThemeSlug } from "@/lib/themes/registry";
 import { getEffectiveFontSlug, getFontFromMisc } from "@/lib/themes/fonts";
 import { MicrositeDemo } from "@/components/microsite/MicrositeDemo";
@@ -31,7 +30,7 @@ function toAbsoluteUrl(url: string | null): string | null {
 
 interface BodaPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ theme?: string; pass?: string; embedded?: string }>;
+  searchParams: Promise<{ theme?: string; embedded?: string }>;
 }
 
 function shouldShowThemeSwitcher(slug: string, themeParam?: string) {
@@ -107,8 +106,7 @@ export async function generateMetadata({
 
 export default async function BodaPage({ params, searchParams }: BodaPageProps) {
   const { slug } = await params;
-  const { theme: themeParam, pass: passParam, embedded: embeddedParam } =
-    await searchParams;
+  const { theme: themeParam, embedded: embeddedParam } = await searchParams;
   const boda = await getBodaBySlug(slug);
 
   if (!boda) {
@@ -122,13 +120,9 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
         ? boda.microsite_theme
         : "marfil";
 
-  const password = getMicrositePassword(boda.options);
-  let unlocked = await isMicrositeUnlocked(slug, password);
-  if (password && !unlocked && passParam && passwordsMatch(passParam, password)) {
-    await unlockMicrosite(slug, password);
-    unlocked = true;
-  }
-  if (password && !unlocked) {
+  const passwordSecret = getMicrositePassword(boda.options);
+  const unlocked = await isMicrositeUnlocked(slug, passwordSecret);
+  if (passwordSecret && !unlocked) {
     return (
       <PasswordGate
         slug={slug}
@@ -146,6 +140,8 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
   );
 
   const embedded = embeddedParam === "1";
+  const { boda: publicBoda, paymentOptions } =
+    buildPublicMicrositePayload(boda);
 
   return (
     <ThemeProvider
@@ -155,7 +151,11 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
     >
       {showThemeSwitcher ? <ThemeSwitcher weddingSlug={slug} /> : null}
       <main>
-        <MicrositeDemo boda={boda} rsvpOpen={rsvpOpen} />
+        <MicrositeDemo
+          boda={publicBoda}
+          paymentOptions={paymentOptions}
+          rsvpOpen={rsvpOpen}
+        />
       </main>
     </ThemeProvider>
   );

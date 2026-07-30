@@ -20,7 +20,11 @@ export function InviteSharePanel({
   hasPassword,
 }: InviteSharePanelProps) {
   const [message, setMessage] = useState(() =>
-    buildDefaultWhatsAppMessage({ coupleName, micrositeUrl }),
+    buildDefaultWhatsAppMessage({
+      coupleName,
+      micrositeUrl,
+      hasPassword,
+    }),
   );
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(false);
@@ -66,7 +70,7 @@ export function InviteSharePanel({
             </p>
             {hasPassword ? (
               <p className="mt-3 text-xs text-amber-800">
-                Incluye acceso con contraseña en el mensaje.
+                El sitio pide contraseña: compartila aparte (no va en el link).
               </p>
             ) : null}
           </div>

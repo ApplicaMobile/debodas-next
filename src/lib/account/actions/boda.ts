@@ -11,6 +11,10 @@ import { prisma } from "@/lib/db/prisma";
 import { normalizePlan } from "@/lib/plans/features";
 import { parseEventDate } from "@/lib/ratings/date";
 import { parseSpotifyPlaylistId } from "@/lib/spotify/parse";
+import {
+  getMicrositePassword,
+  hashMicrositePassword,
+} from "@/lib/microsite/password";
 
 const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 100;
@@ -60,6 +64,10 @@ export async function updateBodaAction(
   const ourStory = String(formData.get("our_story") ?? "").trim();
   const spotifyRaw = String(formData.get("spotify_url") ?? "").trim();
   const password = String(formData.get("password") ?? "").trim();
+  const clearPassword =
+    formData.get("clear_password") === "on" ||
+    formData.get("clear_password") === "1" ||
+    formData.get("clear_password") === "true";
 
   if (!title) {
     return { error: "Ingresá el título del micrositio." };
@@ -136,9 +144,17 @@ export async function updateBodaAction(
     ...(isPremium ? { spotify_url: spotifyUrl } : {}),
   };
 
+  const previousPassword = getMicrositePassword(boda.options);
+  let nextPassword = previousPassword;
+  if (clearPassword) {
+    nextPassword = "";
+  } else if (password) {
+    nextPassword = await hashMicrositePassword(password);
+  }
+
   const options = {
     ...parseOptions(boda.options),
-    password,
+    password: nextPassword,
   };
 
   try {

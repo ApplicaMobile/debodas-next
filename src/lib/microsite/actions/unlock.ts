@@ -4,17 +4,27 @@ import { headers } from "next/headers";
 import { getBodaBySlug } from "@/lib/bodas/queries";
 import {
   getMicrositePassword,
-  passwordsMatch,
+  hashMicrositePassword,
   unlockMicrosite,
+  verifyMicrositePassword,
 } from "@/lib/microsite/password";
 import {
   checkRateLimit,
   clientIpFromHeaders,
 } from "@/lib/security/rate-limit";
+import { prisma } from "@/lib/db/prisma";
+import type { Prisma } from "@prisma/client";
 
 export interface UnlockState {
   error?: string;
   success?: boolean;
+}
+
+function parseOptions(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return { ...(value as Record<string, unknown>) };
+  }
+  return {};
 }
 
 export async function unlockMicrositeAction(
@@ -46,15 +56,33 @@ export async function unlockMicrositeAction(
     return { error: "Micrositio no encontrado." };
   }
 
-  const expected = getMicrositePassword(boda.options);
-  if (!expected) {
+  const stored = getMicrositePassword(boda.options);
+  if (!stored) {
     return { error: "Este micrositio no está protegido." };
   }
 
-  if (!passwordsMatch(password, expected)) {
+  const verified = await verifyMicrositePassword(password, stored);
+  if (!verified.ok) {
     return { error: "Contraseña incorrecta." };
   }
 
-  await unlockMicrosite(slug, expected);
+  let cookieSecret = stored;
+  if (verified.legacyPlain) {
+    // Migración lazy: plaintext → bcrypt
+    try {
+      const hashed = await hashMicrositePassword(password);
+      const options = parseOptions(boda.options);
+      options.password = hashed;
+      await prisma.boda.update({
+        where: { id: String(boda.id) },
+        data: { options: options as Prisma.InputJsonValue },
+      });
+      cookieSecret = hashed;
+    } catch (error) {
+      console.error("[unlockMicrositeAction] rehash legacy", error);
+    }
+  }
+
+  await unlockMicrosite(slug, cookieSecret);
   return { success: true };
 }

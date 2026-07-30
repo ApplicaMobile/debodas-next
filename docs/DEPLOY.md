@@ -18,6 +18,8 @@ Copiar desde `.env.example` y completar:
 | `NEXT_PUBLIC_APP_URL` | URL pública final (`https://debodas.com.ar`) |
 | `MERCADOPAGO_ACCESS_TOKEN` | Token **producción** |
 | `MERCADOPAGO_SANDBOX` | `false` en prod |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Secret de Webhooks (panel MP → configurar notificaciones) |
+| `MERCADOPAGO_WEBHOOK_STRICT` | `true` para rechazar notificaciones sin firma |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | Servidor SMTP de producción |
 | `SMTP_USER`, `SMTP_PASSWORD` | Credenciales SMTP |
 | `EMAIL_FROM` | Ej. `DeBodas <noreply@debodas.com.ar>` |
@@ -25,6 +27,8 @@ Copiar desde `.env.example` y completar:
 | `EMAIL_QUEUE_SECRET` | Secreto largo para cifrar emails en cola (opcional si se reutiliza `AUTH_SECRET`) |
 | `CRON_SECRET` | Igual en Vercel Cron |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob (uploads persistentes) |
+
+Headers de seguridad (en `next.config.ts`): `nosniff`, `SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy`, y HSTS en prod. `/api/geocode` limita 30 req/min por IP.
 
 Sin `BLOB_READ_WRITE_TOKEN` los uploads van a `public/uploads/` (no persistente en Vercel).
 
@@ -52,7 +56,9 @@ los correos al inbox de pruebas (excepto `password_reset`, que siempre va al usu
 4. En Vercel → Storage → Blob → crear store y copiar token
 5. Correr migraciones: `npx prisma db push` (o migrate) contra la BD cloud
 6. Seed solo en staging: `npm run db:seed`
-7. Configurar webhook MP: `{APP_URL}/api/webhooks/mercadopago?bodaId=...`
+7. Configurar webhook MP: `{APP_URL}/api/webhooks/mercadopago` (y `?bodaId=...` si aplica).
+   - En el panel MP → Webhooks, copiá el **secret** a `MERCADOPAGO_WEBHOOK_SECRET`.
+   - En prod conviene `MERCADOPAGO_WEBHOOK_STRICT=true` si todos los pagos usan la misma app MP.
 8. Verificar crons `/api/cron/rating-emails`, `/api/cron/email-queue` y `/api/cron/maintenance` (Bearer `CRON_SECRET`)
 
 ## Verificación de emails

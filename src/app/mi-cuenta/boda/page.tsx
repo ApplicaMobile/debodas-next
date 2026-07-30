@@ -18,8 +18,8 @@ export default async function MiCuentaBodaPage() {
   const event = parseEvent(boda.event);
   const misc = parseMisc(boda.misc);
   const options = (boda.options ?? {}) as Record<string, unknown>;
-  const password =
-    typeof options.password === "string" ? options.password : "";
+  const hasPassword =
+    typeof options.password === "string" && options.password.trim().length > 0;
 
   return (
     <div className="space-y-6">
@@ -54,7 +54,7 @@ export default async function MiCuentaBodaPage() {
             ourStory: String(misc.our_story ?? ""),
             spotifyUrl: String(misc.spotify_url ?? misc.spotify ?? ""),
             slug: boda.slug,
-            password,
+            hasPassword,
             plan: boda.plan,
           }}
         />

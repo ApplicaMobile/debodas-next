@@ -75,9 +75,54 @@ export function usesCloudStorage(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
 }
 
+/**
+ * URL local de upload segura (sin `..`, solo bajo `/uploads/`).
+ */
+export function isSafeLocalUploadUrl(url: string): boolean {
+  return resolveSafeLocalUploadPath(url) !== null;
+}
+
+/**
+ * Resuelve la ruta absoluta en disco solo si queda dentro de `public/uploads`.
+ */
+export function resolveSafeLocalUploadPath(url: string): string | null {
+  const value = url.trim();
+  if (!value.startsWith("/uploads/")) {
+    return null;
+  }
+  if (value.includes("\0") || value.includes("\\")) {
+    return null;
+  }
+
+  const rest = value.slice("/uploads/".length);
+  if (!rest || rest.includes("..")) {
+    return null;
+  }
+  if (!/^[a-zA-Z0-9/_.-]+$/.test(rest)) {
+    return null;
+  }
+
+  const segments = rest.split("/");
+  if (
+    segments.length === 0 ||
+    segments.some((seg) => !seg || seg === "." || seg === "..")
+  ) {
+    return null;
+  }
+
+  const uploadsRoot = path.resolve(process.cwd(), "public", "uploads");
+  const absolute = path.resolve(uploadsRoot, ...segments);
+  const relative = path.relative(uploadsRoot, absolute);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !relative) {
+    return null;
+  }
+
+  return absolute;
+}
+
 export function isManagedUpload(url: string): boolean {
   return (
-    url.startsWith("/uploads/") ||
+    isSafeLocalUploadUrl(url) ||
     url.includes(".public.blob.vercel-storage.com") ||
     url.includes("blob.vercel-storage.com")
   );
@@ -85,7 +130,17 @@ export function isManagedUpload(url: string): boolean {
 
 /** @deprecated use isManagedUpload */
 export function isLocalUpload(url: string): boolean {
-  return url.startsWith("/uploads/");
+  return isSafeLocalUploadUrl(url);
+}
+
+function sanitizeUploadSubdir(subdir: string): string {
+  const cleaned = subdir
+    .replace(/\\/g, "/")
+    .split("/")
+    .map((seg) => seg.replace(/[^a-zA-Z0-9_-]/g, ""))
+    .filter((seg) => seg.length > 0 && seg !== "." && seg !== "..")
+    .join("/");
+  return cleaned || "misc";
 }
 
 export function getUploadErrorMessage(error: unknown): string {
@@ -151,7 +206,7 @@ export async function saveUploadedVoucher(
 
   const ext = VOUCHER_EXT_BY_MIME[file.type];
   const filename = `${randomUUID()}.${ext}`;
-  const safeSubdir = subdir.replace(/[^a-zA-Z0-9/_-]/g, "");
+  const safeSubdir = sanitizeUploadSubdir(subdir);
   const buffer = Buffer.from(await file.arrayBuffer());
   assertFileSignature(buffer, file.type);
 
@@ -176,7 +231,7 @@ export async function saveUploadedImage(
 
   const ext = EXT_BY_MIME[file.type];
   const filename = `${randomUUID()}.${ext}`;
-  const safeSubdir = subdir.replace(/[^a-zA-Z0-9/_-]/g, "");
+  const safeSubdir = sanitizeUploadSubdir(subdir);
   const buffer = Buffer.from(await file.arrayBuffer());
   assertFileSignature(buffer, file.type);
 
@@ -189,8 +244,11 @@ export async function putUploadedBuffer(input: {
   filename: string;
   contentType: string;
 }): Promise<string> {
-  const safeSubdir = input.subdir.replace(/[^a-zA-Z0-9/_-]/g, "");
+  const safeSubdir = sanitizeUploadSubdir(input.subdir);
   const safeName = input.filename.replace(/[^a-zA-Z0-9._-]/g, "");
+  if (!safeName || safeName === "." || safeName === "..") {
+    throw new Error("Nombre de archivo inválido.");
+  }
   return persistFile(
     input.buffer,
     safeSubdir,
@@ -205,8 +263,11 @@ export async function deleteLocalUpload(url: string): Promise<void> {
   }
 
   if (url.startsWith("/uploads/")) {
-    const relativePath = url.replace(/^\/+/, "");
-    const filePath = path.join(process.cwd(), "public", relativePath);
+    const filePath = resolveSafeLocalUploadPath(url);
+    if (!filePath) {
+      console.warn("[deleteLocalUpload] ruta rechazada:", url);
+      return;
+    }
     try {
       await unlink(filePath);
     } catch {

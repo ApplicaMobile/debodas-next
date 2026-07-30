@@ -381,6 +381,29 @@ export async function getSystemHealthReport(): Promise<SystemHealthReport> {
         href: "/admin/pagos",
       });
     }
+
+    const webhookSecret = Boolean(
+      process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim(),
+    );
+    checks.push({
+      id: "mercadopago-webhook",
+      label: "Webhook MP",
+      level: webhookSecret ? "ok" : "warn",
+      summary: webhookSecret ? "Secret configurado" : "Sin secret",
+      detail: webhookSecret
+        ? "Se valida x-signature cuando MP la envía."
+        : "Agregá MERCADOPAGO_WEBHOOK_SECRET (panel MP → Webhooks).",
+      href: "/admin/pagos",
+    });
+    if (!webhookSecret) {
+      alerts.push({
+        id: "mp-webhook-secret",
+        level: "warn",
+        message:
+          "Falta MERCADOPAGO_WEBHOOK_SECRET: el webhook no puede verificar firmas.",
+        href: "/admin/pagos",
+      });
+    }
   }
 
   const cronSecret = Boolean(process.env.CRON_SECRET?.trim());

@@ -221,6 +221,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 MERCADOPAGO_ACCESS_TOKEN=
 MERCADOPAGO_SANDBOX=true
+MERCADOPAGO_WEBHOOK_SECRET=
+# true = rechaza notificaciones sin firma válida (recomendado si solo usás la app MP de DeBodas)
+# MERCADOPAGO_WEBHOOK_STRICT=true
 PLAN_BASICO_PRICE_ARS=50000
 PLAN_PREMIUM_PRICE_ARS=90000
 

@@ -1,11 +1,20 @@
 import { createHash, timingSafeEqual } from "crypto";
+import { compare, hash } from "bcryptjs";
 import { cookies } from "next/headers";
 
 const COOKIE_PREFIX = "debodas_unlock_";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 días
+const BCRYPT_ROUNDS = 10;
 
-function unlockToken(slug: string, password: string): string {
-  return createHash("sha256").update(`debodas:${slug}:${password}`).digest("hex");
+function unlockToken(slug: string, passwordSecret: string): string {
+  return createHash("sha256")
+    .update(`debodas:${slug}:${passwordSecret}`)
+    .digest("hex");
+}
+
+/** bcrypt hashes empiezan con $2a$ / $2b$ / $2y$ */
+export function isMicrositePasswordHash(value: string): boolean {
+  return /^\$2[aby]\$\d{2}\$/.test(value);
 }
 
 export function getMicrositePassword(options: unknown): string {
@@ -20,11 +29,41 @@ export function micrositeRequiresPassword(options: unknown): boolean {
   return getMicrositePassword(options).length > 0;
 }
 
+export async function hashMicrositePassword(plain: string): Promise<string> {
+  return hash(plain.trim(), BCRYPT_ROUNDS);
+}
+
+/**
+ * Verifica input contra hash bcrypt o plaintext legacy.
+ * Devuelve `legacyPlain` si coincidió texto plano (para rehash al guardar).
+ */
+export async function verifyMicrositePassword(
+  input: string,
+  stored: string,
+): Promise<{ ok: boolean; legacyPlain?: boolean }> {
+  const plain = input.trim();
+  const expected = stored.trim();
+  if (!plain || !expected) {
+    return { ok: false };
+  }
+
+  if (isMicrositePasswordHash(expected)) {
+    const ok = await compare(plain, expected);
+    return { ok };
+  }
+
+  // Legacy: guardado en claro
+  if (passwordsMatch(plain, expected)) {
+    return { ok: true, legacyPlain: true };
+  }
+  return { ok: false };
+}
+
 export async function isMicrositeUnlocked(
   slug: string,
-  password: string,
+  passwordSecret: string,
 ): Promise<boolean> {
-  if (!password) {
+  if (!passwordSecret) {
     return true;
   }
 
@@ -34,9 +73,12 @@ export async function isMicrositeUnlocked(
     return false;
   }
 
-  const expected = unlockToken(slug, password);
+  const expected = unlockToken(slug, passwordSecret);
   try {
-    return timingSafeEqual(Buffer.from(value, "utf8"), Buffer.from(expected, "utf8"));
+    return timingSafeEqual(
+      Buffer.from(value, "utf8"),
+      Buffer.from(expected, "utf8"),
+    );
   } catch {
     return false;
   }
@@ -44,10 +86,10 @@ export async function isMicrositeUnlocked(
 
 export async function unlockMicrosite(
   slug: string,
-  password: string,
+  passwordSecret: string,
 ): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(`${COOKIE_PREFIX}${slug}`, unlockToken(slug, password), {
+  cookieStore.set(`${COOKIE_PREFIX}${slug}`, unlockToken(slug, passwordSecret), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

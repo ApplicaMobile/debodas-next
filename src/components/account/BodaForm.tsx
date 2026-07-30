@@ -19,7 +19,7 @@ export interface BodaFormValues {
   ourStory: string;
   spotifyUrl: string;
   slug: string;
-  password: string;
+  hasPassword: boolean;
   plan: string;
 }
 
@@ -129,16 +129,37 @@ export function BodaForm({ initialValues }: BodaFormProps) {
         }
       />
 
-      <FormInput
-        name="password"
-        label="Contraseña del micrositio"
-        type="text"
-        defaultValue={initialValues.password}
-        placeholder="Opcional — dejá vacío para acceso público"
-        autoComplete="off"
-        maxLength={72}
-        hint="Si la completás, los invitados deberán ingresarla antes de ver el micrositio."
-      />
+      <div>
+        <FormInput
+          name="password"
+          label="Contraseña del micrositio"
+          type="text"
+          defaultValue=""
+          placeholder={
+            initialValues.hasPassword
+              ? "Dejá vacío para mantener la actual"
+              : "Opcional — acceso público si está vacío"
+          }
+          autoComplete="off"
+          maxLength={72}
+          hint={
+            initialValues.hasPassword
+              ? "Hay una contraseña activa (guardada de forma segura). Escribí una nueva para cambiarla."
+              : "Si la completás, los invitados deberán ingresarla antes de ver el micrositio."
+          }
+        />
+        {initialValues.hasPassword ? (
+          <label className="mt-3 flex items-center gap-2 text-sm text-stone-600">
+            <input
+              type="checkbox"
+              name="clear_password"
+              value="1"
+              className="rounded border-stone-300"
+            />
+            Quitar contraseña (acceso público)
+          </label>
+        ) : null}
+      </div>
 
       <StickyFormActions alert={<FormAlert error={state.error} success={state.success} />}>
         <button

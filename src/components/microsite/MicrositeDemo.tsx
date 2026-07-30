@@ -16,13 +16,10 @@ import { RsvpForm } from "@/components/microsite/RsvpForm";
 import { GiftSection } from "@/components/microsite/GiftSection";
 import { DressCodeSection } from "@/components/microsite/DressCodeSection";
 import {
-  getPaymentSettings,
-  getPublicPaymentOptions,
-} from "@/lib/bodas/payment-settings";
-import {
   getDressCode,
   hasDressCodeContent,
 } from "@/lib/bodas/dress-code";
+import type { PublicPaymentOptions } from "@/lib/bodas/payment-settings";
 import { MicrositeInvitationActions } from "@/components/microsite/MicrositeInvitationActions";
 import { MicrositeCanvaInvite } from "@/components/microsite/MicrositeCanvaInvite";
 import { MicrositeGallery } from "@/components/microsite/MicrositeGallery";
@@ -37,6 +34,8 @@ import { getScheduleIconUrl } from "@/lib/schedule/icons";
 
 interface MicrositeDemoProps {
   boda: Boda;
+  /** Calculado en server; no incluye tokens MP. */
+  paymentOptions: PublicPaymentOptions;
   rsvpOpen?: boolean;
 }
 
@@ -116,7 +115,11 @@ function Countdown({
   );
 }
 
-export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
+export function MicrositeDemo({
+  boda,
+  paymentOptions,
+  rsvpOpen = true,
+}: MicrositeDemoProps) {
   const { theme } = useMicrositeTheme();
   const coupleName = getCoupleDisplayName(boda.couple);
   const bannerUrl = getBannerUrl(boda);
@@ -138,10 +141,6 @@ export function MicrositeDemo({ boda, rsvpOpen = true }: MicrositeDemoProps) {
     boda.options?.show_dress_code !== 0 &&
     boda.options?.show_dress_code !== false;
   const dressCode = getDressCode(boda.misc);
-  const paymentOptions = getPublicPaymentOptions(
-    getPaymentSettings(boda.misc),
-    String(boda.plan ?? "free"),
-  );
   const invitations = parseInvitations(
     (boda.misc ?? {}) as Record<string, unknown>,
   );

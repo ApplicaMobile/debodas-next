@@ -30,7 +30,8 @@ export default async function MiCuentaInvitarPage() {
   const groomName =
     String(couple.groom_name ?? couple.groom ?? "").trim() || "Novio";
   const password = getMicrositePassword(boda.options);
-  const micrositeUrl = buildMicrositePublicUrl(getAppUrl(), boda.slug, password);
+  const hasPassword = Boolean(password);
+  const micrositeUrl = buildMicrositePublicUrl(getAppUrl(), boda.slug);
   const misc = parseMisc(boda.misc);
   const invitations = parseInvitations(misc);
   const canvaLink = parseCanvaLink(misc);
@@ -51,7 +52,7 @@ export default async function MiCuentaInvitarPage() {
       <InviteSharePanel
         coupleName={coupleName}
         micrositeUrl={micrositeUrl}
-        hasPassword={Boolean(password)}
+        hasPassword={hasPassword}
       />
 
       <InvitationBuilder
