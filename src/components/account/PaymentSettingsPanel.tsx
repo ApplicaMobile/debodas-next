@@ -6,6 +6,7 @@ import type { FormState } from "@/lib/account/form-state";
 import type { BodaPaymentSettings } from "@/lib/bodas/payment-settings";
 import { FormAlert } from "@/components/account/FormAlert";
 import { FormInput } from "@/components/account/FormField";
+import { StickyFormActions } from "@/components/account/StickyFormActions";
 import { normalizePlan } from "@/lib/plans/features";
 
 interface PaymentSettingsPanelProps {
@@ -150,15 +151,15 @@ export function PaymentSettingsPanel({
         </div>
       </section>
 
-      <FormAlert error={state.error} success={state.success} />
-
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
-      >
-        {isPending ? "Guardando…" : "Guardar métodos de pago"}
-      </button>
+      <StickyFormActions alert={<FormAlert error={state.error} success={state.success} />}>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
+        >
+          {isPending ? "Guardando…" : "Guardar métodos de pago"}
+        </button>
+      </StickyFormActions>
     </form>
   );
 }

@@ -184,8 +184,8 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
         {gifts.length === 0 ? (
           <div className="mt-6">
             <AccountEmptyState
-              title="Todavía no hay regalos"
-              description="Agregá el primero con el formulario de abajo. Mientras tanto podés seguir armando el sitio."
+              title="Todavía no hay regalos en la lista"
+              description="Agregá el primero con el formulario de abajo. Después configurá los métodos de pago y compartí el link."
               icon="★"
               actions={[
                 {
@@ -193,8 +193,8 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
                   href: "#agregar-regalo",
                   primary: true,
                 },
-                { label: "Configurar RSVP", href: "/mi-cuenta/invitados" },
-                { label: "Armar cronograma", href: "/mi-cuenta/cronograma" },
+                { label: "Métodos de pago", href: "/mi-cuenta/pagos" },
+                { label: "Compartir / invitar", href: "/mi-cuenta/invitar" },
               ]}
             />
           </div>

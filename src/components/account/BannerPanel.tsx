@@ -42,7 +42,7 @@ export function BannerPanel({
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <h3 className="text-lg font-semibold text-stone-800">
           Imagen del banner
         </h3>
@@ -50,9 +50,38 @@ export function BannerPanel({
           Subí una foto o pegá la URL del encabezado del micrositio.
         </p>
 
+        <div className="mt-6">
+          {bannerUrl ? (
+            <div className="overflow-hidden rounded-2xl border border-stone-100 bg-stone-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={bannerUrl}
+                alt="Vista previa del banner"
+                className="max-h-56 w-full object-cover"
+              />
+              <p className="truncate px-3 py-2 text-xs text-stone-500">
+                {bannerUrl}
+              </p>
+            </div>
+          ) : (
+            <AccountEmptyState
+              title="Todavía no hay banner"
+              description="Es la primera imagen que ven tus invitados. Subí una foto horizontal o pegá una URL."
+              actions={[
+                {
+                  label: "Subir banner",
+                  href: "#subir-banner",
+                  primary: true,
+                },
+              ]}
+            />
+          )}
+        </div>
+
         <form
+          id="subir-banner"
           action={uploadBannerAction}
-          className="mt-6 space-y-4"
+          className="mt-6 scroll-mt-28 space-y-4"
         >
           <ImageFileInput
             name="banner_file"
@@ -102,54 +131,60 @@ export function BannerPanel({
         </form>
       </section>
 
-      <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         <h3 className="text-lg font-semibold text-stone-800">Galería</h3>
-        <ul className="mt-4 space-y-3">
-          {pictures.length === 0 ? (
-            <li>
-              <AccountEmptyState
-                title="Todavía no hay fotos en la galería"
-                description="Subí la primera imagen con el formulario de abajo."
-                actions={[
-                  {
-                    label: "Subir primera foto",
-                    href: "#agregar-galeria",
-                    primary: true,
-                  },
-                ]}
-              />
-            </li>
-          ) : (
-            pictures.map((picture) => (
+        <p className="mt-1 text-sm text-stone-500">
+          Fotos que se muestran en el micrositio.
+        </p>
+
+        {pictures.length === 0 ? (
+          <div className="mt-4">
+            <AccountEmptyState
+              title="Todavía no hay fotos en la galería"
+              description="Subí la primera imagen para que tus invitados vean más de ustedes."
+              actions={[
+                {
+                  label: "Subir primera foto",
+                  href: "#agregar-galeria",
+                  primary: true,
+                },
+              ]}
+            />
+          </div>
+        ) : (
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {pictures.map((picture) => (
               <li
                 key={picture.id}
-                className="flex items-center gap-3 rounded-xl border border-stone-100 p-3"
+                className="overflow-hidden rounded-xl border border-stone-100"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={picture.url}
                   alt={picture.alt ?? ""}
-                  className="h-14 w-14 rounded-lg object-cover"
+                  className="aspect-[4/3] w-full object-cover"
                 />
-                <p className="min-w-0 flex-1 truncate text-sm text-stone-600">
-                  {picture.url}
-                </p>
-                <ConfirmDeleteForm
-                  action={deletePictureAction}
-                  message="¿Eliminar esta imagen de la galería?"
-                >
-                  <input type="hidden" name="picture_id" value={picture.id} />
-                  <button
-                    type="submit"
-                    className="text-sm text-red-600 hover:underline"
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <p className="min-w-0 flex-1 truncate text-xs text-stone-500">
+                    {picture.alt || picture.url}
+                  </p>
+                  <ConfirmDeleteForm
+                    action={deletePictureAction}
+                    message="¿Eliminar esta imagen de la galería?"
                   >
-                    Eliminar
-                  </button>
-                </ConfirmDeleteForm>
+                    <input type="hidden" name="picture_id" value={picture.id} />
+                    <button
+                      type="submit"
+                      className="shrink-0 text-sm text-red-600 hover:underline"
+                    >
+                      Eliminar
+                    </button>
+                  </ConfirmDeleteForm>
+                </div>
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </ul>
+        )}
 
         <form
           id="agregar-galeria"

@@ -178,13 +178,15 @@ export function ConfirmedGiftsPanel({ gifts }: ConfirmedGiftsPanelProps) {
     return (
       <AccountEmptyState
         title="Todavía no recibiste regalos"
-        description="Cuando un invitado complete un regalo, va a aparecer acá."
+        description="Cuando un invitado complete un regalo desde el micrositio, va a aparecer acá para que lo confirms."
+        icon="★"
         actions={[
           {
             label: "Armar lista de regalos",
             href: "/mi-cuenta/regalos",
             primary: true,
           },
+          { label: "Métodos de pago", href: "/mi-cuenta/pagos" },
           { label: "Compartir / invitar", href: "/mi-cuenta/invitar" },
         ]}
       />

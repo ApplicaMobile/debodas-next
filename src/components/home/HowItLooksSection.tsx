@@ -106,12 +106,12 @@ export function HowItLooksSection() {
             <iframe
               title="Vista del micrositio demo"
               src="/bodas/demo?embedded=1"
-              className="h-[28rem] w-full border-0 bg-white sm:h-[34rem]"
+              className="h-[22rem] w-full border-0 bg-white sm:h-[26rem]"
               loading="lazy"
             />
           ) : (
             <div
-              className="flex h-[28rem] items-center justify-center bg-stone-100 sm:h-[34rem]"
+              className="flex h-[22rem] items-center justify-center bg-stone-100 sm:h-[26rem]"
               aria-hidden
             >
               <div className="space-y-3 text-center">

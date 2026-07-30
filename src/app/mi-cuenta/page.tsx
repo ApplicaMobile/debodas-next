@@ -226,6 +226,74 @@ export default async function MiCuentaPage() {
       ) : null}
 
       {boda ? (
+        <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+          <h3 className="text-lg font-semibold text-stone-800">
+            Acciones rápidas
+          </h3>
+          <p className="mt-1 text-sm text-stone-500">
+            Lo que más usás día a día.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link
+              href="/mi-cuenta/invitar"
+              className="rounded-2xl border border-[#25D366]/30 bg-[#25D366]/10 px-4 py-4 transition hover:bg-[#25D366]/15"
+            >
+              <p className="text-sm font-semibold text-stone-800">
+                Compartir / invitar
+              </p>
+              <p className="mt-1 text-xs text-stone-600">
+                Link, WhatsApp e invitaciones
+              </p>
+            </Link>
+            <Link
+              href="/mi-cuenta/invitados"
+              className="rounded-2xl border border-stone-200 px-4 py-4 transition hover:bg-stone-50"
+            >
+              <p className="text-sm font-semibold text-stone-800">
+                Invitados / RSVP
+              </p>
+              <p className="mt-1 text-xs text-stone-600">
+                Confirmaciones y lista de invitados
+              </p>
+            </Link>
+            <Link
+              href="/mi-cuenta/regalos-recibidos"
+              className={`rounded-2xl border px-4 py-4 transition ${
+                pendingGiftsCount > 0
+                  ? "border-amber-200 bg-amber-50 hover:bg-amber-100/70"
+                  : "border-stone-200 hover:bg-stone-50"
+              }`}
+            >
+              <p className="text-sm font-semibold text-stone-800">
+                Regalos recibidos
+                {pendingGiftsCount > 0 ? (
+                  <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                    {pendingGiftsCount}
+                  </span>
+                ) : null}
+              </p>
+              <p className="mt-1 text-xs text-stone-600">
+                {pendingGiftsCount > 0
+                  ? "Hay pendientes por confirmar"
+                  : "Historial y comprobantes"}
+              </p>
+            </Link>
+            <Link
+              href="/mi-cuenta/boda"
+              className="rounded-2xl border border-stone-200 px-4 py-4 transition hover:bg-stone-50"
+            >
+              <p className="text-sm font-semibold text-stone-800">
+                Datos de la boda
+              </p>
+              <p className="mt-1 text-xs text-stone-600">
+                Nombres, fecha, historia y contraseña
+              </p>
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      {boda ? (
         <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -306,9 +374,11 @@ export default async function MiCuentaPage() {
       ) : null}
 
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <h3 className="text-lg font-semibold text-stone-800">Secciones</h3>
+        <h3 className="text-lg font-semibold text-stone-800">
+          Todas las secciones
+        </h3>
         <p className="mt-1 text-sm text-stone-500">
-          Acceso rápido a todo lo editable del micrositio.
+          Acceso completo a lo editable del micrositio.
         </p>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {editableSections.map((item) => (

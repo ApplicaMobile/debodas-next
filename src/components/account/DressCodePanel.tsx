@@ -20,6 +20,7 @@ import {
   suggestColorName,
 } from "@/lib/bodas/color-names";
 import { FormAlert } from "@/components/account/FormAlert";
+import { StickyFormActions } from "@/components/account/StickyFormActions";
 import { DressCodeSection } from "@/components/microsite/DressCodeSection";
 
 interface DressCodePanelProps {
@@ -344,20 +345,15 @@ export function DressCodePanel({
         </aside>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur-sm supports-[backdrop-filter]:bg-white/90">
-        <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-3 lg:pl-[calc(240px+2rem)]">
-          <div className="min-w-0 flex-1">
-            <FormAlert error={state.error} success={state.success} />
-          </div>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="shrink-0 rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
-          >
-            {isPending ? "Guardando…" : "Guardar dress code"}
-          </button>
-        </div>
-      </div>
+      <StickyFormActions alert={<FormAlert error={state.error} success={state.success} />}>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
+        >
+          {isPending ? "Guardando…" : "Guardar dress code"}
+        </button>
+      </StickyFormActions>
     </form>
   );
 }

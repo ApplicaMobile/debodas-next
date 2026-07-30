@@ -46,14 +46,16 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
         {items.length === 0 ? (
           <AccountEmptyState
             title="Todavía no hay momentos en el cronograma"
-            description="Agregá ceremonia, recepción u otros hitos del día con el formulario de abajo."
+            description="Agregá ceremonia, recepción u otros hitos del día. Tus invitados lo van a ver en el micrositio."
+            icon="◷"
             actions={[
               {
                 label: "Agregar primer momento",
                 href: "#agregar-cronograma",
                 primary: true,
               },
-              { label: "Compartir sitio", href: "/mi-cuenta/invitar" },
+              { label: "Compartir / invitar", href: "/mi-cuenta/invitar" },
+              { label: "Ver FAQ", href: "/mi-cuenta/faq" },
             ]}
           />
         ) : (
@@ -159,14 +161,17 @@ export function FaqPanel({
       <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
         {items.length === 0 ? (
           <AccountEmptyState
-            title="Todavía no hay FAQs"
-            description="Respondé las dudas frecuentes de tus invitados con el formulario de abajo."
+            title="Todavía no hay preguntas frecuentes"
+            description="Respondé dudas típicas (estacionamiento, dress code, niños) para que los invitados encuentren todo en un solo lugar."
+            icon="?"
             actions={[
               {
                 label: "Agregar primera pregunta",
                 href: "#agregar-faq",
                 primary: true,
               },
+              { label: "Armar cronograma", href: "/mi-cuenta/cronograma" },
+              { label: "Dress code", href: "/mi-cuenta/dress-code" },
             ]}
           />
         ) : (
