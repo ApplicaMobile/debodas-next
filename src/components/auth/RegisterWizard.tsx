@@ -18,6 +18,7 @@ import {
 } from "@/lib/auth/register";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
 import { HoneypotField } from "@/components/ui/HoneypotField";
+import { PasswordField } from "@/components/ui/PasswordField";
 
 const initialState: RegisterState = {};
 const TOTAL_STEPS = 3;
@@ -243,22 +244,20 @@ export function RegisterWizard() {
             autoComplete="email"
             onInput={clearStepError}
           />
-          <input
+          <PasswordField
             name="password"
             aria-label="Contraseña"
-            type="password"
             maxLength={72}
-            className={inputClassName}
+            inputClassName={`${inputClassName} pr-12`}
             placeholder="Contraseña (mín. 8 caracteres)"
             autoComplete="new-password"
             onInput={clearStepError}
           />
-          <input
+          <PasswordField
             name="password_confirm"
             aria-label="Repetir contraseña"
-            type="password"
             maxLength={72}
-            className={inputClassName}
+            inputClassName={`${inputClassName} pr-12`}
             placeholder="Repetir contraseña"
             autoComplete="new-password"
             onInput={clearStepError}

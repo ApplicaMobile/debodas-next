@@ -15,6 +15,10 @@ import {
   type DressCodeColor,
   type DressCodeContent,
 } from "@/lib/bodas/dress-code";
+import {
+  isAutoColorName,
+  suggestColorName,
+} from "@/lib/bodas/color-names";
 import { FormAlert } from "@/components/account/FormAlert";
 import { DressCodeSection } from "@/components/microsite/DressCodeSection";
 
@@ -160,10 +164,11 @@ export function DressCodePanel({
   ) {
     return {
       onAdd: () => {
+        const hex = "#C4A484";
         setColors((prev) =>
           prev.length >= MAX_COLORS
             ? prev
-            : [...prev, { hex: "#C4A484", name: "" }],
+            : [...prev, { hex, name: suggestColorName(hex) }],
         );
       },
       onRemove: (index: number) => {
@@ -175,9 +180,18 @@ export function DressCodePanel({
         value: string,
       ) => {
         setColors((prev) =>
-          prev.map((color, i) =>
-            i === index ? { ...color, [field]: value } : color,
-          ),
+          prev.map((color, i) => {
+            if (i !== index) return color;
+            if (field === "name") {
+              return { ...color, name: value };
+            }
+            const nextHex = value;
+            const shouldRename = isAutoColorName(color.name, color.hex);
+            return {
+              hex: nextHex,
+              name: shouldRename ? suggestColorName(nextHex) : color.name,
+            };
+          }),
         );
       },
     };

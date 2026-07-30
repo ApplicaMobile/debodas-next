@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useActionState, useEffect } from "react";
 import { loginAction, type LoginState } from "@/lib/auth/actions";
 import { HoneypotField } from "@/components/ui/HoneypotField";
+import { PasswordField } from "@/components/ui/PasswordField";
 
 interface LoginFormProps {
   nextPath?: string;
@@ -49,12 +50,10 @@ export function LoginForm({ nextPath = "/mi-cuenta" }: LoginFormProps) {
       >
         Contraseña
       </label>
-      <input
+      <PasswordField
         id="login-password"
         name="password"
-        className="w-full rounded-xl border border-stone-200 px-4 py-3"
         placeholder="Contraseña"
-        type="password"
         maxLength={72}
         autoComplete="current-password"
         required

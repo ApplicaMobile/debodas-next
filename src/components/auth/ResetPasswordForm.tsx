@@ -6,6 +6,7 @@ import {
   resetPasswordAction,
   type PasswordResetState,
 } from "@/lib/auth/password-reset";
+import { PasswordField } from "@/components/ui/PasswordField";
 
 const initialState: PasswordResetState = {};
 
@@ -44,16 +45,14 @@ export function ResetPasswordForm({ token }: { token: string }) {
       >
         Nueva contraseña
       </label>
-      <input
+      <PasswordField
         id="reset-password"
         name="password"
-        type="password"
         required
         minLength={8}
         maxLength={72}
         autoComplete="new-password"
         placeholder="Nueva contraseña (mín. 8)"
-        className="w-full rounded-xl border border-stone-200 px-4 py-3"
       />
       <label
         htmlFor="reset-password-confirm"
@@ -61,16 +60,14 @@ export function ResetPasswordForm({ token }: { token: string }) {
       >
         Repetir contraseña
       </label>
-      <input
+      <PasswordField
         id="reset-password-confirm"
         name="password_confirm"
-        type="password"
         required
         minLength={8}
         maxLength={72}
         autoComplete="new-password"
         placeholder="Repetir contraseña"
-        className="w-full rounded-xl border border-stone-200 px-4 py-3"
       />
       {state.error ? (
         <p
