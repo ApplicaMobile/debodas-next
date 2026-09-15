@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { heroContent } from "@/data/home";
+import { t } from "@/i18n/dictionary";
+import { getDictionary } from "@/i18n/get-locale";
 
-export function HeroSection() {
+export async function HeroSection() {
+  const { messages } = await getDictionary();
+
   return (
     <section className="relative min-h-[72svh] overflow-hidden sm:min-h-[100svh]">
       <div
@@ -16,10 +20,10 @@ export function HeroSection() {
           DeBodas
         </p>
         <h1 className="debodas-fade-up-delay-1 mt-4 max-w-2xl text-xl font-medium leading-snug text-white/95 sm:mt-5 sm:text-2xl lg:text-3xl">
-          {heroContent.title}
+          {t(messages, "home.heroTitle")}
         </h1>
         <p className="debodas-fade-up-delay-2 mt-3 max-w-xl text-base text-white/80 sm:mt-4 sm:text-lg">
-          {heroContent.subtitle}
+          {t(messages, "home.heroSubtitle")}
         </p>
 
         <div className="debodas-fade-up-delay-3 mt-8 flex flex-wrap gap-3 sm:mt-10">
@@ -27,13 +31,13 @@ export function HeroSection() {
             href={heroContent.ctaHref}
             className="rounded-full bg-[#e6dac7] px-8 py-3.5 text-base font-semibold text-stone-800 shadow-lg transition hover:bg-[#d4c4a8] sm:py-4"
           >
-            {heroContent.ctaLabel}
+            {t(messages, "home.heroCta")}
           </Link>
           <Link
             href="/bodas/demo"
             className="rounded-full border border-white/60 bg-white/10 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 sm:py-4"
           >
-            Ver demo
+            {t(messages, "home.heroDemo")}
           </Link>
         </div>
       </div>

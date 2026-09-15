@@ -12,8 +12,10 @@ export const adminSections: AdminSection[] = [
   { href: "/admin/calificaciones", label: "Calificaciones" },
   { href: "/admin/usuarios", label: "Usuarios" },
   { href: "/admin/pagos", label: "Pagos" },
+  { href: "/admin/mercadopago", label: "MercadoPago" },
   { href: "/admin/emails", label: "Emails" },
   { href: "/admin/auditoria", label: "Auditoría" },
+  { href: "/admin/migracion", label: "Migración WP" },
 ];
 
 export function isAdminSectionActive(

@@ -12,7 +12,10 @@ import {
   ThemeSection,
 } from "@/components/themes/ThemeSection";
 import { useMicrositeTheme } from "@/components/themes/ThemeProvider";
+import { AbonarTarjetaSection } from "@/components/microsite/AbonarTarjetaSection";
 import { RsvpForm } from "@/components/microsite/RsvpForm";
+import { getAbonarConfig, isAbonarEnabled } from "@/lib/bodas/abonar-tarjeta";
+import { allowsFreeGiftAmount, hidesGiftList } from "@/lib/bodas/options";
 import { GiftSection } from "@/components/microsite/GiftSection";
 import { DressCodeSection } from "@/components/microsite/DressCodeSection";
 import {
@@ -31,6 +34,7 @@ import {
 import { getSpotifyPlaylistId } from "@/lib/spotify/parse";
 import { normalizePlan } from "@/lib/plans/features";
 import { getScheduleIconUrl } from "@/lib/schedule/icons";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 interface MicrositeDemoProps {
   boda: Boda;
@@ -46,6 +50,7 @@ function Countdown({
   targetDate: string;
   eventTime?: string;
 }) {
+  const t = useTranslations();
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -97,10 +102,10 @@ function Countdown({
   }, [targetDate, eventTime]);
 
   const items = [
-    { label: "días", value: timeLeft.days },
-    { label: "horas", value: timeLeft.hours },
-    { label: "minutos", value: timeLeft.minutes },
-    { label: "segundos", value: timeLeft.seconds },
+    { label: t("microsite.countdownDays"), value: timeLeft.days },
+    { label: t("microsite.countdownHours"), value: timeLeft.hours },
+    { label: t("microsite.countdownMinutes"), value: timeLeft.minutes },
+    { label: t("microsite.countdownSeconds"), value: timeLeft.seconds },
   ];
 
   return (
@@ -120,12 +125,13 @@ export function MicrositeDemo({
   paymentOptions,
   rsvpOpen = true,
 }: MicrositeDemoProps) {
+  const t = useTranslations();
   const { theme } = useMicrositeTheme();
   const coupleName = getCoupleDisplayName(boda.couple);
   const bannerUrl = getBannerUrl(boda);
   const story = String(boda.misc?.our_story ?? "");
   const gifts = boda.gifts_list?.gifts ?? [];
-  const giftsTitle = String(boda.gifts_list?.title ?? "Lista de regalos");
+  const giftsTitle = String(boda.gifts_list?.title ?? t("microsite.gifts"));
   const eventDate = String(boda.event?.date ?? "");
   const eventTime = String(boda.event?.time ?? "").trim();
   const titleClass = theme.headingUppercase
@@ -165,6 +171,10 @@ export function MicrositeDemo({
     (boda.misc ?? {}) as Record<string, unknown>,
   );
   const showMusic = isPremium && Boolean(spotifyId);
+  const hideGiftsList = hidesGiftList(boda.options);
+  const freeMount = allowsFreeGiftAmount(boda.options) && isPremium;
+  const abonarConfig = getAbonarConfig(boda.misc);
+  const showAbonar = isAbonarEnabled(boda.misc, boda.options);
 
   return (
     <>
@@ -188,7 +198,7 @@ export function MicrositeDemo({
       <ThemeSection>
         <div className="mx-auto max-w-5xl px-6">
           <MicrositeSectionTitle className={titleClass}>
-            Faltan
+            {t("microsite.countdown")}
           </MicrositeSectionTitle>
           <div className="mt-8">
             {eventDate ? (
@@ -202,7 +212,7 @@ export function MicrositeDemo({
         <ThemeSection soft decor={usesInfoDecor}>
           <div className="mx-auto max-w-3xl px-6">
             <MicrositeSectionTitle className={titleClass}>
-              Nuestra historia
+              {t("microsite.ourStory")}
             </MicrositeSectionTitle>
             <p className="microsite-story mt-5">{story}</p>
           </div>
@@ -214,9 +224,11 @@ export function MicrositeDemo({
           <GiftSection
             slug={String(boda.slug)}
             giftsTitle={giftsTitle}
-            gifts={gifts}
+            gifts={hideGiftsList ? [] : gifts}
             paymentOptions={paymentOptions}
             titleClass={titleClass}
+            hideList={hideGiftsList}
+            allowFreeAmount={freeMount}
           />
         </div>
       </ThemeSection>
@@ -231,7 +243,7 @@ export function MicrositeDemo({
         <ThemeSection soft decor={usesInfoDecor} id="cronograma">
           <div className="mx-auto max-w-4xl px-6">
             <MicrositeSectionTitle className={titleClass}>
-              Cronograma
+              {t("microsite.schedule")}
             </MicrositeSectionTitle>
             <div className="mt-8 space-y-3 sm:mt-10 sm:space-y-4">
               {boda.schedule.map((item, index) => {
@@ -307,7 +319,9 @@ export function MicrositeDemo({
       {showFaq && boda.faq_items?.length ? (
         <ThemeSection id="faq">
           <div className="mx-auto max-w-3xl px-6">
-            <MicrositeSectionTitle className={titleClass}>FAQ</MicrositeSectionTitle>
+            <MicrositeSectionTitle className={titleClass}>
+              {t("microsite.faq")}
+            </MicrositeSectionTitle>
             <div className="microsite-faq mt-8 sm:mt-10">
               {boda.faq_items.map((item, index) => {
                 const faq = item as { question?: string; answer?: string };
@@ -324,13 +338,20 @@ export function MicrositeDemo({
       ) : null}
 
       <ThemeSection soft id="rsvp">
-        <div className="mx-auto max-w-xl px-6">
+        <div className="mx-auto max-w-xl space-y-10 px-6">
           <RsvpForm
             slug={String(boda.slug)}
             plan={boda.plan}
             rsvpOpen={rsvpOpen}
             titleClass={titleClass}
           />
+          {showAbonar ? (
+            <AbonarTarjetaSection
+              slug={String(boda.slug)}
+              config={abonarConfig}
+              titleClass={titleClass}
+            />
+          ) : null}
         </div>
       </ThemeSection>
 

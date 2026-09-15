@@ -61,6 +61,17 @@ export default async function MiCuentaPage() {
     misc.rsvpSectionReviewedAt || hasRsvpGuests,
   );
   const hasInviteShared = Boolean(misc.inviteSharedAt);
+  const eventDateRaw = String(
+    (boda?.event && typeof boda.event === "object"
+      ? (boda.event as Record<string, unknown>).date
+      : "") ?? "",
+  );
+  const eventDate = eventDateRaw ? new Date(eventDateRaw) : null;
+  const eventPassed = Boolean(
+    eventDate &&
+      !Number.isNaN(eventDate.getTime()) &&
+      eventDate.getTime() < Date.now() - 12 * 60 * 60 * 1000,
+  );
   const checklist = boda
     ? [
         {
@@ -220,6 +231,27 @@ export default async function MiCuentaPage() {
               className="inline-flex rounded-full bg-amber-900 px-4 py-2 text-sm font-semibold text-white"
             >
               Ir a regalos
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      {boda && eventPassed ? (
+        <section className="rounded-2xl border border-[#e6dac7] bg-[#f7f1e8] px-4 py-4 sm:rounded-3xl sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-stone-800">
+                ¿Cómo te fue con DeBodas?
+              </p>
+              <p className="mt-0.5 text-sm text-stone-600">
+                Dejá una calificación para que otras parejas te conozcan.
+              </p>
+            </div>
+            <Link
+              href={`/calificar?bodaId=${boda.id}`}
+              className="inline-flex rounded-full bg-[#06263a] px-4 py-2 text-sm font-semibold text-white"
+            >
+              Califícanos
             </Link>
           </div>
         </section>

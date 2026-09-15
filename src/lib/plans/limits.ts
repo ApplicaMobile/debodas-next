@@ -3,16 +3,36 @@ import { normalizePlan } from "@/lib/plans/features";
 export interface PlanLimits {
   maxGifts: number | null;
   maxRsvpGuests: number | null;
+  maxPictures: number | null;
+  maxCustomGifts: number | null;
 }
 
 export function getPlanLimits(plan: string | null | undefined): PlanLimits {
   const normalized = normalizePlan(plan);
 
   if (normalized === "free") {
-    return { maxGifts: 10, maxRsvpGuests: 40 };
+    return {
+      maxGifts: 10,
+      maxRsvpGuests: 40,
+      maxPictures: 3,
+      maxCustomGifts: 10,
+    };
+  }
+  if (normalized === "basico") {
+    return {
+      maxGifts: null,
+      maxRsvpGuests: null,
+      maxPictures: 4,
+      maxCustomGifts: null,
+    };
   }
 
-  return { maxGifts: null, maxRsvpGuests: null };
+  return {
+    maxGifts: null,
+    maxRsvpGuests: null,
+    maxPictures: null,
+    maxCustomGifts: null,
+  };
 }
 
 export function formatPlanLimit(value: number | null): string {
@@ -74,4 +94,43 @@ export function rsvpLimitError(plan: string | null | undefined): string {
     return "No se pudo registrar la confirmación.";
   }
   return `Se alcanzó el límite de ${maxRsvpGuests} invitados para esta boda.`;
+}
+
+export function canAddPicture(
+  plan: string | null | undefined,
+  currentCount: number,
+): boolean {
+  const { maxPictures } = getPlanLimits(plan);
+  if (maxPictures === null) {
+    return true;
+  }
+  return currentCount < maxPictures;
+}
+
+export function pictureLimitMessage(plan: string | null | undefined): string {
+  const { maxPictures } = getPlanLimits(plan);
+  if (maxPictures === null) {
+    return "";
+  }
+  return `Tu plan permite hasta ${maxPictures} fotos en el álbum.`;
+}
+
+export function pictureLimitError(plan: string | null | undefined): string {
+  const { maxPictures } = getPlanLimits(plan);
+  if (maxPictures === null) {
+    return "No se pudo agregar la foto.";
+  }
+  return `Alcanzaste el límite de ${maxPictures} fotos de tu plan.`;
+}
+
+export function canAddCustomGift(
+  plan: string | null | undefined,
+  currentCount: number,
+): boolean {
+  const { maxCustomGifts, maxGifts } = getPlanLimits(plan);
+  const cap = maxCustomGifts ?? maxGifts;
+  if (cap === null) {
+    return true;
+  }
+  return currentCount < cap;
 }

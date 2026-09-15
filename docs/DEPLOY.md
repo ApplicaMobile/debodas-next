@@ -1,11 +1,15 @@
 # Checklist de deploy / cutover — DeBodas Web
 
+**Hosting objetivo:** Hostinger Business Web Apps (Next.js). Guía detallada: [`HOSTINGER.md`](HOSTINGER.md). Cutover DNS: [`CUTOVER.md`](CUTOVER.md).
+
 ## Pre-requisitos
 
 - [ ] Repo en GitHub
-- [ ] Proyecto en [Vercel](https://vercel.com) (o host Node compatible)
-- [ ] Base MariaDB/MySQL en cloud (PlanetScale, RDS, Railway, etc.)
-- [ ] Dominio apuntando (o staging `*.vercel.app` primero)
+- [ ] Web App Next.js en Hostinger (staging en subdominio; **no** sobre el WP de `public_html`)
+- [ ] Base MySQL `debodas_web` en Hostinger (importar dump WP `wp_*` en la misma BD)
+- [ ] SMTP y dominio Hostinger
+
+Alternativa: Vercel + MySQL Hostinger (uploads requieren `BLOB_READ_WRITE_TOKEN`).
 
 ## Variables en producción
 
@@ -16,7 +20,7 @@ Copiar desde `.env.example` y completar:
 | `DATABASE_URL` | MySQL/MariaDB cloud |
 | `AUTH_SECRET` | Secreto largo (≥16 chars) |
 | `NEXT_PUBLIC_APP_URL` | URL pública final (`https://debodas.com.ar`) |
-| `MERCADOPAGO_ACCESS_TOKEN` | Token **producción** |
+| `MERCADOPAGO_ACCESS_TOKEN` | Token **producción** (también se puede cargar en `/admin/mercadopago`) |
 | `MERCADOPAGO_SANDBOX` | `false` en prod |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Secret de Webhooks (panel MP → configurar notificaciones) |
 | `MERCADOPAGO_WEBHOOK_STRICT` | `true` para rechazar notificaciones sin firma |
@@ -30,7 +34,7 @@ Copiar desde `.env.example` y completar:
 
 Headers de seguridad (en `next.config.ts`): `nosniff`, `SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy`, y HSTS en prod. `/api/geocode` limita 30 req/min por IP.
 
-Sin `BLOB_READ_WRITE_TOKEN` los uploads van a `public/uploads/` (no persistente en Vercel).
+En **Hostinger** no uses `BLOB_READ_WRITE_TOKEN`: los uploads van a `public/uploads/` y persisten en disco. En Vercel, sin token los uploads no sobreviven al deploy.
 
 ### Rehost de imágenes migradas (WP → Blob)
 
@@ -50,16 +54,15 @@ los correos al inbox de pruebas (excepto `password_reset`, que siempre va al usu
 
 ## Deploy
 
+Ver [`HOSTINGER.md`](HOSTINGER.md) (recomendado) o Vercel:
+
 1. `npm run build` local OK
-2. Push a `main` / conectar Vercel
-3. Setear env vars en Vercel
-4. En Vercel → Storage → Blob → crear store y copiar token
-5. Correr migraciones: `npx prisma db push` (o migrate) contra la BD cloud
-6. Seed solo en staging: `npm run db:seed`
-7. Configurar webhook MP: `{APP_URL}/api/webhooks/mercadopago` (y `?bodaId=...` si aplica).
-   - En el panel MP → Webhooks, copiá el **secret** a `MERCADOPAGO_WEBHOOK_SECRET`.
-   - En prod conviene `MERCADOPAGO_WEBHOOK_STRICT=true` si todos los pagos usan la misma app MP.
-8. Verificar crons `/api/cron/rating-emails`, `/api/cron/email-queue` y `/api/cron/maintenance` (Bearer `CRON_SECRET`)
+2. Push a `main` / conectar Hostinger Web Apps o Vercel
+3. Setear env vars (copiar `.env.example`)
+4. Correr `npx prisma db push` contra MySQL
+5. Import WP + rehost fotos (staging)
+6. Configurar webhook MP: `{APP_URL}/api/webhooks/mercadopago`
+7. Crons: en Hostinger son jobs hPanel (no `vercel.json`). En Vercel sí usan [`vercel.json`](../vercel.json).
 
 ## Verificación de emails
 
@@ -82,14 +85,16 @@ En Vercel el app no hace dump nativo. Programar backup fuera de la app:
 
 ## Cutover DNS
 
-1. Staging con datos migrados / smoke test (registro, RSVP, regalos, admin)
-2. WP en solo-lectura
-3. Apuntar DNS al deploy Next
-4. Monitorear 48–72h
-5. Apagar altas nuevas en WP
+Seguir [`CUTOVER.md`](CUTOVER.md). Resumen: staging en subdominio → dump final → import + fotos → swap del website PHP al Node en hPanel → webhook MP producción.
 
 ## Admin interno
 
 - URL: `/admin`
 - Usuario seed local: `admin@debodas.local` / `admin1234`
-- En prod: crear admin a mano (`role=admin`) o seed controlado
+- Crear o promocionar un admin (idempotente):
+
+```bash
+npm run db:create-admin -- --email=yo@debodas.com.ar --password='clave-segura'
+# en Docker:
+docker compose exec app npm run db:create-admin -- --email=yo@debodas.com.ar --password='clave-segura'
+```

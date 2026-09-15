@@ -38,8 +38,11 @@ export function getPlanProduct(slug: string): PlanProduct | null {
   return PLAN_PRODUCTS.find((product) => product.slug === slug) ?? null;
 }
 
-export function formatPlanPriceArs(amount: number): string {
-  return new Intl.NumberFormat("es-AR", {
+export function formatPlanPriceArs(
+  amount: number,
+  locale: string = "es-AR",
+): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "ARS",
     maximumFractionDigits: 0,

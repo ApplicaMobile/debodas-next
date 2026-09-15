@@ -1,24 +1,44 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getSession } from "@/lib/auth/session";
-
-const navLinks = [
-  { label: "Planes", href: "/#planes" },
-  { label: "Temas", href: "/#themes" },
-  { label: "Quiénes somos", href: "/quienes-somos" },
-  { label: "Demo", href: "/bodas/demo" },
-];
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { getViewer } from "@/lib/auth/viewer";
+import { t } from "@/i18n/dictionary";
+import { getDictionary } from "@/i18n/get-locale";
 
 export async function SiteHeader({
   transparent = false,
 }: {
   transparent?: boolean;
 }) {
-  const session = await getSession();
-  const accountHref = session ? "/mi-cuenta" : "/login";
-  const accountLabel = session ? "Mi cuenta" : "Ingresar";
-  const primaryHref = session ? "/mi-cuenta" : "/registro";
-  const primaryLabel = session ? "Ir al panel" : "Crear sitio";
+  const [{ messages }, viewer] = await Promise.all([getDictionary(), getViewer()]);
+  const isAdmin = viewer.isAdmin;
+  const session = viewer.session;
+  const links = isAdmin
+    ? [
+        { label: t(messages, "header.adminHome"), href: "/" },
+        { label: t(messages, "header.adminSummary"), href: "/admin" },
+        { label: t(messages, "header.adminWeddings"), href: "/admin/bodas" },
+        { label: t(messages, "header.adminMigration"), href: "/admin/migracion" },
+      ]
+    : [
+        { label: t(messages, "header.plans"), href: "/#planes" },
+        { label: t(messages, "header.themes"), href: "/#themes" },
+        { label: t(messages, "header.about"), href: "/quienes-somos" },
+        { label: t(messages, "header.demo"), href: "/bodas/demo" },
+      ];
+  const accountHref = isAdmin ? "/" : session ? "/mi-cuenta" : "/login";
+  const accountLabel = isAdmin
+    ? t(messages, "header.adminHome")
+    : session
+      ? t(messages, "header.account")
+      : t(messages, "header.login");
+  const primaryHref = isAdmin ? "/admin" : session ? "/mi-cuenta" : "/registro";
+  const primaryLabel = isAdmin
+    ? t(messages, "header.goPanel")
+    : session
+      ? t(messages, "header.goPanel")
+      : t(messages, "header.createSite");
+  const switcherVariant = transparent ? "onDark" : "onLight";
 
   return (
     <header
@@ -41,10 +61,10 @@ export async function SiteHeader({
         </Link>
 
         <nav
-          aria-label="Navegación principal"
+          aria-label={t(messages, "header.navAria")}
           className="hidden items-center gap-8 md:flex"
         >
-          {navLinks.map((link) => (
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -60,6 +80,7 @@ export async function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-3">
+          <LanguageSwitcher compact variant={switcherVariant} />
           <Link
             href={accountHref}
             className={`hidden text-sm font-medium sm:inline ${
@@ -76,20 +97,20 @@ export async function SiteHeader({
           </Link>
           <details className="group relative md:hidden">
             <summary
-              aria-label="Abrir menú de navegación"
+              aria-label={t(messages, "header.menuAria")}
               className={`flex min-h-11 cursor-pointer list-none items-center rounded-full px-4 text-sm font-semibold [&::-webkit-details-marker]:hidden ${
                 transparent
                   ? "border border-white/50 text-white"
                   : "border border-stone-300 bg-white text-stone-800"
               }`}
             >
-              Menú
+              {t(messages, "header.menu")}
             </summary>
             <nav
-              aria-label="Navegación móvil"
+              aria-label={t(messages, "header.navAria")}
               className="absolute right-0 mt-2 flex min-w-52 flex-col rounded-2xl border border-stone-200 bg-white p-2 text-stone-800 shadow-xl"
             >
-              {navLinks.map((link) => (
+              {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

@@ -8,6 +8,7 @@ import { resolveGiftImageUrl } from "@/lib/gifts/image";
 import { GIFT_MP_SURCHARGE_RATE, GIFT_PAYMENT_METHODS } from "@/lib/payments/constants";
 import { GiftCheckoutModal } from "@/components/microsite/GiftCheckoutModal";
 import { MicrositeSectionTitle } from "@/components/themes/ThemeSection";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 interface CartItem {
   giftId: string;
@@ -23,6 +24,8 @@ interface GiftSectionProps {
   gifts: BodaGift[];
   paymentOptions: PublicPaymentOptions;
   titleClass?: string;
+  hideList?: boolean;
+  allowFreeAmount?: boolean;
 }
 
 const METHOD_LABELS: Record<string, string> = {
@@ -39,9 +42,13 @@ export function GiftSection({
   gifts,
   paymentOptions,
   titleClass,
+  hideList = false,
+  allowFreeAmount = false,
 }: GiftSectionProps) {
+  const t = useTranslations();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [freeAmount, setFreeAmount] = useState("");
 
   const cartTotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
@@ -79,7 +86,7 @@ export function GiftSection({
         ...current,
         {
           giftId: gift.id!,
-          title: String(gift.title ?? "Regalo"),
+          title: String(gift.title ?? t("microsite.giftDefault")),
           unitPrice,
           quantity: 1,
           imageUrl,
@@ -94,7 +101,31 @@ export function GiftSection({
 
   function clearCart() {
     setCart([]);
-    setCheckoutOpen(false);
+  }
+
+  function addFreeAmount() {
+    const amount = Number(freeAmount.replace(",", "."));
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return;
+    }
+    setCart((current) => {
+      const existing = current.find((item) => item.giftId === "free-amount");
+      if (existing) {
+        return current.map((item) =>
+          item.giftId === "free-amount" ? { ...item, unitPrice: amount } : item,
+        );
+      }
+      return [
+        ...current,
+        {
+          giftId: "free-amount",
+          title: t("microsite.giftFreeTitle"),
+          unitPrice: amount,
+          quantity: 1,
+        },
+      ];
+    });
+    setCheckoutOpen(true);
   }
 
   return (
@@ -103,20 +134,50 @@ export function GiftSection({
         {giftsTitle}
       </MicrositeSectionTitle>
 
-      {gifts.length === 0 ? (
+      {gifts.length === 0 && !allowFreeAmount ? (
         <p className="mt-8 text-center text-sm text-[var(--theme-text-muted)]">
-          La pareja aún no cargó regalos en su lista.
+          {t("microsite.giftEmpty")}
         </p>
       ) : (
         <>
-          {!paymentsEnabled ? (
-            <p className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
-              Los regalos se muestran como referencia. La pareja aún no configuró
-              métodos de pago.
+          {hideList ? (
+            <p className="mt-6 text-center text-sm text-[var(--theme-text-muted)]">
+              {t("microsite.giftHidden")}
             </p>
           ) : null}
 
-          <div className="microsite-gift-grid mt-10">
+          {allowFreeAmount ? (
+            <div className="mt-8 rounded-2xl border border-stone-200/80 bg-white/80 p-4 sm:flex sm:items-end sm:gap-3">
+              <label className="block flex-1 text-sm font-medium text-stone-700">
+                {t("microsite.giftFree")}
+                <input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={freeAmount}
+                  onChange={(event) => setFreeAmount(event.target.value)}
+                  className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-3"
+                  placeholder={t("microsite.giftFreePlaceholder")}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={!paymentsEnabled}
+                onClick={addFreeAmount}
+                className="microsite-btn mt-3 sm:mt-0"
+              >
+                {t("microsite.giftFreeCta")}
+              </button>
+            </div>
+          ) : null}
+          {!paymentsEnabled ? (
+            <p className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
+              {t("microsite.giftNoPayments")}
+            </p>
+          ) : null}
+
+          {!hideList && gifts.length > 0 ? (
+            <div className="microsite-gift-grid mt-10">
             {gifts.map((gift, index) => {
               const imageUrl =
                 gift.image &&
@@ -136,7 +197,7 @@ export function GiftSection({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={displayImage}
-                    alt={gift.title ?? "Regalo"}
+                    alt={gift.title ?? t("microsite.giftDefault")}
                     className="microsite-gift-image"
                   />
                   <div className="microsite-gift-card__body">
@@ -146,7 +207,7 @@ export function GiftSection({
                     </p>
                     {gift.quantity && Number(gift.quantity) > 1 ? (
                       <p className="mt-1 text-xs text-[var(--theme-text-muted)]">
-                        Cantidad sugerida: {gift.quantity}
+                        {t("microsite.giftQty", { qty: String(gift.quantity) })}
                       </p>
                     ) : null}
                     <button
@@ -155,13 +216,14 @@ export function GiftSection({
                       onClick={() => addToCart(gift)}
                       className="microsite-btn mt-5 disabled:opacity-60"
                     >
-                      {inCart ? "Agregar otro" : "Regalar"}
+                      {inCart ? t("microsite.giftAnother") : t("microsite.gift")}
                     </button>
                   </div>
                 </article>
               );
             })}
-          </div>
+            </div>
+          ) : null}
         </>
       )}
 
@@ -174,7 +236,9 @@ export function GiftSection({
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-stone-500">
-                  {cart.length} regalo{cart.length === 1 ? "" : "s"}
+                  {cart.length === 1
+                    ? t("microsite.giftCount", { count: cart.length })
+                    : t("microsite.giftCountPlural", { count: cart.length })}
                 </p>
                 <p className="text-lg font-semibold text-[var(--theme-accent)]">
                   {formatPrice(cartTotal)}
@@ -186,14 +250,14 @@ export function GiftSection({
                   onClick={() => setCart([])}
                   className="rounded-full border border-stone-300 px-3 py-2 text-xs font-medium"
                 >
-                  Vaciar
+                  {t("microsite.giftClear")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setCheckoutOpen(true)}
                   className="microsite-btn !px-5 !py-2.5 !text-sm"
                 >
-                  Continuar
+                  {t("microsite.giftContinue")}
                 </button>
               </div>
             </div>
@@ -205,14 +269,16 @@ export function GiftSection({
           >
             <div>
               <p className="text-sm font-medium text-stone-700">
-                {cart.length} regalo{cart.length === 1 ? "" : "s"} en el carrito
+                {t("microsite.giftCountCart", { count: cart.length })}
               </p>
               <p className="text-lg font-semibold text-[var(--theme-accent)]">
-                Subtotal: {formatPrice(cartTotal)}
+                {t("microsite.giftSubtotal", { amount: formatPrice(cartTotal) })}
               </p>
               {paymentOptions.methods.includes(GIFT_PAYMENT_METHODS.MP_CHECKOUT) ? (
                 <p className="text-xs text-[var(--theme-text-muted)]">
-                  Mercado Pago incluye recargo del {GIFT_MP_SURCHARGE_RATE * 100}%
+                  {t("microsite.giftMpSurcharge", {
+                    rate: GIFT_MP_SURCHARGE_RATE * 100,
+                  })}
                 </p>
               ) : null}
             </div>
@@ -222,14 +288,14 @@ export function GiftSection({
                 onClick={() => setCart([])}
                 className="rounded-full border border-stone-300 px-4 py-2 text-sm"
               >
-                Vaciar
+                {t("microsite.giftClear")}
               </button>
               <button
                 type="button"
                 onClick={() => setCheckoutOpen(true)}
                 className="microsite-btn"
               >
-                Continuar
+                {t("microsite.giftContinue")}
               </button>
             </div>
           </div>

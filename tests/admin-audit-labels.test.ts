@@ -12,6 +12,11 @@ test("traduce acciones y entidades conocidas", () => {
   );
   assert.equal(auditEntityLabel("email_queue"), "Cola de emails");
   assert.equal(auditEntityLabel("auth"), "Autenticación");
+  assert.equal(
+    auditActionLabel("admin.mercadopago.settings_updated"),
+    "Actualizó MercadoPago",
+  );
+  assert.equal(auditEntityLabel("mercadopago"), "MercadoPago");
 });
 
 test("conserva valores desconocidos para no ocultar eventos nuevos", () => {

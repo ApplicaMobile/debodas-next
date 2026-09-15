@@ -1,35 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingPageShell } from "@/components/layout/MarketingPageShell";
+import { t } from "@/i18n/dictionary";
+import { getDictionary } from "@/i18n/get-locale";
 
-export const metadata: Metadata = {
-  title: "Quiénes somos",
-  description:
-    "DeBodas: la forma inteligente de organizar y compartir tu boda. Micrositios, RSVP, regalos y más.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { messages } = await getDictionary();
+  return {
+    title: t(messages, "about.title"),
+    description: t(messages, "about.lead"),
+  };
+}
 
-const features = [
-  {
-    number: "01",
-    title: "Gestión de invitados eficiente",
-    description:
-      "Confirmación de asistencia (RSVP), selección de menús especiales y organización de mesas en tiempo real.",
-  },
-  {
-    number: "02",
-    title: "Lista de regalos flexible",
-    description:
-      "Recibí el valor de tus regalos a través de todos los medios de pago de forma directa y transparente.",
-  },
-  {
-    number: "03",
-    title: "Experiencia interactiva",
-    description:
-      "Conectá tu ubicación con Google Maps, compartí tu playlist de Spotify, respondé preguntas frecuentes (FAQ) y creá un álbum de fotos digital para recordar cada momento.",
-  },
-] as const;
+export default async function QuienesSomosPage() {
+  const { messages } = await getDictionary();
+  const features = [
+    { number: "01", title: "about.f1Title", description: "about.f1Desc" },
+    { number: "02", title: "about.f2Title", description: "about.f2Desc" },
+    { number: "03", title: "about.f3Title", description: "about.f3Desc" },
+  ] as const;
 
-export default function QuienesSomosPage() {
   return (
     <MarketingPageShell>
       <div className="mx-auto max-w-4xl px-6">
@@ -38,36 +28,22 @@ export default function QuienesSomosPage() {
             DeBodas
           </p>
           <h1 className="mt-4 font-serif text-3xl font-semibold text-stone-800 sm:text-5xl">
-            ¿Quiénes somos?
+            {t(messages, "about.heading")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600">
-            La forma inteligente de organizar y compartir tu boda.
+            {t(messages, "about.tagline")}
           </p>
         </header>
 
         <section className="mt-12 space-y-5 rounded-3xl border border-white/70 bg-white/90 p-6 text-base leading-relaxed text-stone-700 shadow-[0_16px_50px_rgba(45,45,45,0.05)] sm:p-10 sm:text-lg">
-          <p>
-            Sabemos que planificar una boda es un momento único, pero también
-            que la lista de tareas puede volverse interminable. DeBodas nació
-            para transformar todo ese proceso. Somos una plataforma digital
-            pensada para simplificar la organización de tu evento, uniendo
-            diseño, tecnología y practicidad en un solo lugar.
-          </p>
-          <p>
-            Nos emociona saber que, detrás de la pantalla, estamos ordenando el
-            caos para que disfrutes cada paso del camino. Así, mientras la
-            plataforma trabaja para vos, tu única ocupación real sea prepararte
-            para celebrar.
-          </p>
-          <p className="font-medium text-stone-800">
-            Diseñamos la estructura que hace tu vida más fácil. Vos solo
-            ocupate de disfrutar.
-          </p>
+          <p>{t(messages, "about.p1")}</p>
+          <p>{t(messages, "about.p2")}</p>
+          <p className="font-medium text-stone-800">{t(messages, "about.p3")}</p>
         </section>
 
         <section className="mt-16">
           <h2 className="text-center font-serif text-2xl font-semibold text-stone-800 sm:text-3xl">
-            ¿Qué encontrás en nuestra plataforma?
+            {t(messages, "about.platformTitle")}
           </h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {features.map((feature) => (
@@ -76,10 +52,10 @@ export default function QuienesSomosPage() {
                   {feature.number}
                 </p>
                 <h3 className="mt-4 text-lg font-semibold text-stone-800">
-                  {feature.title}
+                  {t(messages, feature.title)}
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-stone-600">
-                  {feature.description}
+                  {t(messages, feature.description)}
                 </p>
               </article>
             ))}
@@ -91,13 +67,13 @@ export default function QuienesSomosPage() {
             href="/registro"
             className="rounded-full bg-[#e6dac7] px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
           >
-            Creá tu sitio hoy
+            {t(messages, "home.heroCta")}
           </Link>
           <Link
             href="/bodas/demo"
             className="rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-50"
           >
-            Ver ejemplo
+            {t(messages, "home.ctaExample")}
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 import {
   unlockMicrositeAction,
   type UnlockState,
@@ -15,6 +16,7 @@ interface PasswordGateProps {
 const initialState: UnlockState = {};
 
 export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
+  const t = useTranslations();
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(
     unlockMicrositeAction,
@@ -49,14 +51,13 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
           {coupleName}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
-          Este micrositio está protegido. Pedile la contraseña a los novios si no
-          la tenés — suele estar en la invitación o en el mensaje de WhatsApp.
+          {t("microsite.passwordLead")}
         </p>
 
         <form action={formAction} className="mt-6 space-y-4">
           <input type="hidden" name="slug" value={slug} />
           <label className="block text-sm font-medium text-stone-700">
-            Contraseña
+            {t("auth.password")}
             <div className="relative mt-2">
               <input
                 ref={inputRef}
@@ -73,7 +74,7 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
                 onClick={() => setShowPassword((v) => !v)}
                 className="absolute inset-y-0 right-2 my-auto rounded-lg px-3 text-xs font-semibold text-stone-600 hover:bg-stone-50"
               >
-                {showPassword ? "Ocultar" : "Mostrar"}
+                {showPassword ? t("microsite.passwordHide") : t("microsite.passwordShow")}
               </button>
             </div>
           </label>
@@ -92,7 +93,7 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
             disabled={isPending}
             className="w-full rounded-full bg-[#e6dac7] px-5 py-3.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8] disabled:opacity-60"
           >
-            {isPending ? "Verificando…" : "Entrar"}
+            {isPending ? t("microsite.passwordVerifying") : t("microsite.passwordSubmit")}
           </button>
         </form>
       </div>

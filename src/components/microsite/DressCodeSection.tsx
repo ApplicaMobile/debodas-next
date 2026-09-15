@@ -1,8 +1,11 @@
+"use client";
+
 import type {
   DressCodeColor,
   DressCodeContent,
 } from "@/lib/bodas/dress-code";
 import { MicrositeSectionTitle } from "@/components/themes/ThemeSection";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 interface DressCodeSectionProps {
   dressCode: DressCodeContent;
@@ -53,6 +56,7 @@ export function DressCodeSection({
   titleClass,
   compact = false,
 }: DressCodeSectionProps) {
+  const t = useTranslations();
   const showCaballeros = Boolean(dressCode.caballeros);
   const showDamas = Boolean(dressCode.damas);
   const columnCount = Number(showCaballeros) + Number(showDamas);
@@ -67,10 +71,10 @@ export function DressCodeSection({
         className={`microsite-dress-code ${compact ? "microsite-dress-code--compact" : ""}`}
       >
         {compact ? (
-          <h2 className={titleClass}>Dress Code</h2>
+          <h2 className={titleClass}>{t("microsite.dressCode")}</h2>
         ) : (
           <MicrositeSectionTitle className={titleClass}>
-            Dress Code
+            {t("microsite.dressCode")}
           </MicrositeSectionTitle>
         )}
 
@@ -82,7 +86,9 @@ export function DressCodeSection({
           >
             {showCaballeros ? (
               <div className="microsite-dress-code__col">
-                <h3 className="microsite-dress-code__col-title">Caballeros</h3>
+                <h3 className="microsite-dress-code__col-title">
+                  {t("microsite.gentlemen")}
+                </h3>
                 <p className="microsite-dress-code__col-text">
                   {dressCode.caballeros}
                 </p>
@@ -90,7 +96,9 @@ export function DressCodeSection({
             ) : null}
             {showDamas ? (
               <div className="microsite-dress-code__col">
-                <h3 className="microsite-dress-code__col-title">Damas</h3>
+                <h3 className="microsite-dress-code__col-title">
+                  {t("microsite.ladies")}
+                </h3>
                 <p className="microsite-dress-code__col-text">
                   {dressCode.damas}
                 </p>
@@ -104,11 +112,11 @@ export function DressCodeSection({
             className={`microsite-dress-code__palettes ${showColumns ? "mt-6" : "mt-8"}`}
           >
             <ColorPalette
-              label="Caballeros"
+              label={t("microsite.gentlemen")}
               colors={dressCode.colors_caballeros}
             />
             <ColorPalette
-              label="Damas"
+              label={t("microsite.ladies")}
               colors={dressCode.colors_damas}
             />
           </div>

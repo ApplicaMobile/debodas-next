@@ -50,10 +50,11 @@ async function mercadoPagoFetch<T>(
   init?: RequestInit,
   accessTokenOverride?: string | null,
 ): Promise<T> {
-  const accessToken = accessTokenOverride ?? getMercadoPagoAccessToken();
+  const accessToken =
+    accessTokenOverride ?? (await getMercadoPagoAccessToken());
   if (!accessToken) {
     throw new MercadoPagoApiError(
-      "MercadoPago no está configurado. Agregá MERCADOPAGO_ACCESS_TOKEN.",
+      "MercadoPago no está configurado. Cargá el Access Token en /admin/mercadopago.",
     );
   }
 
@@ -118,7 +119,8 @@ export async function createMercadoPagoPreference(
     throw new MercadoPagoApiError("MercadoPago no devolvió un ID de preferencia.");
   }
 
-  const initPoint = isMercadoPagoSandbox()
+  const sandbox = await isMercadoPagoSandbox();
+  const initPoint = sandbox
     ? result.sandbox_init_point ?? result.init_point
     : result.init_point ?? result.sandbox_init_point;
 
@@ -135,6 +137,23 @@ export async function getMercadoPagoPayment(
 ): Promise<MercadoPagoPaymentResult> {
   return mercadoPagoFetch<MercadoPagoPaymentResult>(
     `/v1/payments/${paymentId}`,
+    undefined,
+    accessToken,
+  );
+}
+
+export interface MercadoPagoAccountInfo {
+  id?: number;
+  nickname?: string;
+  email?: string;
+  site_id?: string;
+}
+
+export async function getMercadoPagoAccount(
+  accessToken?: string | null,
+): Promise<MercadoPagoAccountInfo> {
+  return mercadoPagoFetch<MercadoPagoAccountInfo>(
+    "/users/me",
     undefined,
     accessToken,
   );

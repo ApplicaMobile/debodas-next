@@ -148,6 +148,8 @@ export function GiftCheckoutModal({
         cart.map((item) => ({
           giftId: item.giftId,
           quantity: item.quantity,
+          title: item.title,
+          unitPrice: item.unitPrice,
         })),
       ),
     [cart],

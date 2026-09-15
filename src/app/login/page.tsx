@@ -6,6 +6,8 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import { t } from "@/i18n/dictionary";
+import { getDictionary } from "@/i18n/get-locale";
 
 interface LoginPageProps {
   searchParams: Promise<{ next?: string }>;
@@ -24,18 +26,24 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await getSession();
 
   if (session) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { role: true },
+    });
+    const isAdmin = user && isAdminRole(user.role);
     if (nextPath.startsWith("/admin")) {
-      const user = await prisma.user.findUnique({
-        where: { id: session.userId },
-        select: { role: true },
-      });
-      if (user && isAdminRole(user.role)) {
+      if (isAdmin) {
         redirect(nextPath);
       }
       redirect("/acceso-denegado?from=admin");
     }
+    if (isAdmin) {
+      redirect("/");
+    }
     redirect(nextPath);
   }
+
+  const { messages } = await getDictionary();
 
   return (
     <>
@@ -48,10 +56,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               DeBodas
             </p>
             <h1 className="mt-4 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
-              Ingresar
+              {t(messages, "auth.loginTitle")}
             </h1>
             <p className="mt-2 text-sm text-stone-600">
-              Accedé a tu panel para editar el micrositio, ver RSVP y regalos.
+              {t(messages, "auth.loginLead")}
             </p>
 
             <LoginForm nextPath={nextPath} />
@@ -64,12 +72,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             ) : null}
 
             <p className="mt-4 text-center text-sm text-stone-500">
-              ¿No tenés cuenta?{" "}
+              {t(messages, "auth.noAccount")}{" "}
               <Link
                 href="/registro"
                 className="font-medium text-[#6f5f47] underline"
               >
-                Crear cuenta
+                {t(messages, "auth.createAccount")}
               </Link>
             </p>
           </div>
@@ -82,9 +90,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           >
             <div className="absolute inset-0 bg-gradient-to-t from-[#06263a]/80 via-[#06263a]/35 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-8 text-white">
-              <p className="font-serif text-2xl font-semibold">Tu boda, online</p>
+              <p className="font-serif text-2xl font-semibold">{t(messages, "auth.sideTitle")}</p>
               <p className="mt-2 text-sm text-white/80">
-                Confirmaciones, regalos y diseño en un solo lugar.
+                {t(messages, "auth.sideLead")}
               </p>
             </div>
           </div>

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AbonarTarjetaPanel } from "@/components/account/AbonarTarjetaPanel";
 import { BodaForm } from "@/components/account/BodaForm";
+import {
+  getAbonarConfig,
+  getTarjetaPagos,
+} from "@/lib/bodas/abonar-tarjeta";
 import {
   getOwnedBoda,
   parseCouple,
@@ -59,6 +64,11 @@ export default async function MiCuentaBodaPage() {
           }}
         />
       </section>
+
+      <AbonarTarjetaPanel
+        config={getAbonarConfig(misc)}
+        pagos={getTarjetaPagos(misc)}
+      />
     </div>
   );
 }

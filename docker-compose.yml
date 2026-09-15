@@ -1,0 +1,75 @@
+services:
+  db:
+    image: mariadb:11
+    container_name: debodas_next_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: debodas
+      MARIADB_DATABASE: debodas_web
+      MARIADB_USER: debodas
+      MARIADB_PASSWORD: debodas
+    ports:
+      - "3310:3306"
+    volumes:
+      - debodas_next_db:/var/lib/mysql
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./docker/mariadb.cnf:/etc/mysql/conf.d/debodas.cnf:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: debodas_next_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://debodas:debodas@db:3306/debodas_web
+      WP_DATABASE_URL: mysql://debodas:debodas@db:3306/debodas_web
+      WP_TABLE_PREFIX: wp_
+      AUTH_SECRET: debodas-docker-local-secret
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      MERCADOPAGO_SANDBOX: "true"
+      PLAN_BASICO_PRICE_ARS: "50000"
+      PLAN_PREMIUM_PRICE_ARS: "90000"
+      CRON_SECRET: debodas-docker-cron
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - .:/app
+      - debodas_next_node_modules:/app/node_modules
+      - ./public/uploads:/app/public/uploads
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: debodas_next_pma
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8889:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: debodas
+      PMA_ABSOLUTE_URI: http://localhost:8889/
+      UPLOAD_LIMIT: 16G
+      MEMORY_LIMIT: 2G
+      MAX_EXECUTION_TIME: 0
+    volumes:
+      - ./docker/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php:ro
+      - ./docker/phpmyadmin/uploads:/var/www/upload
+
+volumes:
+  debodas_next_db:
+  debodas_next_node_modules:

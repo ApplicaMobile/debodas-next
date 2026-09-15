@@ -3,13 +3,20 @@ import { redirect } from "next/navigation";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { getSession } from "@/lib/auth/session";
+import { getViewer } from "@/lib/auth/viewer";
+import { t } from "@/i18n/dictionary";
+import { getDictionary } from "@/i18n/get-locale";
 
 export default async function RegistroPage() {
-  const session = await getSession();
-  if (session) {
+  const viewer = await getViewer();
+  if (viewer.isAdmin) {
+    redirect("/");
+  }
+  if (viewer.session) {
     redirect("/mi-cuenta");
   }
+
+  const { messages } = await getDictionary();
 
   return (
     <>
@@ -22,22 +29,21 @@ export default async function RegistroPage() {
               DeBodas
             </p>
             <p className="mt-4 text-sm font-medium uppercase tracking-widest text-[#6f5f47]">
-              Registro
+              {t(messages, "auth.registerEyebrow")}
             </p>
             <h1 className="mt-2 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
-              Creá tu cuenta
+              {t(messages, "auth.registerTitle")}
             </h1>
             <p className="mt-4 text-stone-600">
-              Completá los 3 pasos y creá tu micrositio de boda. Al terminar
-              entrás directamente a tu panel.
+              {t(messages, "auth.registerLead")}
             </p>
 
             <RegisterForm />
 
             <p className="mt-6 text-sm text-stone-500">
-              ¿Ya tenés cuenta?{" "}
+              {t(messages, "auth.hasAccount")}{" "}
               <Link href="/login" className="font-medium text-[#6f5f47] underline">
-                Ingresar
+                {t(messages, "auth.submit")}
               </Link>
             </p>
           </div>
@@ -51,11 +57,10 @@ export default async function RegistroPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#06263a]/75 via-[#06263a]/25 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-8 text-white">
               <p className="font-serif text-2xl font-semibold">
-                Empezá en minutos
+                {t(messages, "auth.registerSideTitle")}
               </p>
               <p className="mt-2 text-sm text-white/80">
-                Sin tarjeta para el plan gratuito. Después podés subir cuando
-                quieras.
+                {t(messages, "auth.registerSideLead")}
               </p>
             </div>
           </div>

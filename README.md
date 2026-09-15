@@ -1,10 +1,50 @@
 # DeBodas Web — Demo local React (sin WordPress)
 
-Frontend Next.js con **MariaDB local (XAMPP)** + fallback a datos mock.
+Frontend Next.js con **MariaDB** (Docker o XAMPP) + fallback a datos mock.
 
 **Agentes / LLMs:** leer [AGENTS.md](./AGENTS.md) antes de modificar el proyecto.
 
-## Levantar en local (con MariaDB)
+## Levantar con Docker (recomendado)
+
+Puertos: app **3000**, MariaDB **3310**, phpMyAdmin **8889** (no pisan el WordPress en 8008/3308/8888).
+
+```bash
+cd debodas-next
+docker compose up --build
+```
+
+Abrí:
+
+- App: http://localhost:3000
+- Demo: http://localhost:3000/bodas/demo
+- phpMyAdmin: http://localhost:8889 (root / `debodas`, sin tope práctico de import)
+
+Para un dump de producción grande, no subas el archivo por el navegador: copialo a `docker/phpmyadmin/uploads/` (`.sql` o `.sql.gz`) y en phpMyAdmin → **Importar** elegilo desde el directorio. Destino: base `debodas_web`.
+
+Login demo: `demo@debodas.local` / `demo1234` → `/mi-cuenta`  
+Admin: `admin@debodas.local` / `admin1234` → `/admin`
+
+Otro admin (después de levantar Docker):
+
+```bash
+docker compose exec app npm run db:create-admin -- --email=yo@debodas.com.ar --password='clave-segura'
+```
+
+El entrypoint espera MariaDB, corre `prisma db push` + seed y arranca `next dev` con hot reload (el código está montado).
+
+```bash
+docker compose down          # para, conserva la BD
+docker compose down -v       # borra también el volumen de MariaDB
+```
+
+Importar un dump WP (opcional): cargalo en la **misma** BD `debodas_web` por phpMyAdmin (puerto 8889). Las tablas `wp_*` conviven con Prisma. Después:
+
+```bash
+docker compose exec app npm run db:import-wp -- --dry-run --limit=5
+docker compose exec app npm run db:import-wp
+```
+
+## Levantar en local (XAMPP, sin Docker)
 
 ### 1. XAMPP — MySQL/MariaDB
 
@@ -66,11 +106,12 @@ npm run dev
 
 ## Migración desde WordPress (dump SQL)
 
-1. Importá el dump Hostinger en MySQL local como `debodas_wp` (ver pasos en el chat / phpMyAdmin).
+1. Importá el dump Hostinger en MySQL local **en `debodas_web`** (phpMyAdmin :8889 o XAMPP). Hace falta `wp_users`, `wp_posts`, `wp_postmeta` (en el repo solo está un recorte `debodas/wp_postmeta.sql`).
 2. En `.env.local`:
 
 ```env
-WP_DATABASE_URL="mysql://root:@localhost:3306/debodas_wp"
+DATABASE_URL="mysql://root:@localhost:3306/debodas_web"
+WP_DATABASE_URL="mysql://root:@localhost:3306/debodas_web"
 WP_TABLE_PREFIX=wp_
 ```
 
@@ -81,9 +122,24 @@ npm run db:import-wp -- --dry-run --limit=5
 npm run db:import-wp
 ```
 
+O desde el admin: `/admin/migracion` (rol admin). El CLI usa el mismo motor.
+
 Opciones: `--dry-run`, `--limit=N`, `--slug=mi-slug`.
 
-Importa bodas, usuarios, regalos, RSVP, regalos confirmados, galería, cronograma, FAQ y calificaciones. Las imágenes quedan con URL de Hostinger/`debodas.com.ar`. Usuarios con hash WP viejo (`$P$`) deben usar `/recuperar`.
+Importa bodas, usuarios, regalos, RSVP, regalos confirmados, galería (`pictures` + `extra_images`), cronograma, FAQ, calificaciones, métodos de pago (tokens MP cifrados), dress code, invitaciones, Canva, abonar tarjeta y mesas RSVP. Las imágenes quedan con URL de Hostinger/`debodas.com.ar` hasta el rehost. Usuarios con hash WP viejo (`$P$`) pueden entrar: el login migra la cuenta y luego conviene `/recuperar` si el hash no era bcrypt.
+
+**Nunca** `prisma migrate reset` ni `--accept-data-loss` en esta BD: borraría o dañaría `wp_*`.
+
+4. Copiá las fotos al storage de Next:
+
+```powershell
+npm run db:rehost-blob -- --dry-run
+npm run db:rehost-blob
+```
+
+Si WP no sirve HTTP: `npm run db:rehost-blob -- --from-uploads-dir=C:\ruta\wp-content\uploads`
+
+Deploy Hostinger: [docs/HOSTINGER.md](./docs/HOSTINGER.md). Cutover: [docs/CUTOVER.md](./docs/CUTOVER.md).
 
 
 ## Scripts de base de datos
@@ -92,8 +148,10 @@ Importa bodas, usuarios, regalos, RSVP, regalos confirmados, galería, cronogram
 |---------|-------------|
 | `npm run db:push` | Sincroniza schema Prisma → MariaDB |
 | `npm run db:seed` | Carga boda demo + usuario |
+| `npm run db:create-admin` | Crea o promociona un admin (`--email` `--password`) |
 | `npm run db:studio` | UI visual de Prisma |
-| `npm run db:import-wp` | Migra dump WP (`debodas_wp`) → Prisma |
+| `npm run db:import-wp` | Migra `wp_*` (misma MySQL) → tablas Prisma |
+| `npm run db:rehost-blob` | Copia fotos WP → `public/uploads` (o Blob) |
 
 ## Temas del micrositio
 
@@ -139,8 +197,8 @@ prisma/
 1. En `/mi-cuenta/pagos` configurá transferencia y/o credenciales MP de la pareja.
 2. En el micrositio, los invitados agregan regalos al carrito y pagan (MP checkout o transferencia).
 3. Los novios ven y confirman regalos en `/mi-cuenta/regalos-recibidos`.
-4. Webhook MP: `/api/webhooks/mercadopago?bodaId=...` (requiere `NEXT_PUBLIC_APP_URL` pública en prod). Configurá `MERCADOPAGO_WEBHOOK_SECRET` desde el panel MP.
-5. Upgrade de plan: `/mi-cuenta/plan` usa `MERCADOPAGO_ACCESS_TOKEN` de la app.
+4. Webhook MP: `/api/webhooks/mercadopago?bodaId=...` (requiere `NEXT_PUBLIC_APP_URL` pública en prod). Configurá el secret en `/admin/mercadopago` o `MERCADOPAGO_WEBHOOK_SECRET`.
+5. Upgrade de plan: `/mi-cuenta/plan` usa las credenciales de plataforma cargadas en `/admin/mercadopago` (o `MERCADOPAGO_ACCESS_TOKEN` en `.env`).
 
 Tras cambios al schema Prisma:
 
@@ -151,9 +209,9 @@ npm run db:seed
 
 ## Próximos pasos
 
-1. Deploy + secrets prod — checklist en [`docs/DEPLOY.md`](./docs/DEPLOY.md)
-2. Migración de datos desde WordPress
-3. Cutover DNS
+1. Staging Hostinger (subdominio) — [`docs/HOSTINGER.md`](./docs/HOSTINGER.md)
+2. Migración de datos + fotos — `db:import-wp` / `db:rehost-blob`
+3. Cutover DNS — [`docs/CUTOVER.md`](./docs/CUTOVER.md)
 
 ## Emails, calificaciones e Instagram
 

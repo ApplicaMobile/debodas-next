@@ -6,6 +6,7 @@ import {
   addGiftAction,
   deleteGiftAction,
   updateGiftAction,
+  updateGiftDisplayOptionsAction,
   updateGiftsListTitleAction,
 } from "@/lib/account/actions/gifts";
 import type { FormState } from "@/lib/account/form-state";
@@ -20,6 +21,7 @@ import {
   getPlanLimits,
   giftLimitMessage,
 } from "@/lib/plans/limits";
+import { normalizePlan } from "@/lib/plans/features";
 
 interface GiftRow {
   id: string;
@@ -33,6 +35,8 @@ interface GiftsPanelProps {
   listTitle: string;
   plan: string;
   gifts: GiftRow[];
+  freeMount: boolean;
+  hideGiftsList: boolean;
 }
 
 const initialState: FormState = {};
@@ -131,13 +135,24 @@ function GiftEditor({
   );
 }
 
-export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
+export function GiftsPanel({
+  listTitle,
+  plan,
+  gifts,
+  freeMount,
+  hideGiftsList,
+}: GiftsPanelProps) {
   const limits = getPlanLimits(plan);
   const atGiftLimit = !canAddGift(plan, gifts.length);
+  const isPremium = normalizePlan(plan) === "premium";
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [titleState, titleAction, titlePending] = useActionState(
     updateGiftsListTitleAction,
+    initialState,
+  );
+  const [optionsState, optionsAction, optionsPending] = useActionState(
+    updateGiftDisplayOptionsAction,
     initialState,
   );
   const [addState, addAction, addPending] = useActionState(
@@ -165,6 +180,44 @@ export function GiftsPanel({ listTitle, plan, gifts }: GiftsPanelProps) {
             className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700"
           >
             Guardar título
+          </button>
+        </form>
+      </section>
+
+      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+        <h3 className="text-lg font-semibold text-stone-800">
+          Cómo se muestra la lista
+        </h3>
+        <form action={optionsAction} className="mt-4 space-y-4">
+          {isPremium ? (
+            <label className="flex items-center gap-3 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                name="free_mount"
+                defaultChecked={freeMount}
+                className="h-4 w-4 rounded border-stone-300"
+              />
+              Permitir un monto libre (sin elegir un regalo de la lista)
+            </label>
+          ) : freeMount ? (
+            <input type="hidden" name="free_mount" value="on" />
+          ) : null}
+          <label className="flex items-center gap-3 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              name="hide_gifts_list"
+              defaultChecked={hideGiftsList}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            Ocultar la lista de regalos en el micrositio
+          </label>
+          <FormAlert error={optionsState.error} success={optionsState.success} />
+          <button
+            type="submit"
+            disabled={optionsPending}
+            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700"
+          >
+            {optionsPending ? "Guardando…" : "Guardar visibilidad"}
           </button>
         </form>
       </section>

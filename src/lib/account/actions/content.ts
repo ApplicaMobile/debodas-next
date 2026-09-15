@@ -147,12 +147,16 @@ export async function updateOptionsAction(
   const showFaq = formData.get("show_faq") === "on" ? 1 : 0;
   const showDressCode = formData.get("show_dress_code") === "on" ? 1 : 0;
   const isOnline = formData.get("is_online") === "on";
+  const freeMount = formData.get("free_mount") === "on" ? 1 : 0;
+  const hideGiftsList = formData.get("hide_gifts_list") === "on" ? 1 : 0;
 
   const options = {
     ...parseOptions(boda.options),
     show_faq: showFaq,
     show_dress_code: showDressCode,
     is_online: isOnline ? 1 : 0,
+    free_mount: freeMount,
+    hide_gifts_list: hideGiftsList,
   };
 
   try {
@@ -161,7 +165,7 @@ export async function updateOptionsAction(
       data: { options, isOnline },
     });
 
-    revalidateBodaPaths(boda.slug, ["/mi-cuenta/plan"]);
+    revalidateBodaPaths(boda.slug, ["/mi-cuenta/plan", "/mi-cuenta/regalos"]);
     revalidatePath("/admin/estadisticas");
     return { success: "Opciones guardadas." };
   } catch (err) {

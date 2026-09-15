@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getMercadoPagoPayment } from "@/lib/mercadopago/api";
 import {
   getMercadoPagoAccessToken,
+  getMercadoPagoWebhookSecret,
   isMercadoPagoConfigured,
+  isMercadoPagoWebhookStrict,
 } from "@/lib/mercadopago/config";
 import {
   extractMercadoPagoDataId,
-  getMercadoPagoWebhookSecret,
-  isMercadoPagoWebhookStrict,
   verifyMercadoPagoWebhookSignature,
 } from "@/lib/mercadopago/webhook-signature";
 import { getDecryptedPaymentSettings } from "@/lib/bodas/payment-settings";
@@ -54,10 +54,11 @@ async function assertWebhookAllowed(
     );
   }
 
-  const secret = getMercadoPagoWebhookSecret();
+  const secret = await getMercadoPagoWebhookSecret();
   const isProd = process.env.NODE_ENV === "production";
+  const strict = await isMercadoPagoWebhookStrict();
 
-  if (!secret && isProd && isMercadoPagoWebhookStrict()) {
+  if (!secret && isProd && strict) {
     console.error(
       "[mercadopago webhook] MERCADOPAGO_WEBHOOK_SECRET requerido (STRICT)",
     );
@@ -72,6 +73,7 @@ async function assertWebhookAllowed(
     xRequestId: request.headers.get("x-request-id"),
     dataId,
     secret,
+    strict,
   });
 
   if (!check.ok) {
@@ -84,7 +86,7 @@ async function assertWebhookAllowed(
 
   if (check.mode === "skipped_no_secret" && isProd) {
     console.warn(
-      "[mercadopago webhook] sin MERCADOPAGO_WEBHOOK_SECRET — configurá el secret del panel MP",
+      "[mercadopago webhook] sin webhook secret — configurá /admin/mercadopago o MERCADOPAGO_WEBHOOK_SECRET",
     );
   } else if (check.mode === "skipped_unsigned") {
     console.warn(
@@ -113,7 +115,7 @@ async function handlePaymentNotification(
     return NextResponse.json({ ok: true, ...result });
   } catch (primaryError) {
     // Fallback: token de la app (pagos de plan) si el de la boda falló
-    const platformToken = getMercadoPagoAccessToken();
+    const platformToken = await getMercadoPagoAccessToken();
     if (platformToken && platformToken !== accessToken) {
       const mpPayment = await getMercadoPagoPayment(paymentId, platformToken);
       const result = await processMercadoPagoPaymentNotification(mpPayment);
@@ -127,7 +129,7 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const bodaId = url.searchParams.get("bodaId");
 
-  if (!bodaId && !isMercadoPagoConfigured()) {
+  if (!bodaId && !(await isMercadoPagoConfigured())) {
     return NextResponse.json(
       { ok: false, error: "MP not configured" },
       { status: 503 },
@@ -179,7 +181,7 @@ export async function GET(request: Request) {
     return denied;
   }
 
-  if (!bodaId && !isMercadoPagoConfigured()) {
+  if (!bodaId && !(await isMercadoPagoConfigured())) {
     return NextResponse.json({ ok: true, skipped: true });
   }
 

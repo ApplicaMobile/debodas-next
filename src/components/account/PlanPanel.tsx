@@ -15,6 +15,8 @@ interface PlanPanelProps {
   showFaq: boolean;
   showDressCode: boolean;
   isOnline: boolean;
+  freeMount: boolean;
+  hideGiftsList: boolean;
   mpConfigured: boolean;
   demoPlanSwitch: boolean;
   paymentNotice?: string | null;
@@ -37,6 +39,8 @@ export function PlanPanel({
   showFaq,
   showDressCode,
   isOnline,
+  freeMount,
+  hideGiftsList,
   mpConfigured,
   demoPlanSwitch,
   paymentNotice,
@@ -138,6 +142,28 @@ export function PlanPanel({
               className="h-4 w-4 rounded border-stone-300"
             />
             Mostrar sección Dress Code en el micrositio
+          </label>
+          {normalized === "premium" ? (
+            <label className="flex items-center gap-3 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                name="free_mount"
+                defaultChecked={freeMount}
+                className="h-4 w-4 rounded border-stone-300"
+              />
+              Permitir regalo con monto libre
+            </label>
+          ) : freeMount ? (
+            <input type="hidden" name="free_mount" value="on" />
+          ) : null}
+          <label className="flex items-center gap-3 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              name="hide_gifts_list"
+              defaultChecked={hideGiftsList}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            Ocultar la lista de regalos en el micrositio
           </label>
           <FormAlert error={state.error} success={state.success} />
           <button

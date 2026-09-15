@@ -80,6 +80,14 @@ model SystemHeartbeat {
   @@map("system_heartbeats")
 }
 
+model SystemSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
 model EmailLog {
   id               String    @id @default(cuid())
   type             String    @default("generic")

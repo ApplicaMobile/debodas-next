@@ -38,7 +38,9 @@ export default async function MiCuentaPlanPage({
         showFaq={optionEnabled(options.show_faq)}
         showDressCode={optionEnabled(options.show_dress_code)}
         isOnline={boda.isOnline}
-        mpConfigured={isMercadoPagoConfigured()}
+        freeMount={optionEnabled(options.free_mount)}
+        hideGiftsList={optionEnabled(options.hide_gifts_list)}
+        mpConfigured={await isMercadoPagoConfigured()}
         demoPlanSwitch={isDemoPlanSwitchEnabled()}
         paymentNotice={payment ?? null}
         giftCount={boda.gifts.length}

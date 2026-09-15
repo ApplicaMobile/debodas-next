@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useState } from "react";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 export interface GalleryPicture {
   url: string;
@@ -16,6 +17,7 @@ export function MicrositeGallery({
   pictures,
   titleClass,
 }: MicrositeGalleryProps) {
+  const t = useTranslations();
   const titleId = useId();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -61,7 +63,7 @@ export function MicrositeGallery({
   return (
     <div className="mx-auto max-w-5xl px-6">
       <h2 id={titleId} className={titleClass ?? "microsite-section__title theme-heading"}>
-        Fotos
+        {t("microsite.photos")}
       </h2>
       <div className="microsite-gallery mt-10" role="list" aria-labelledby={titleId}>
         {pictures.map((picture, index) => (

@@ -1,8 +1,5 @@
 import { isEmailConfigured } from "@/lib/email/client";
-import {
-  isMercadoPagoConfigured,
-  isMercadoPagoSandbox,
-} from "@/lib/mercadopago/config";
+import { getMercadoPagoResolvedConfig } from "@/lib/mercadopago/config";
 import { prisma } from "@/lib/db/prisma";
 import { usesCloudStorage } from "@/lib/upload/local";
 import { CRON_HEARTBEAT_IDS } from "@/lib/admin/cron-heartbeat";
@@ -345,22 +342,23 @@ export async function getSystemHealthReport(): Promise<SystemHealthReport> {
     });
   }
 
-  const mpConfigured = isMercadoPagoConfigured();
-  const mpSandbox = isMercadoPagoSandbox();
+  const mp = await getMercadoPagoResolvedConfig();
+  const mpConfigured = Boolean(mp.accessToken);
+  const mpSandbox = mp.sandbox;
   if (!mpConfigured) {
     checks.push({
       id: "mercadopago",
       label: "MercadoPago",
       level: "warn",
       summary: "Sin access token",
-      detail: "Los checkouts de plan/regalo con MP no funcionarán.",
-      href: "/admin/pagos",
+      detail: "Los checkouts de plan no funcionarán hasta configurar MP.",
+      href: "/admin/mercadopago",
     });
     alerts.push({
       id: "mp-missing",
       level: "warn",
       message: "MercadoPago no está configurado.",
-      href: "/admin/pagos",
+      href: "/admin/mercadopago",
     });
   } else {
     checks.push({
@@ -369,22 +367,20 @@ export async function getSystemHealthReport(): Promise<SystemHealthReport> {
       level: mpSandbox ? "warn" : "ok",
       summary: mpSandbox ? "Sandbox / TEST" : "Producción",
       detail: mpSandbox
-        ? "MERCADOPAGO_SANDBOX o token TEST- activo."
+        ? "Modo sandbox o token TEST- activo."
         : "Token de producción detectado.",
-      href: "/admin/pagos",
+      href: "/admin/mercadopago",
     });
     if (mpSandbox) {
       alerts.push({
         id: "mp-sandbox",
         level: "warn",
         message: "MercadoPago está en modo sandbox/TEST.",
-        href: "/admin/pagos",
+        href: "/admin/mercadopago",
       });
     }
 
-    const webhookSecret = Boolean(
-      process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim(),
-    );
+    const webhookSecret = Boolean(mp.webhookSecret);
     checks.push({
       id: "mercadopago-webhook",
       label: "Webhook MP",
@@ -392,16 +388,16 @@ export async function getSystemHealthReport(): Promise<SystemHealthReport> {
       summary: webhookSecret ? "Secret configurado" : "Sin secret",
       detail: webhookSecret
         ? "Se valida x-signature cuando MP la envía."
-        : "Agregá MERCADOPAGO_WEBHOOK_SECRET (panel MP → Webhooks).",
-      href: "/admin/pagos",
+        : "Cargá el secret del webhook en /admin/mercadopago.",
+      href: "/admin/mercadopago",
     });
     if (!webhookSecret) {
       alerts.push({
         id: "mp-webhook-secret",
         level: "warn",
         message:
-          "Falta MERCADOPAGO_WEBHOOK_SECRET: el webhook no puede verificar firmas.",
-        href: "/admin/pagos",
+          "Falta el secret del webhook de MercadoPago: no se pueden verificar firmas.",
+        href: "/admin/mercadopago",
       });
     }
   }

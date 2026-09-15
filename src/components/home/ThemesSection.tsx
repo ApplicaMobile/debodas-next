@@ -3,10 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { themes } from "@/data/home";
 import { planLabels } from "@/lib/plans/features";
 
 export function ThemesSection() {
+  const t = useTranslations();
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   function scrollByCard(direction: -1 | 1) {
@@ -23,13 +25,13 @@ export function ThemesSection() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-xl">
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
-              Diseños
+              {t("home.themesEyebrow")}
             </p>
             <h2 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
-              Elegí tu diseño
+              {t("home.themesTitle")}
             </h2>
             <p className="mt-3 text-base text-stone-600 sm:text-lg">
-              Deslizá y abrí cada tema en el micrositio demo real.
+              {t("home.themesLead")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -37,7 +39,7 @@ export function ThemesSection() {
               type="button"
               onClick={() => scrollByCard(-1)}
               className="hidden h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-50 sm:inline-flex"
-              aria-label="Temas anteriores"
+              aria-label={t("home.themesPrev")}
             >
               ←
             </button>
@@ -45,7 +47,7 @@ export function ThemesSection() {
               type="button"
               onClick={() => scrollByCard(1)}
               className="hidden h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-50 sm:inline-flex"
-              aria-label="Temas siguientes"
+              aria-label={t("home.themesNext")}
             >
               →
             </button>
@@ -96,7 +98,7 @@ export function ThemesSection() {
             href="/bodas/demo"
             className="inline-flex rounded-full border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
           >
-            Explorar micrositio demo completo
+            {t("home.exploreDemo")}
           </Link>
         </div>
       </div>

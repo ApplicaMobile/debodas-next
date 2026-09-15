@@ -1,16 +1,17 @@
 /**
- * Rehostea imágenes migradas desde WordPress (URLs externas) a Vercel Blob
- * o a public/uploads/ si no hay BLOB_READ_WRITE_TOKEN.
+ * Rehostea imágenes migradas desde WordPress (URLs externas) a disco
+ * (`public/uploads/`) o Vercel Blob si hay BLOB_READ_WRITE_TOKEN.
  *
  * Uso:
  *   npm run db:rehost-blob -- --dry-run
  *   npm run db:rehost-blob -- --limit=20
  *   npm run db:rehost-blob -- --hosts=debodas.com.ar,test.debodas.com.ar
+ *   npm run db:rehost-blob -- --from-uploads-dir=/path/a/wp-content/uploads
  *
  * Requiere DATABASE_URL en .env.local.
- * Para cloud: BLOB_READ_WRITE_TOKEN.
  */
 import { createHash } from "crypto";
+import { readFileSync } from "fs";
 import { config } from "dotenv";
 import { PrismaClient, type Prisma } from "@prisma/client";
 import {
@@ -18,6 +19,7 @@ import {
   putUploadedBuffer,
   usesCloudStorage,
 } from "../src/lib/upload/local";
+import { resolveFromUploadsDir } from "./wp/rehost-source";
 
 config({ path: ".env.local" });
 config();
@@ -35,12 +37,19 @@ function parseArgs(argv: string[]) {
   const dryRun = argv.includes("--dry-run");
   const limitArg = argv.find((a) => a.startsWith("--limit="));
   const hostsArg = argv.find((a) => a.startsWith("--hosts="));
+  const uploadsArg = argv.find((a) => a.startsWith("--from-uploads-dir="));
   const limit = limitArg ? Number(limitArg.split("=")[1]) : undefined;
   const hosts = (hostsArg?.split("=")[1] ?? "debodas.com.ar,test.debodas.com.ar")
     .split(",")
     .map((h) => h.trim().toLowerCase())
     .filter(Boolean);
-  return { dryRun, limit: Number.isFinite(limit) ? limit : undefined, hosts };
+  const fromUploadsDir = uploadsArg?.slice("--from-uploads-dir=".length).trim() || "";
+  return {
+    dryRun,
+    limit: Number.isFinite(limit) ? limit : undefined,
+    hosts,
+    fromUploadsDir: fromUploadsDir || null,
+  };
 }
 
 function extFromContentType(contentType: string, url: string): string {
@@ -102,16 +111,17 @@ async function fetchRemote(url: string): Promise<{ buffer: Buffer; contentType: 
 }
 
 async function main() {
-  const { dryRun, limit, hosts } = parseArgs(process.argv.slice(2));
+  const { dryRun, limit, hosts, fromUploadsDir } = parseArgs(process.argv.slice(2));
   const cache = new Map<string, string>();
   let scanned = 0;
   let uploaded = 0;
   let skipped = 0;
   let failed = 0;
   let updated = 0;
+  let fromDisk = 0;
 
   console.log(
-    `[rehost] destino=${usesCloudStorage() ? "vercel-blob" : "public/uploads"} dryRun=${dryRun} hosts=${hosts.join(",")}`,
+    `[rehost] destino=${usesCloudStorage() ? "vercel-blob" : "public/uploads"} dryRun=${dryRun} hosts=${hosts.join(",")}${fromUploadsDir ? ` uploadsDir=${fromUploadsDir}` : ""}`,
   );
 
   async function resolveUrl(source: string, bodaId: string): Promise<string | null> {
@@ -124,12 +134,26 @@ async function main() {
     if (cached) return cached;
 
     try {
-      const { buffer, contentType } = await fetchRemote(source);
+      let buffer: Buffer;
+      let contentType: string;
+      const localPath =
+        fromUploadsDir ? resolveFromUploadsDir(source, fromUploadsDir) : null;
+      if (localPath) {
+        buffer = readFileSync(localPath);
+        contentType = contentTypeFromExt(extFromContentType("", source));
+        fromDisk += 1;
+      } else {
+        const remote = await fetchRemote(source);
+        buffer = remote.buffer;
+        contentType = remote.contentType;
+      }
       const ext = extFromContentType(contentType, source);
       const hash = createHash("sha1").update(source).digest("hex").slice(0, 16);
       const filename = `${hash}.${ext}`;
       if (dryRun) {
-        console.log(`[dry-run] ${source} → uploads/migrated/${bodaId}/${filename}`);
+        console.log(
+          `[dry-run] ${localPath ? "disk" : "http"} ${source} → uploads/migrated/${bodaId}/${filename}`,
+        );
         cache.set(source, source);
         uploaded += 1;
         return source;
@@ -245,9 +269,30 @@ async function main() {
     }
   }
 
+  const emptyGalleries = await prisma.boda.findMany({
+    where: { pictures: { none: {} } },
+    select: { slug: true, featuredImageUrl: true },
+  });
+  const pendingWpUrls = await prisma.picture.count({
+    where: {
+      OR: [
+        { url: { contains: "debodas.com.ar/wp-content/uploads" } },
+        { url: { contains: "test.debodas.com.ar/wp-content/uploads" } },
+      ],
+    },
+  });
+
   console.log(
-    `[rehost] scanned=${scanned} uploaded=${uploaded} updatedRows=${updated} failed=${failed} skipped=${skipped}`,
+    `[rehost] scanned=${scanned} uploaded=${uploaded} fromDisk=${fromDisk} updatedRows=${updated} failed=${failed} skipped=${skipped}`,
   );
+  console.log(
+    `[report] bodas sin galería=${emptyGalleries.length} pictures con URL WP pendientes=${pendingWpUrls}`,
+  );
+  if (emptyGalleries.length > 0 && emptyGalleries.length <= 20) {
+    for (const row of emptyGalleries) {
+      console.log(`[gallery-empty] ${row.slug}`);
+    }
+  }
 }
 
 main()

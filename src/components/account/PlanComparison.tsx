@@ -122,9 +122,9 @@ export function PlanComparison({
 
       {!mpConfigured && !demoPlanSwitch ? (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Configurá <code className="text-xs">MERCADOPAGO_ACCESS_TOKEN</code> en{" "}
-          <code className="text-xs">.env.local</code> para habilitar la compra de
-          planes.
+          MercadoPago todavía no está configurado. El administrador puede
+          cargarlo en el panel, en{" "}
+          <code className="text-xs">/admin/mercadopago</code>.
         </p>
       ) : null}
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   useActionState,
   useEffect,
@@ -19,10 +18,10 @@ import {
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
 import { HoneypotField } from "@/components/ui/HoneypotField";
 import { PasswordField } from "@/components/ui/PasswordField";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 const initialState: RegisterState = {};
 const TOTAL_STEPS = 3;
-const STEP_LABELS = ["Cuenta", "Tu boda", "Plan"];
 
 const FIELD_NAMES = [
   "email",
@@ -76,7 +75,7 @@ function readFormValue(form: HTMLFormElement | null, name: string): string {
 }
 
 export function RegisterWizard() {
-  const router = useRouter();
+  const t = useTranslations();
   const formRef = useRef<HTMLFormElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(1);
@@ -89,10 +88,9 @@ export function RegisterWizard() {
 
   useEffect(() => {
     if (state.success && state.redirectTo) {
-      router.push(state.redirectTo);
-      router.refresh();
+      window.location.replace(state.redirectTo);
     }
-  }, [state.success, state.redirectTo, router]);
+  }, [state.success, state.redirectTo]);
 
   useEffect(() => {
     if (stepError) {
@@ -192,13 +190,24 @@ export function RegisterWizard() {
     }
   }
 
+  const planCopy = {
+    gratuito: { name: t("home.planFree"), desc: t("auth.planFreeDesc") },
+    basico: { name: t("home.planBasic"), desc: t("auth.planBasicDesc") },
+    premium: { name: t("home.planPremium"), desc: t("auth.planPremiumDesc") },
+  } as const;
+
   const inputClassName =
     "w-full rounded-xl border border-stone-200 px-4 py-3";
+  const stepLabels = [
+    t("auth.stepAccount"),
+    t("auth.stepWedding"),
+    t("auth.stepPlan"),
+  ];
 
   return (
     <div className="mt-8">
       <ol className="flex gap-2">
-        {STEP_LABELS.map((label, index) => {
+        {stepLabels.map((label, index) => {
           const stepNumber = index + 1;
           const isActive = step === stepNumber;
           const isDone = step > stepNumber;
@@ -231,34 +240,32 @@ export function RegisterWizard() {
       >
         <HoneypotField id="register-website" />
         <div className={step === 1 ? "space-y-4" : "hidden"}>
-          <p className="text-sm text-stone-600">
-            Creá tu acceso al panel de DeBodas.
-          </p>
+          <p className="text-sm text-stone-600">{t("auth.stepAccountLead")}</p>
           <input
             name="email"
-            aria-label="Email"
+            aria-label={t("auth.email")}
             type="email"
             maxLength={254}
             className={inputClassName}
-            placeholder="Email"
+            placeholder={t("auth.email")}
             autoComplete="email"
             onInput={clearStepError}
           />
           <PasswordField
             name="password"
-            aria-label="Contraseña"
+            aria-label={t("auth.password")}
             maxLength={72}
             inputClassName={`${inputClassName} pr-12`}
-            placeholder="Contraseña (mín. 8 caracteres)"
+            placeholder={t("auth.passwordMin")}
             autoComplete="new-password"
             onInput={clearStepError}
           />
           <PasswordField
             name="password_confirm"
-            aria-label="Repetir contraseña"
+            aria-label={t("auth.passwordRepeat")}
             maxLength={72}
             inputClassName={`${inputClassName} pr-12`}
-            placeholder="Repetir contraseña"
+            placeholder={t("auth.passwordRepeat")}
             autoComplete="new-password"
             onInput={clearStepError}
           />
@@ -266,44 +273,42 @@ export function RegisterWizard() {
         </div>
 
         <div className={step === 2 ? "space-y-4" : "hidden"}>
-          <p className="text-sm text-stone-600">
-            Contanos sobre la pareja y la fecha del evento.
-          </p>
+          <p className="text-sm text-stone-600">{t("auth.stepWeddingLead")}</p>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <input
               name="bride_name"
               maxLength={100}
-              aria-label="Nombre de la primera persona"
+              aria-label={t("auth.brideName")}
               className={inputClassName}
-              placeholder="Nombre novia/o 1"
+              placeholder={t("auth.brideName")}
               autoComplete="given-name"
               onInput={clearStepError}
             />
             <input
               name="bride_lastname"
               maxLength={100}
-              aria-label="Apellido de la primera persona"
+              aria-label={t("auth.brideLast")}
               className={inputClassName}
-              placeholder="Apellido novia/o 1"
+              placeholder={t("auth.brideLast")}
               autoComplete="family-name"
               onInput={clearStepError}
             />
             <input
               name="groom_name"
               maxLength={100}
-              aria-label="Nombre de la segunda persona"
+              aria-label={t("auth.groomName")}
               className={inputClassName}
-              placeholder="Nombre novia/o 2"
+              placeholder={t("auth.groomName")}
               autoComplete="given-name"
               onInput={clearStepError}
             />
             <input
               name="groom_lastname"
               maxLength={100}
-              aria-label="Apellido de la segunda persona"
+              aria-label={t("auth.groomLast")}
               className={inputClassName}
-              placeholder="Apellido novia/o 2"
+              placeholder={t("auth.groomLast")}
               autoComplete="family-name"
               onInput={clearStepError}
             />
@@ -313,29 +318,29 @@ export function RegisterWizard() {
             <input
               name="phone"
               maxLength={40}
-              aria-label="Teléfono"
+              aria-label={t("auth.phone")}
               className={inputClassName}
-              placeholder="Teléfono"
+              placeholder={t("auth.phone")}
               autoComplete="tel"
               onInput={clearStepError}
             />
             <input
               name="event_date"
               maxLength={20}
-              aria-label="Fecha de la boda"
+              aria-label={t("auth.eventDate")}
               className={inputClassName}
-              placeholder="Fecha de la boda (dd/mm/aaaa)"
+              placeholder={t("auth.eventDate")}
               onInput={clearStepError}
             />
           </div>
 
           <textarea
             name="our_story"
-            aria-label="Historia de la pareja"
+            aria-label={t("auth.ourStory")}
             rows={3}
             maxLength={3000}
             className={inputClassName}
-            placeholder="¿Cómo se conocieron? (opcional)"
+            placeholder={t("auth.ourStory")}
             onInput={clearStepError}
           />
 
@@ -344,7 +349,7 @@ export function RegisterWizard() {
               htmlFor="site_source"
               className="mb-2 block text-sm font-medium text-stone-700"
             >
-              ¿Cómo nos conociste?
+              {t("auth.howHeard")}
             </label>
             <select
               id="site_source"
@@ -356,7 +361,7 @@ export function RegisterWizard() {
               }}
               className={inputClassName}
             >
-              <option value="">Seleccioná una opción</option>
+              <option value="">{t("auth.howHeardSelect")}</option>
               {SITE_SOURCE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -370,23 +375,20 @@ export function RegisterWizard() {
             maxLength={200}
             aria-label="Cómo conociste DeBodas"
             className={showSiteSourceOther ? inputClassName : "hidden"}
-            placeholder="Contanos cómo nos conociste"
+            placeholder={t("auth.howHeardOther")}
             onInput={clearStepError}
           />
 
           <ImageFileInput
             name="banner_file"
-            label="Foto del banner (opcional)"
-            hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
+            label={t("auth.bannerOptional")}
+            hint={t("auth.bannerHint")}
           />
           {step === 2 && stepError ? <StepError message={stepError} /> : null}
         </div>
 
         <div className={step === 3 ? "space-y-4" : "hidden"}>
-          <p className="text-sm text-stone-600">
-            Elegí con qué plan querés empezar. Los planes pagos se confirman
-            luego desde el panel.
-          </p>
+          <p className="text-sm text-stone-600">{t("auth.stepPlanLead")}</p>
 
           <div className="space-y-3">
             {REGISTER_PLANS.map((plan) => (
@@ -404,13 +406,13 @@ export function RegisterWizard() {
                 />
                 <span>
                   <span className="block font-semibold text-stone-800">
-                    {plan.name}{" "}
+                    {planCopy[plan.slug].name}{" "}
                     <span className="font-normal text-stone-500">
                       · {plan.price}
                     </span>
                   </span>
                   <span className="mt-1 block text-sm text-stone-600">
-                    {plan.description}
+                    {planCopy[plan.slug].desc}
                   </span>
                 </span>
               </label>
@@ -427,23 +429,23 @@ export function RegisterWizard() {
               onChange={clearStepError}
             />
             <span>
-              Acepto los{" "}
+              {t("auth.acceptTermsBefore")}{" "}
               <a
                 href="/terminos"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-[#6f5f47] underline"
               >
-                términos y condiciones
+                {t("auth.terms")}
               </a>{" "}
-              y la{" "}
+              {t("auth.acceptTermsAnd")}{" "}
               <a
                 href="/privacidad"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-[#6f5f47] underline"
               >
-                política de privacidad
+                {t("auth.privacy")}
               </a>
               .
             </span>
@@ -463,7 +465,7 @@ export function RegisterWizard() {
               disabled={isPending}
               className="rounded-full border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-700 disabled:opacity-60"
             >
-              Anterior
+              {t("auth.previous")}
             </button>
           ) : (
             <span />
@@ -475,7 +477,7 @@ export function RegisterWizard() {
               onClick={handleNext}
               className="rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800"
             >
-              Siguiente
+              {t("auth.next")}
             </button>
           ) : (
             <button
@@ -483,7 +485,7 @@ export function RegisterWizard() {
               disabled={isPending}
               className="rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
             >
-              {isPending ? "Creando cuenta…" : "Crear cuenta"}
+              {isPending ? t("auth.creating") : t("auth.createAccount")}
             </button>
           )}
         </div>

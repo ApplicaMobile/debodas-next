@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { AccountNotificationsBell } from "@/components/account/AccountNotificationsBell";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { getBodaNotifications } from "@/lib/notifications/queries";
@@ -21,6 +23,10 @@ export default async function MiCuentaLayout({
     where: { id: session.userId },
     include: { boda: { select: { id: true, slug: true, title: true } } },
   });
+
+  if (user && isAdminRole(user.role) && !user.boda) {
+    redirect("/");
+  }
 
   const notifications = user?.boda
     ? await getBodaNotifications(user.boda.id)
@@ -62,6 +68,7 @@ export default async function MiCuentaLayout({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <LanguageSwitcher compact variant="onLight" />
             {user?.boda ? (
               <AccountNotificationsBell
                 items={notifications.items}

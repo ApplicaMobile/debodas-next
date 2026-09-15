@@ -1,6 +1,7 @@
 "use client";
 
 import { useMicrositeTheme } from "./ThemeProvider";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 interface ThemeBannerProps {
   coupleName: string;
@@ -37,6 +38,7 @@ export function ThemeBanner({
   showCanva = false,
   showMusic = false,
 }: ThemeBannerProps) {
+  const t = useTranslations();
   const { theme } = useMicrositeTheme();
   const hasPhoto = Boolean(bannerPhotoUrl);
   const hideFrameWithPhoto = Boolean(
@@ -45,6 +47,12 @@ export function ThemeBanner({
   const showFrame =
     theme.bannerMode === "frame-overlay" && !hideFrameWithPhoto;
   const showSvgHero = theme.bannerMode === "svg-hero";
+  /** Fondo del tema en raster (p.ej. home-base.png): actúa como foto fallback */
+  const themeHomeIsRaster = /\.(png|jpe?g|webp)$/i.test(
+    theme.assets.homeSvg ?? "",
+  );
+  const showThemeRasterFallback =
+    !hasPhoto && showSvgHero && themeHomeIsRaster;
   const showPhotoLayer =
     hasPhoto &&
     (theme.bannerMode === "svg-hero" ||
@@ -60,33 +68,34 @@ export function ThemeBanner({
   const showOverlay =
     overlayOpacity !== null &&
     (theme.bannerMode === "full-background" ||
+      showThemeRasterFallback ||
       (hasPhoto && theme.bannerMode !== "frame-overlay"));
 
   /** Scrim inferior: mejora contraste; marfil / full-bg sin overlay no lo usan */
   const showScrim =
-    showPhotoLayer &&
+    (showPhotoLayer || showThemeRasterFallback) &&
     overlayOpacity !== null &&
     theme.bannerMode !== "full-background";
 
   const navItems: BannerNavItem[] = [
-    { href: "#regalos", label: "Regalos" },
-    ...(showGallery ? [{ href: "#album", label: "Fotos" }] : []),
+    { href: "#regalos", label: t("microsite.gifts") },
+    ...(showGallery ? [{ href: "#album", label: t("microsite.photos") }] : []),
     ...(showSchedule
-      ? [{ href: "#cronograma", label: "Cronograma" }]
+      ? [{ href: "#cronograma", label: t("microsite.schedule") }]
       : []),
     ...(showLocation
-      ? [{ href: "#ubicacion", label: "Ubicación" }]
+      ? [{ href: "#ubicacion", label: t("microsite.location") }]
       : []),
     ...(showCanva
-      ? [{ href: "#invitacion-canva", label: "Invitación" }]
+      ? [{ href: "#invitacion-canva", label: t("microsite.invite") }]
       : []),
     ...(showDressCode
-      ? [{ href: "#dress-code", label: "Vestimenta" }]
+      ? [{ href: "#dress-code", label: t("microsite.attire") }]
       : []),
-    ...(showFaq ? [{ href: "#faq", label: "FAQ" }] : []),
-    ...(showMusic ? [{ href: "#musica", label: "Música" }] : []),
+    ...(showFaq ? [{ href: "#faq", label: t("microsite.faq") }] : []),
+    ...(showMusic ? [{ href: "#musica", label: t("microsite.music") }] : []),
     ...(showRsvp
-      ? [{ href: "#rsvp", label: "RSVP", primary: true }]
+      ? [{ href: "#rsvp", label: t("microsite.rsvp"), primary: true }]
       : []),
   ];
 
@@ -99,7 +108,7 @@ export function ThemeBanner({
       : "",
     hideFrameWithPhoto ? "microsite-banner--photo-only" : "",
     theme.lightBannerNav ? "microsite-banner--light-nav" : "",
-    hasPhoto ? "microsite-banner--with-photo" : "",
+    hasPhoto || showThemeRasterFallback ? "microsite-banner--with-photo" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -112,9 +121,15 @@ export function ThemeBanner({
           style={{ backgroundImage: `url('${bannerPhotoUrl}')` }}
           aria-hidden="true"
         />
+      ) : showThemeRasterFallback ? (
+        <div
+          className="microsite-banner__photo"
+          style={{ backgroundImage: `url('${theme.assets.homeSvg}')` }}
+          aria-hidden="true"
+        />
       ) : null}
 
-      {showSvgHero ? (
+      {showSvgHero && !showThemeRasterFallback ? (
         <div className="microsite-banner__svg-bg" aria-hidden="true" />
       ) : null}
 
@@ -159,7 +174,7 @@ export function ThemeBanner({
         </p>
 
         {navItems.length ? (
-          <nav className="microsite-nav" aria-label="Secciones del micrositio">
+          <nav className="microsite-nav" aria-label={t("microsite.navAria")}>
             {navItems.some((item) => item.primary) ? (
               <div className="microsite-nav__primary">
                 {navItems

@@ -18,6 +18,7 @@ import {
   MercadoPagoApiError,
 } from "@/lib/mercadopago/api";
 import { getAppBaseUrl, getMercadoPagoWebhookUrl } from "@/lib/mercadopago/config";
+import { allowsFreeGiftAmount } from "@/lib/bodas/options";
 import { prisma } from "@/lib/db/prisma";
 import { notifyNoviosGift } from "@/lib/email/notify";
 import { createGiftNotification } from "@/lib/notifications/create";
@@ -39,6 +40,8 @@ export interface GiftCheckoutState {
 interface ParsedCartItem {
   giftId: string;
   quantity: number;
+  title?: string;
+  unitPrice?: number;
 }
 
 function parseCartItems(raw: string): ParsedCartItem[] {
@@ -48,25 +51,39 @@ function parseCartItems(raw: string): ParsedCartItem[] {
       return [];
     }
 
-    return parsed
-      .map((item) => {
-        if (!item || typeof item !== "object") {
-          return null;
+    const items: ParsedCartItem[] = [];
+    for (const item of parsed) {
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+      const record = item as Record<string, unknown>;
+      const giftId = String(record.giftId ?? "").trim();
+      const quantity = Number(record.quantity ?? 1);
+      const unitPrice = Number(record.unitPrice ?? 0);
+      const title = String(record.title ?? "").trim();
+      if (
+        !giftId ||
+        !Number.isInteger(quantity) ||
+        quantity < 1 ||
+        quantity > 20
+      ) {
+        continue;
+      }
+      if (giftId === "free-amount") {
+        if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+          continue;
         }
-        const record = item as Record<string, unknown>;
-        const giftId = String(record.giftId ?? "").trim();
-        const quantity = Number(record.quantity ?? 1);
-        if (
-          !giftId ||
-          !Number.isInteger(quantity) ||
-          quantity < 1 ||
-          quantity > 20
-        ) {
-          return null;
-        }
-        return { giftId, quantity: Math.floor(quantity) };
-      })
-      .filter((item): item is ParsedCartItem => item !== null);
+        items.push({
+          giftId,
+          quantity: 1,
+          title: title || "Regalo monto libre",
+          unitPrice,
+        });
+        continue;
+      }
+      items.push({ giftId, quantity: Math.floor(quantity) });
+    }
+    return items;
   } catch {
     return [];
   }
@@ -75,18 +92,41 @@ function parseCartItems(raw: string): ParsedCartItem[] {
 async function buildCartLines(
   bodaId: string,
   cartItems: ParsedCartItem[],
+  allowFreeAmount: boolean,
 ): Promise<GiftCartLine[] | { error: string }> {
-  const giftIds = cartItems.map((item) => item.giftId);
+  const freeItems = cartItems.filter((item) => item.giftId === "free-amount");
+  const catalogItems = cartItems.filter((item) => item.giftId !== "free-amount");
+
+  const lines: GiftCartLine[] = [];
+  if (freeItems.length) {
+    if (!allowFreeAmount) {
+      return { error: "El monto libre no está habilitado para esta boda." };
+    }
+    for (const item of freeItems) {
+      lines.push({
+        giftId: "free-amount",
+        title: item.title || "Regalo monto libre",
+        unitPrice: Number(item.unitPrice),
+        quantity: 1,
+      });
+    }
+  }
+
+  if (catalogItems.length === 0) {
+    return lines.length ? lines : { error: "Agregá al menos un regalo al carrito." };
+  }
+
+  const giftIds = catalogItems.map((item) => item.giftId);
   const gifts = await prisma.gift.findMany({
     where: { bodaId, id: { in: giftIds } },
   });
 
-  if (gifts.length !== cartItems.length) {
+  if (gifts.length !== catalogItems.length) {
     return { error: "Uno o más regalos ya no están disponibles." };
   }
 
   const giftById = new Map(gifts.map((gift) => [gift.id, gift]));
-  const unavailable = cartItems.find((item) => {
+  const unavailable = catalogItems.find((item) => {
     const gift = giftById.get(item.giftId);
     return gift && item.quantity > gift.quantity;
   });
@@ -96,15 +136,18 @@ async function buildCartLines(
     };
   }
 
-  return cartItems.map((item) => {
-    const gift = giftById.get(item.giftId)!;
-    return {
-      giftId: gift.id,
-      title: gift.title,
-      unitPrice: Number(gift.price),
-      quantity: item.quantity,
-    };
-  });
+  lines.push(
+    ...catalogItems.map((item) => {
+      const gift = giftById.get(item.giftId)!;
+      return {
+        giftId: gift.id,
+        title: gift.title,
+        unitPrice: Number(gift.price),
+        quantity: item.quantity,
+      };
+    }),
+  );
+  return lines;
 }
 
 function readCheckoutFields(formData: FormData) {
@@ -189,7 +232,7 @@ export async function createGiftCheckoutAction(
 
     const boda = await prisma.boda.findUnique({
       where: { slug: fields.slug },
-      select: { id: true, slug: true, plan: true, misc: true },
+      select: { id: true, slug: true, plan: true, misc: true, options: true },
     });
 
     if (!boda) {
@@ -212,7 +255,11 @@ export async function createGiftCheckoutAction(
     }
 
     const accessToken = settings.mp_tokens!.access_token!.trim();
-    const cartLines = await buildCartLines(boda.id, cartItems);
+    const cartLines = await buildCartLines(
+      boda.id,
+      cartItems,
+      allowsFreeGiftAmount(boda.options),
+    );
     if ("error" in cartLines) {
       return { error: cartLines.error };
     }
@@ -323,7 +370,7 @@ export async function submitGiftTransferAction(
 
     const boda = await prisma.boda.findUnique({
       where: { slug: fields.slug },
-      select: { id: true, slug: true, plan: true, misc: true },
+      select: { id: true, slug: true, plan: true, misc: true, options: true },
     });
 
     if (!boda) {
@@ -338,7 +385,11 @@ export async function submitGiftTransferAction(
       return { error: "Este método de pago no está disponible." };
     }
 
-    const cartLines = await buildCartLines(boda.id, cartItems);
+    const cartLines = await buildCartLines(
+      boda.id,
+      cartItems,
+      allowsFreeGiftAmount(boda.options),
+    );
     if ("error" in cartLines) {
       return { error: cartLines.error };
     }

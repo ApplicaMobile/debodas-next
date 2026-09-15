@@ -61,9 +61,9 @@ function SectionLink({
   );
   const badge = badges?.[section.href];
   const className = active
-    ? "bg-[#e6dac7]/25 font-semibold text-stone-800"
+    ? "bg-white font-semibold text-stone-800 shadow-sm"
     : section.available
-      ? "text-stone-700 hover:bg-stone-50"
+      ? "text-stone-700 hover:bg-white/70"
       : "text-stone-400";
 
   if (!section.available) {
@@ -130,18 +130,21 @@ function SectionNavList({
   const byHref = new Map(accountSections.map((s) => [s.href, s]));
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       {SECTION_GROUPS.map((group) => {
         const items = group.hrefs
           .map((href) => byHref.get(href))
           .filter((s): s is AccountSection => Boolean(s));
         if (items.length === 0) return null;
         return (
-          <div key={group.title}>
-            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-400">
+          <div
+            key={group.title}
+            className="rounded-2xl bg-[#f4edcc] p-1.5"
+          >
+            <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6f5f47]">
               {group.title}
             </p>
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {items.map((section) => (
                 <SectionLink
                   key={section.href}

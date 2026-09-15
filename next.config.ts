@@ -50,6 +50,41 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/boda/:slug", destination: "/bodas/:slug", permanent: true },
+      { source: "/home-nueva", destination: "/", permanent: true },
+      { source: "/login/", destination: "/login", permanent: true },
+      { source: "/registro/", destination: "/registro", permanent: true },
+      { source: "/mi-cuenta/", destination: "/mi-cuenta", permanent: true },
+      { source: "/checkout", destination: "/mi-cuenta/plan", permanent: true },
+      { source: "/checkout/", destination: "/mi-cuenta/plan", permanent: true },
+      { source: "/carrito", destination: "/mi-cuenta/plan", permanent: true },
+      { source: "/cart", destination: "/mi-cuenta/plan", permanent: true },
+      {
+        source: "/finalizar-compra",
+        destination: "/mi-cuenta/plan",
+        permanent: true,
+      },
+      { source: "/wp-login.php", destination: "/login", permanent: true },
+      { source: "/wp-admin", destination: "/admin", permanent: false },
+      { source: "/wp-admin/:path*", destination: "/admin", permanent: false },
+      { source: "/confirmar-regalo", destination: "/", permanent: false },
+      { source: "/confirmar-regalo/", destination: "/", permanent: false },
+      { source: "/fin-regalo", destination: "/", permanent: false },
+      { source: "/fin-regalo/", destination: "/", permanent: false },
+      {
+        source: "/pending",
+        destination: "/mi-cuenta/plan?payment=pending",
+        permanent: false,
+      },
+      {
+        source: "/failure",
+        destination: "/mi-cuenta/plan?payment=failure",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

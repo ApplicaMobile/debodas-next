@@ -12,11 +12,19 @@ import type { FormState } from "@/lib/account/form-state";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
+import { BannerCropInput } from "@/components/account/BannerCropInput";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
+import { PlanUsageMeter } from "@/components/account/PlanUsageMeter";
+import {
+  canAddPicture,
+  getPlanLimits,
+  pictureLimitMessage,
+} from "@/lib/plans/limits";
 
 interface BannerPanelProps {
   bannerUrl: string;
   featuredUrl: string;
+  plan: string;
   pictures: Array<{ id: string; url: string; alt: string | null }>;
 }
 
@@ -25,8 +33,11 @@ const initialState: FormState = {};
 export function BannerPanel({
   bannerUrl,
   featuredUrl,
+  plan,
   pictures,
 }: BannerPanelProps) {
+  const limits = getPlanLimits(plan);
+  const atPictureLimit = !canAddPicture(plan, pictures.length);
   const [bannerState, bannerAction, bannerPending] = useActionState(
     updateBannerAction,
     initialState,
@@ -83,10 +94,10 @@ export function BannerPanel({
           action={uploadBannerAction}
           className="mt-6 scroll-mt-28 space-y-4"
         >
-          <ImageFileInput
+          <BannerCropInput
             name="banner_file"
             label="Subir banner"
-            hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
+            hint="JPG, PNG, WebP o GIF. Máximo 5 MB. Recortá a 16:9 antes de subir."
           />
           <FormAlert
             error={uploadBannerState.error}
@@ -136,6 +147,18 @@ export function BannerPanel({
         <p className="mt-1 text-sm text-stone-500">
           Fotos que se muestran en el micrositio.
         </p>
+        <div className="mt-4">
+          <PlanUsageMeter
+            label="fotos"
+            current={pictures.length}
+            max={limits.maxPictures}
+          />
+          {limits.maxPictures !== null ? (
+            <p className="mt-1 text-xs text-stone-500">
+              {pictureLimitMessage(plan)}
+            </p>
+          ) : null}
+        </div>
 
         {pictures.length === 0 ? (
           <div className="mt-4">
@@ -202,10 +225,14 @@ export function BannerPanel({
           />
           <button
             type="submit"
-            disabled={uploadGalleryPending}
+            disabled={uploadGalleryPending || atPictureLimit}
             className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
           >
-            {uploadGalleryPending ? "Subiendo…" : "Subir imagen"}
+            {atPictureLimit
+              ? "Límite de fotos alcanzado"
+              : uploadGalleryPending
+                ? "Subiendo…"
+                : "Subir imagen"}
           </button>
         </form>
 
@@ -214,10 +241,11 @@ export function BannerPanel({
             name="url"
             className="min-w-0 flex-1 rounded-xl border border-stone-200 px-4 py-3 text-sm"
             placeholder="URL de nueva imagen"
+            disabled={atPictureLimit}
           />
           <button
             type="submit"
-            disabled={addPending}
+            disabled={addPending || atPictureLimit}
             className="w-full rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60 sm:w-auto"
           >
             {addPending ? "Agregando…" : "Agregar URL"}

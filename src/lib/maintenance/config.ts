@@ -24,7 +24,7 @@ function parsePositiveInt(raw: string | undefined, fallback: number): number {
 }
 
 export function getMaintenanceRetentionConfig(
-  env: NodeJS.ProcessEnv = process.env,
+  env: Record<string, string | undefined> = process.env,
 ): MaintenanceRetentionConfig {
   return {
     emailLogDays: parsePositiveInt(

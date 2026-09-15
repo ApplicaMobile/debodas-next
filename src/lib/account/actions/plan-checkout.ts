@@ -45,10 +45,10 @@ export async function createPlanCheckoutAction(
     return { error: error ?? "No encontramos tu boda." };
   }
 
-  if (!isMercadoPagoConfigured()) {
+  if (!(await isMercadoPagoConfigured())) {
     return {
       error:
-        "MercadoPago no está configurado. Agregá MERCADOPAGO_ACCESS_TOKEN en .env.local.",
+        "MercadoPago no está configurado. El administrador debe cargarlo en /admin/mercadopago.",
     };
   }
 

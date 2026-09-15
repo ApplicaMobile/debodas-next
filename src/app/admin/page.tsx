@@ -92,6 +92,12 @@ export default async function AdminDashboardPage() {
           >
             Ver estadísticas de bodas →
           </Link>
+          <Link
+            href="/admin/mercadopago"
+            className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
+          >
+            Configurar MercadoPago →
+          </Link>
         </div>
       </section>
 

@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 /**
  * Preview del micrositio: el iframe solo carga cuando entra en viewport.
  */
 export function HowItLooksSection() {
+  const t = useTranslations();
   const frameRef = useRef<HTMLDivElement>(null);
   const [shouldLoad, setShouldLoad] = useState(false);
 
@@ -44,34 +46,30 @@ export function HowItLooksSection() {
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-2">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-white/60">
-            Micrositio real
+            {t("home.lookEyebrow")}
           </p>
           <h2 className="mt-3 font-serif text-3xl font-semibold sm:text-4xl">
-            Así lo ven tus invitados
+            {t("home.lookTitle")}
           </h2>
-          <p className="mt-4 text-lg text-white/75">
-            Countdown, regalos, álbum, ubicación, RSVP y música — en un link
-            que compartís por WhatsApp. Probá el demo con cualquiera de los
-            temas.
-          </p>
+          <p className="mt-4 text-lg text-white/75">{t("home.lookLead")}</p>
           <ol className="mt-6 space-y-3 text-sm text-white/80">
             <li className="flex gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-semibold text-[#e6dac7]">
                 1
               </span>
-              <span>Abrí el demo y recorré las secciones.</span>
+              <span>{t("home.look1")}</span>
             </li>
             <li className="flex gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-semibold text-[#e6dac7]">
                 2
               </span>
-              <span>Probá RSVP o la lista de regalos como invitado.</span>
+              <span>{t("home.look2")}</span>
             </li>
             <li className="flex gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-semibold text-[#e6dac7]">
                 3
               </span>
-              <span>Creá tu cuenta y personalizá el tuyo en minutos.</span>
+              <span>{t("home.look3")}</span>
             </li>
           </ol>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -79,13 +77,13 @@ export function HowItLooksSection() {
               href="/bodas/demo"
               className="rounded-full bg-[#e6dac7] px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
             >
-              Abrir demo
+              {t("home.lookOpenDemo")}
             </Link>
             <Link
               href="/#themes"
               className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
             >
-              Ver todos los temas
+              {t("home.lookThemes")}
             </Link>
           </div>
         </div>
@@ -104,7 +102,7 @@ export function HowItLooksSection() {
           </div>
           {shouldLoad ? (
             <iframe
-              title="Vista del micrositio demo"
+              title={t("home.lookIframeTitle")}
               src="/bodas/demo?embedded=1"
               className="h-[22rem] w-full border-0 bg-white sm:h-[26rem]"
               loading="lazy"

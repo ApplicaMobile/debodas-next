@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { socialLinks } from "@/data/social";
+import { t } from "@/i18n/dictionary";
+import { getDictionary } from "@/i18n/get-locale";
 
 /**
  * CTA a Instagram (perfil público).
  * No usa Graph API: en WP solo había URL de red social en ACF options.
  */
-export function InstagramSection() {
+export async function InstagramSection() {
+  const { messages } = await getDictionary();
   const { href, handle } = socialLinks.instagram;
 
   return (
@@ -13,14 +16,12 @@ export function InstagramSection() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(230,218,199,0.9),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(108,195,158,0.18),transparent_40%)]" />
       <div className="relative mx-auto max-w-3xl px-6 text-center">
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
-          Comunidad
+          {t(messages, "home.instagramEyebrow")}
         </p>
         <h2 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
-          Seguinos en Instagram
+          {t(messages, "home.instagramTitle")}
         </h2>
-        <p className="mt-4 text-stone-600">
-          Momentos reales de parejas que celebraron con DeBodas.
-        </p>
+        <p className="mt-4 text-stone-600">{t(messages, "home.instagramLead")}</p>
         <Link
           href={href}
           target="_blank"
@@ -30,7 +31,7 @@ export function InstagramSection() {
           <span aria-hidden className="text-base">
             ✦
           </span>
-          Ver {handle}
+          {t(messages, "home.instagramCta", { handle })}
         </Link>
       </div>
     </section>

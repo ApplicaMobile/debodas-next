@@ -3,6 +3,7 @@
 import { requireOwnedBoda } from "@/lib/account/auth-boda";
 import type { FormState } from "@/lib/account/form-state";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
+import { canAddPicture, pictureLimitError } from "@/lib/plans/limits";
 import { prisma } from "@/lib/db/prisma";
 import {
   deleteLocalUpload,
@@ -119,6 +120,9 @@ export async function addPictureAction(
   }
 
   const count = await prisma.picture.count({ where: { bodaId: boda.id } });
+  if (!canAddPicture(boda.plan, count)) {
+    return { error: pictureLimitError(boda.plan) };
+  }
 
   try {
     await prisma.picture.create({
@@ -152,6 +156,9 @@ export async function uploadGalleryFileAction(
   }
 
   const count = await prisma.picture.count({ where: { bodaId: boda.id } });
+  if (!canAddPicture(boda.plan, count)) {
+    return { error: pictureLimitError(boda.plan) };
+  }
 
   try {
     const url = await saveUploadedImage(file, `bodas/${boda.slug}/gallery`);

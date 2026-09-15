@@ -6,7 +6,7 @@ Este documento define **contexto, arquitectura y reglas** para cualquier agente 
 
 - **Frontend nuevo** de DeBodas: micrositios de bodas, landing, auth, panel de novios, pagos, RSVP, calificaciones e Instagram.
 - **Stack:** Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS 4 + **Prisma + MariaDB**.
-- **Sin WordPress en runtime.** No depender del tema PHP `C:\xampp\htdocs\debodas` ni del plugin API para funcionar.
+- **Sin WordPress en runtime de producto.** Next solo lee/escribe tablas Prisma. Las tablas `wp_*` viven en la **misma MySQL** y las lee la herramienta de migración (`/admin/migracion`, `npm run db:import-wp`) y el login perezoso. **Nunca** `prisma migrate reset` ni `--accept-data-loss` sobre esta BD.
 - **Estado actual:** app funcional local con MariaDB; fallback mock en `src/data/` si MySQL no responde.
 
 Referencia visual/comportamiento de producción: tema WordPress en `debodas/` (ACF, CPT `boda`, ~70 endpoints AJAX). Usarlo solo como **especificación**, no como dependencia.
@@ -19,6 +19,12 @@ Referencia visual/comportamiento de producción: tema WordPress en `debodas/` (A
 
 ## Comandos
 
+```bash
+# Docker (recomendado)
+cd debodas-next
+docker compose up --build    # http://localhost:3000  |  MariaDB :3310  |  phpMyAdmin :8889
+```
+
 ```powershell
 cd C:\xampp\htdocs\debodas-web
 npm install
@@ -28,12 +34,18 @@ npm run start
 npm run lint
 npm run db:push  # schema → MariaDB (XAMPP)
 npm run db:seed  # boda demo + usuario
+npm run db:create-admin -- --email=yo@debodas.com.ar --password='clave-segura'
 npm run db:studio
 npm run db:backup # mysqldump → ./backups
 npm run db:rehost-blob # WP images → Blob/local (ver docs/DEPLOY.md)
+npm run db:import-wp   # lee wp_* en la misma MySQL → tablas Prisma
 ```
 
-## MariaDB local (XAMPP)
+## MariaDB local
+
+**Docker:** `docker compose up --build` — `DATABASE_URL=mysql://debodas:debodas@db:3306/debodas_web` (host: `localhost:3310`).
+
+**XAMPP:**
 
 - **BD:** `debodas_web` — crear con `prisma/init.sql` o phpMyAdmin.
 - **URL:** `DATABASE_URL=mysql://root:@localhost:3306/debodas_web` en `.env.local`
@@ -208,9 +220,9 @@ ThemeProvider
 7. ~~Instagram en home~~
 8. ~~Panel admin interno (`/admin`)~~
 9. ~~Storage cloud listo (Vercel Blob vía `BLOB_READ_WRITE_TOKEN`)~~
-10. Deploy (Vercel) + dominio + secrets prod — ver `docs/DEPLOY.md`
-11. Migración de datos desde WordPress
-12. Cutover DNS; WP solo-lectura / apagado
+10. Deploy Hostinger Business Web Apps + crons hPanel — ver `docs/HOSTINGER.md`
+11. Migración de datos desde WordPress (`db:import-wp` + `db:rehost-blob`)
+12. Cutover DNS — ver `docs/CUTOVER.md`; WP solo-lectura / apagado
 
 ## Variables de entorno
 
@@ -219,7 +231,7 @@ DATABASE_URL=mysql://root:@localhost:3306/debodas_web
 AUTH_SECRET=...                    # JWT (mín. 16 chars)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-MERCADOPAGO_ACCESS_TOKEN=
+MERCADOPAGO_ACCESS_TOKEN=          # opcional si se carga en /admin/mercadopago
 MERCADOPAGO_SANDBOX=true
 MERCADOPAGO_WEBHOOK_SECRET=
 # true = rechaza notificaciones sin firma válida (recomendado si solo usás la app MP de DeBodas)
@@ -239,17 +251,19 @@ EMAIL_LOG_RETENTION_DAYS=90
 AUDIT_LOG_RETENTION_DAYS=180
 
 CRON_SECRET=...                    # Bearer para /api/cron/*
-BLOB_READ_WRITE_TOKEN=...          # Vercel Blob; si falta, uploads locales
+BLOB_READ_WRITE_TOKEN=...          # Vercel Blob; en Hostinger dejar vacío (disco)
+WP_DATABASE_URL=mysql://.../debodas_web   # misma BD que DATABASE_URL
+WP_TABLE_PREFIX=wp_
 
 NEXT_PUBLIC_API_URL=...            # legacy WP, opcional
 ```
 
 Redes: editar `src/data/social.ts` (no van en `.env`).
-Deploy: ver `docs/DEPLOY.md`.
+Deploy Hostinger: `docs/HOSTINGER.md`. Cutover: `docs/CUTOVER.md`. Checklist genérico: `docs/DEPLOY.md`.
 
 ## Auth
 
-- Login: `src/lib/auth/actions.ts` + `verifyCredentials()` → `users`.
+- Login: `src/lib/auth/actions.ts` + `verifyCredentials()` → `users`. Si el email no está en Prisma, verifica `wp_users` y migra esa cuenta con el motor de `src/lib/wp-import`.
 - Sesión: cookie httpOnly `debodas_session` (JWT con `jose` + `sessionVersion`).
 - Al cambiar contraseña (reset) se incrementa `User.sessionVersion` y las sesiones previas quedan inválidas.
 - Accesos admin (`login`/`logout`) se registran en auditoría.

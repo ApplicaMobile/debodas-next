@@ -73,6 +73,14 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
         <p className="mt-2 text-stone-600">
           Últimos registros de MercadoPago / transferencias.
         </p>
+        <p className="mt-4">
+          <Link
+            href="/admin/mercadopago"
+            className="text-sm font-medium text-[#6f5f47] hover:underline"
+          >
+            Configurar MercadoPago →
+          </Link>
+        </p>
       </section>
 
       <section className="space-y-3">

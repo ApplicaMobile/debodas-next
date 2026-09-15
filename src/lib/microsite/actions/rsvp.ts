@@ -21,12 +21,27 @@ import {
 
 const PUBLIC_RSVP_STATUSES = new Set(["confirmed", "declined"]);
 
+function collectGuestNames(formData: FormData): string[] {
+  const primary = String(formData.get("name") ?? "").trim();
+  const names: string[] = [];
+  if (primary.length >= 2) {
+    names.push(primary.slice(0, 120));
+  }
+  for (let index = 0; index < 15; index += 1) {
+    const extra = String(formData.get(`extra_guest_name_${index}`) ?? "").trim();
+    if (extra.length >= 2) {
+      names.push(extra.slice(0, 120));
+    }
+  }
+  return names;
+}
+
 export async function submitPublicRsvpAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const slug = String(formData.get("boda_slug") ?? "").trim();
-  const name = String(formData.get("name") ?? "").trim();
+  const names = collectGuestNames(formData);
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const status = String(formData.get("status") ?? "confirmed").trim();
   const notes = String(formData.get("notes") ?? "").trim();
@@ -41,7 +56,7 @@ export async function submitPublicRsvpAction(
     return { error: "No encontramos esta boda." };
   }
 
-  if (name.length < 2 || name.length > 120) {
+  if (names.length === 0) {
     return { error: "Ingresá tu nombre completo." };
   }
 
@@ -88,7 +103,7 @@ export async function submitPublicRsvpAction(
       return { error: "No encontramos esta boda." };
     }
 
-    if (!canAddRsvpGuest(boda.plan, boda._count.rsvpGuests)) {
+    if (!canAddRsvpGuest(boda.plan, boda._count.rsvpGuests + names.length - 1)) {
       return { error: rsvpLimitError(boda.plan) };
     }
 
@@ -97,32 +112,37 @@ export async function submitPublicRsvpAction(
         ? sanitizeRsvpMenu(menuRaw)
         : "general";
 
-    const guest = await prisma.rsvpGuest.create({
-      data: {
-        bodaId: boda.id,
-        name,
-        email: email || null,
-        status,
-        menu,
-        notes: notes || null,
-      },
-    });
+    const created = await prisma.$transaction(
+      names.map((name, index) =>
+        prisma.rsvpGuest.create({
+          data: {
+            bodaId: boda.id,
+            name,
+            email: index === 0 && email ? email : null,
+            status,
+            menu,
+            notes: index === 0 && notes ? notes : null,
+          },
+        }),
+      ),
+    );
 
+    const guestLabel = names.join(", ");
     await notifyNoviosRsvp({
       bodaId: boda.id,
-      guestName: name,
+      guestName: guestLabel,
       status,
       menu,
       notes: notes || null,
       guestEmail: email || null,
-      notificationId: guest.id,
+      notificationId: created[0]?.id,
     });
 
     await createRsvpNotification({
       bodaId: boda.id,
-      guestName: name,
+      guestName: guestLabel,
       status,
-      guestId: guest.id,
+      guestId: created[0]!.id,
     });
 
     revalidatePath(`/bodas/${boda.slug}`);
@@ -132,7 +152,9 @@ export async function submitPublicRsvpAction(
     return {
       success:
         status === "confirmed"
-          ? "¡Gracias! Recibimos tu confirmación de asistencia."
+          ? names.length > 1
+            ? `¡Gracias! Recibimos la confirmación de ${names.length} invitados.`
+            : "¡Gracias! Recibimos tu confirmación de asistencia."
           : "Gracias por avisarnos. Registramos que no podrás asistir.",
     };
   } catch (error) {

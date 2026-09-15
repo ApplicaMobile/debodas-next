@@ -1,5 +1,8 @@
+"use client";
+
 import { MicrositeSectionTitle } from "@/components/themes/ThemeSection";
 import { toCanvaEmbedUrl } from "@/lib/invitations/parse";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 interface MicrositeCanvaInviteProps {
   canvaLink: string;
@@ -10,6 +13,7 @@ export function MicrositeCanvaInvite({
   canvaLink,
   titleClass,
 }: MicrositeCanvaInviteProps) {
+  const t = useTranslations();
   const embedUrl = toCanvaEmbedUrl(canvaLink);
   if (!embedUrl) {
     return null;
@@ -18,14 +22,14 @@ export function MicrositeCanvaInvite({
   return (
     <div className="mx-auto max-w-xl px-6 text-center">
       <MicrositeSectionTitle className={titleClass}>
-        Invitación
+        {t("microsite.invite")}
       </MicrositeSectionTitle>
       <p className="mt-3 text-sm text-[var(--theme-text-muted)]">
-        Diseño personalizado de los novios
+        {t("microsite.inviteCustom")}
       </p>
       <div className="microsite-card mt-6 overflow-hidden p-0">
         <iframe
-          title="Invitación en Canva"
+          title={t("microsite.inviteIframe")}
           src={embedUrl}
           className="h-[560px] w-full border-0 sm:h-[620px]"
           loading="lazy"

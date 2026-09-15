@@ -69,6 +69,27 @@ export const workSteps: HomeStep[] = [
   },
 ];
 
+export const guestSteps: HomeStep[] = [
+  {
+    number: "01",
+    title: "Abrí el link",
+    description:
+      "Tus invitados entran al micrositio desde el celular, sin instalar nada.",
+  },
+  {
+    number: "02",
+    title: "Confirman asistencia",
+    description:
+      "RSVP, menú y mesas (según tu plan) en un solo formulario.",
+  },
+  {
+    number: "03",
+    title: "Eligen un regalo",
+    description:
+      "Pagan con Mercado Pago, transferencia o el medio que hayas configurado.",
+  },
+];
+
 export const plans: HomePlan[] = [
   {
     slug: "gratuito",

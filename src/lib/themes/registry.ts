@@ -61,6 +61,10 @@ export const micrositeThemes: Record<ThemeSlug, MicrositeTheme> = {
       countdownText: "#373736",
       bannerText: "#ffffff",
     },
+    // base-home.svg está vacío; WP usa home-base.png / placeholder
+    assets: {
+      homeSvg: asset("home-base.png"),
+    },
   }),
 
   hojas: createTheme("hojas", "Hojas", "basico", {

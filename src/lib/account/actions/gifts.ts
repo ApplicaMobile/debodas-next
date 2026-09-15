@@ -60,6 +60,45 @@ export async function updateGiftsListTitleAction(
   }
 }
 
+function parseOptions(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object") {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
+export async function updateGiftDisplayOptionsAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { error, boda } = await requireOwnedBoda();
+  if (error || !boda) {
+    return { error: error ?? "No encontramos tu boda." };
+  }
+
+  const freeMount = formData.get("free_mount") === "on" ? 1 : 0;
+  const hideGiftsList = formData.get("hide_gifts_list") === "on" ? 1 : 0;
+
+  try {
+    await prisma.boda.update({
+      where: { id: boda.id },
+      data: {
+        options: {
+          ...parseOptions(boda.options),
+          free_mount: freeMount,
+          hide_gifts_list: hideGiftsList,
+        },
+      },
+    });
+
+    revalidateBodaPaths(boda.slug, ["/mi-cuenta/regalos", "/mi-cuenta/plan"]);
+    return { success: "Opciones de la lista actualizadas." };
+  } catch (err) {
+    console.error("[updateGiftDisplayOptionsAction]", err);
+    return { error: "No se pudieron guardar las opciones." };
+  }
+}
+
 export async function addGiftAction(
   _prev: FormState,
   formData: FormData,

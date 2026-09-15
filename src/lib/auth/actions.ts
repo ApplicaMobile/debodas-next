@@ -28,6 +28,8 @@ import {
 
 export interface LoginState {
   error?: string;
+  errorCode?: "invalid" | "too_many" | "db";
+  retryAfter?: number;
   success?: boolean;
   redirectTo?: string;
 }
@@ -45,7 +47,7 @@ export async function loginAction(
   const website = String(formData.get("website") ?? "").trim();
 
   if (website || normalizedEmail.length > 254 || password.length > 72) {
-    return { error: "Email o contraseña incorrectos." };
+    return { error: "Email o contraseña incorrectos.", errorCode: "invalid" };
   }
 
   const safeNext =
@@ -64,12 +66,14 @@ export async function loginAction(
     if (!limited.ok) {
       return {
         error: `Demasiados intentos. Probá en ${limited.retryAfterSec}s.`,
+        errorCode: "too_many",
+        retryAfter: limited.retryAfterSec,
       };
     }
 
     const user = await verifyCredentials(normalizedEmail, password);
     if (!user) {
-      return { error: "Email o contraseña incorrectos." };
+      return { error: "Email o contraseña incorrectos.", errorCode: "invalid" };
     }
 
     await createSession({
@@ -98,9 +102,11 @@ export async function loginAction(
       redirectTo = "/acceso-denegado?from=admin";
     } else if (
       isAdminRole(user.role) &&
-      (safeNext === "/mi-cuenta" || safeNext.startsWith("/mi-cuenta"))
+      (safeNext === "/mi-cuenta" ||
+        safeNext.startsWith("/mi-cuenta") ||
+        safeNext === "/")
     ) {
-      redirectTo = "/admin";
+      redirectTo = "/";
     }
 
     return { success: true, redirectTo };
@@ -108,7 +114,8 @@ export async function loginAction(
     console.error("[loginAction]", error);
     return {
       error:
-        "No se pudo conectar con la base de datos. Verificá que MySQL esté activo en XAMPP.",
+        "No se pudo conectar con la base de datos. Verificá que MySQL esté activo.",
+      errorCode: "db",
     };
   }
 }

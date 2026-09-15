@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { GiftsPanel } from "@/components/account/GiftsPanel";
 import { LocalUploadsNotice } from "@/components/account/LocalUploadsNotice";
 import { getOwnedBoda } from "@/lib/account/require-boda";
+import { allowsFreeGiftAmount, hidesGiftList } from "@/lib/bodas/options";
 
 export default async function MiCuentaRegalosPage() {
   const boda = await getOwnedBoda();
@@ -23,6 +24,8 @@ export default async function MiCuentaRegalosPage() {
       <GiftsPanel
         plan={boda.plan}
         listTitle={boda.giftsListTitle ?? "Lista de regalos"}
+        freeMount={allowsFreeGiftAmount(boda.options)}
+        hideGiftsList={hidesGiftList(boda.options)}
         gifts={boda.gifts
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map((gift) => ({

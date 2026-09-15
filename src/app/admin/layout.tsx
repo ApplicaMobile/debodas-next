@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { prisma } from "@/lib/db/prisma";
 
@@ -41,7 +42,10 @@ export default async function AdminLayout({
               {admin.email}
             </p>
           </div>
-          <LogoutButton />
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <LanguageSwitcher compact variant="onLight" />
+            <LogoutButton />
+          </div>
         </div>
       </header>
 

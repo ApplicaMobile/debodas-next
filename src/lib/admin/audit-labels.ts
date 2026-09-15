@@ -15,6 +15,7 @@ const ACTION_LABELS: Record<string, string> = {
   "admin.auth.login": "Inició sesión en el panel",
   "admin.auth.logout": "Cerró sesión del panel",
   "admin.maintenance.run": "Ejecutó mantenimiento",
+  "admin.mercadopago.settings_updated": "Actualizó MercadoPago",
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -27,6 +28,7 @@ const ENTITY_LABELS: Record<string, string> = {
   email_queue: "Cola de emails",
   auth: "Autenticación",
   maintenance: "Mantenimiento",
+  mercadopago: "MercadoPago",
 };
 
 export function auditActionLabel(action: string): string {
