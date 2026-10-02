@@ -7,16 +7,29 @@ import { join } from "path";
 export type MetaMap = Map<string, string>;
 
 const LOST_CHARS = ["á", "é", "í", "ó", "ú", "ñ", "ü"] as const;
-const SPANISH_WORDS = new Set(
-  readFileSync(
-    join(process.cwd(), "node_modules", "dictionary-es", "index.dic"),
-    "utf8",
-  )
-    .split(/\r?\n/)
-    .slice(1)
-    .map((line) => line.split("/")[0]?.trim().toLocaleLowerCase("es"))
-    .filter(Boolean),
-);
+
+let spanishWords: Set<string> | null = null;
+
+/** Hunspell list used only to disambiguate broken accents. Missing file must not crash login. */
+function getSpanishWords(): Set<string> {
+  if (spanishWords) return spanishWords;
+  try {
+    const raw = readFileSync(
+      join(process.cwd(), "node_modules", "dictionary-es", "index.dic"),
+      "utf8",
+    );
+    spanishWords = new Set(
+      raw
+        .split(/\r?\n/)
+        .slice(1)
+        .map((line) => line.split("/")[0]?.trim().toLocaleLowerCase("es"))
+        .filter(Boolean),
+    );
+  } catch {
+    spanishWords = new Set();
+  }
+  return spanishWords;
+}
 
 const EXACT_REPAIRS: Record<string, string> = {
   "acompa?arlos": "acompañarlos",
@@ -449,8 +462,9 @@ function repairTokenFromDictionary(token: string): string {
   if (!/\p{L}\?\p{L}/u.test(token)) {
     return token;
   }
+  const words = getSpanishWords();
   const candidates = LOST_CHARS.map((char) => lower.replace("?", char)).filter(
-    (word) => SPANISH_WORDS.has(word),
+    (word) => words.has(word),
   );
   if (candidates.length === 1) {
     return preserveCase(token, candidates[0]);

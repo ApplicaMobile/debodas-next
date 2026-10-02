@@ -18,8 +18,7 @@ export default async function MiCuentaPagosPage() {
           Métodos de pago
         </h2>
         <p className="mt-2 text-sm text-stone-600">
-          Configurá cómo pueden pagarte tus invitados al regalar. El Access
-          Token de Mercado Pago se guarda cifrado.
+          Configurá cómo pueden pagarte tus invitados al regalar.
         </p>
       </div>
       <PaymentSettingsPanel plan={boda.plan} settings={settings} />

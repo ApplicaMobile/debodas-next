@@ -14,11 +14,19 @@ test("parseLocale acepta es, en y pt y cae a es", () => {
   assert.equal(parseLocale(undefined), "es");
 });
 
-test("detectLocaleFromHeader prioriza pt y en", () => {
+test("detectLocaleFromHeader respeta orden y peso q", () => {
   assert.equal(detectLocaleFromHeader("pt-BR,pt;q=0.9"), "pt");
   assert.equal(detectLocaleFromHeader("en-US,en;q=0.8"), "en");
   assert.equal(detectLocaleFromHeader("es-AR,es;q=0.9"), "es");
   assert.equal(detectLocaleFromHeader(null), "es");
+  assert.equal(
+    detectLocaleFromHeader("es-AR,es;q=0.9,en-US;q=0.8,en;q=0.7"),
+    "es",
+  );
+  assert.equal(detectLocaleFromHeader("en-US,en;q=0.9,es;q=0.8"), "en");
+  assert.equal(detectLocaleFromHeader("pt-BR,pt;q=0.9,en;q=0.8"), "pt");
+  assert.equal(detectLocaleFromHeader("fr-FR,fr;q=0.9"), "es");
+  assert.equal(detectLocaleFromHeader("es;q=0,en;q=0.8"), "en");
 });
 
 test("t resuelve claves anidadas e interpola", () => {

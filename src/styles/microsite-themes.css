@@ -353,6 +353,13 @@
   background-position: center top;
 }
 
+/* En el celular la ilustración del tema y la foto quedan una encima de la otra. */
+@media (max-width: 768px) {
+  .microsite-banner--svg-hero.microsite-banner--with-photo .microsite-banner__svg-bg {
+    display: none;
+  }
+}
+
 .microsite-banner__content {
   position: relative;
   z-index: 2;

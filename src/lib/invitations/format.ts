@@ -1,4 +1,25 @@
 import { OUTFIT_LABELS, type InvitationOutfit } from "@/lib/invitations/types";
+import { parseEventDate } from "@/lib/ratings/date";
+
+/** Arma el valor de datetime-local a partir de la fecha y hora de la boda. */
+export function toInvitationDatetimeLocal(
+  dateRaw: string,
+  timeRaw: string,
+): string {
+  const date = parseEventDate(dateRaw);
+  if (!date) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const time = /^(\d{1,2}):(\d{2})/.exec(timeRaw.trim());
+  if (!time) {
+    return `${year}-${month}-${day}T`;
+  }
+
+  const hours = time[1].padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${time[2]}`;
+}
 
 export function formatInvitationDateParts(datetime: string): {
   dateLabel: string;

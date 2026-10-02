@@ -60,7 +60,8 @@ test("comparte el micrositio y crea una invitación digital con mapa", async ({
   await page.getByRole("button", { name: "Nueva invitación" }).click();
   await page.getByPlaceholder("Ceremonia, Fiesta, etc.").fill("Ceremonia E2E");
   await page.getByPlaceholder("Nos vamos a casar").fill("Nos casamos E2E");
-  await page.locator('input[name="datetime"]').fill("2030-11-15T19:30");
+  await page.getByLabel("Fecha del evento").fill("2030-11-15");
+  await page.getByLabel("Hora del evento").fill("19:30");
   await page.getByPlaceholder("Salón, iglesia, etc.").fill("Salón E2E");
 
   await page.getByPlaceholder("Ej: Maipú 1873, Santa Fe").fill(

@@ -53,6 +53,11 @@ export function ThemeBanner({
   );
   const showThemeRasterFallback =
     !hasPhoto && showSvgHero && themeHomeIsRaster;
+  /**
+   * El arte raster del tema (p. ej. home-base.png) es el fondo por defecto.
+   * Si ya hay foto del usuario, no se pinta encima: la tapaba al cargar.
+   */
+  const showSvgDecor = showSvgHero && !themeHomeIsRaster;
   const showPhotoLayer =
     hasPhoto &&
     (theme.bannerMode === "svg-hero" ||
@@ -129,7 +134,7 @@ export function ThemeBanner({
         />
       ) : null}
 
-      {showSvgHero && !showThemeRasterFallback ? (
+      {showSvgDecor ? (
         <div className="microsite-banner__svg-bg" aria-hidden="true" />
       ) : null}
 

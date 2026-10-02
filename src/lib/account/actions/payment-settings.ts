@@ -12,10 +12,6 @@ import { prisma } from "@/lib/db/prisma";
 
 function readPaymentSettings(formData: FormData): BodaPaymentSettings {
   return {
-    mp_tokens: {
-      public_key: String(formData.get("mp_public_key") ?? "").trim(),
-      access_token: String(formData.get("mp_access_token") ?? "").trim(),
-    },
     mp_alias_cvu: {
       owner_mp: String(formData.get("mp_transfer_owner") ?? "").trim(),
       alias_cvu_mp: String(formData.get("mp_transfer_alias") ?? "").trim(),

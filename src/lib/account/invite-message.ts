@@ -31,6 +31,14 @@ export function buildDefaultWhatsAppMessage(input: {
   return lines.join("\n");
 }
 
+/** Codifica el texto para el parámetro text de WhatsApp, incluidos ! y emojis. */
+export function encodeWhatsAppText(message: string): string {
+  return encodeURIComponent(message.normalize("NFC")).replace(
+    /[!'()*]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+}
+
 export function buildWhatsAppShareUrl(message: string): string {
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  return `https://api.whatsapp.com/send?text=${encodeWhatsAppText(message)}`;
 }

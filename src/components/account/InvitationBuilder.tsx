@@ -18,7 +18,10 @@ import type { FormState } from "@/lib/account/form-state";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { FormAlert } from "@/components/account/FormAlert";
 import { InvitationCardPreview } from "@/components/account/InvitationCardPreview";
-import { buildInvitationFilename } from "@/lib/invitations/format";
+import {
+  buildInvitationFilename,
+  toInvitationDatetimeLocal,
+} from "@/lib/invitations/format";
 import { getInvitationThemeOptions } from "@/lib/invitations/themes";
 import {
   INVITATION_OUTFITS,
@@ -47,6 +50,10 @@ interface InvitationBuilderProps {
   brideName: string;
   groomName: string;
   isPremium: boolean;
+  /** Fecha ya cargada en la cuenta (dd/mm/aaaa o ISO). */
+  eventDate?: string;
+  /** Hora ya cargada en la cuenta, si existe. */
+  eventTime?: string;
   /** Panel lateral (p. ej. Canva) al lado de las invitaciones creadas */
   aside?: ReactNode;
 }
@@ -68,13 +75,13 @@ type Draft = {
   isVisibleInMicrosite: boolean;
 };
 
-const emptyDraft = (): Draft => ({
+const emptyDraft = (datetime = ""): Draft => ({
   id: "",
   name: "",
   title: "",
   description: "",
   theme: "flores",
-  datetime: "",
+  datetime,
   outfit: "formal",
   locationName: "",
   address: "",
@@ -82,6 +89,17 @@ const emptyDraft = (): Draft => ({
   lng: "",
   isVisibleInMicrosite: false,
 });
+
+function splitDatetimeLocal(value: string): { date: string; time: string } {
+  const [date = "", time = ""] = value.split("T");
+  return { date, time: time.slice(0, 5) };
+}
+
+function joinDatetimeLocal(date: string, time: string): string {
+  if (!date) return "";
+  if (!time) return `${date}T`;
+  return `${date}T${time}`;
+}
 
 function draftFromInvitation(invitation: DigitalInvitation): Draft {
   return {
@@ -105,14 +123,20 @@ export function InvitationBuilder({
   brideName,
   groomName,
   isPremium,
+  eventDate = "",
+  eventTime = "",
   aside,
 }: InvitationBuilderProps) {
   const [state, formAction, pending] = useActionState(
     saveInvitationAction,
     initialState,
   );
+  const eventDatetime = useMemo(
+    () => toInvitationDatetimeLocal(eventDate, eventTime),
+    [eventDate, eventTime],
+  );
   const [openForm, setOpenForm] = useState(invitations.length === 0);
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [draft, setDraft] = useState<Draft>(() => emptyDraft(eventDatetime));
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const themes = useMemo(() => getInvitationThemeOptions(), []);
   const selectedTheme = themes.find((t) => t.slug === draft.theme) ?? themes[0];
@@ -120,13 +144,13 @@ export function InvitationBuilder({
 
   useEffect(() => {
     if (state.success) {
-      setDraft(emptyDraft());
+      setDraft(emptyDraft(eventDatetime));
       setOpenForm(false);
     }
-  }, [state.success]);
+  }, [state.success, eventDatetime]);
 
   function openCreate() {
-    setDraft(emptyDraft());
+    setDraft(emptyDraft(eventDatetime));
     setOpenForm(true);
   }
 
@@ -225,7 +249,7 @@ export function InvitationBuilder({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm text-stone-700">
-                Nombre
+                Nombre del evento
                 <input
                   name="name"
                   required
@@ -236,6 +260,10 @@ export function InvitationBuilder({
                   placeholder="Ceremonia, Fiesta, etc."
                   className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
                 />
+                <span className="mt-1 block text-xs text-stone-500">
+                  Distingue ceremonia, fiesta u otro encuentro. No es el nombre
+                  de los novios.
+                </span>
               </label>
               <label className="block text-sm text-stone-700">
                 Título
@@ -283,19 +311,48 @@ export function InvitationBuilder({
                   ))}
                 </select>
               </label>
-              <label className="block text-sm text-stone-700">
-                Fecha y hora
-                <input
-                  type="datetime-local"
-                  name="datetime"
-                  required
-                  value={draft.datetime}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, datetime: e.target.value }))
-                  }
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
-                />
-              </label>
+              <div className="block text-sm text-stone-700">
+                <p>Fecha y hora</p>
+                <p className="mt-1 text-xs text-stone-500">
+                  La fecha sale de tu boda. Indicá a qué hora empieza y corregí
+                  el día si este evento es otro.
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    required
+                    aria-label="Fecha del evento"
+                    value={splitDatetimeLocal(draft.datetime).date}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        datetime: joinDatetimeLocal(
+                          e.target.value,
+                          splitDatetimeLocal(d.datetime).time,
+                        ),
+                      }))
+                    }
+                    className="w-full rounded-xl border border-stone-200 px-3 py-2.5"
+                  />
+                  <input
+                    type="time"
+                    required
+                    aria-label="Hora del evento"
+                    value={splitDatetimeLocal(draft.datetime).time}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        datetime: joinDatetimeLocal(
+                          splitDatetimeLocal(d.datetime).date,
+                          e.target.value,
+                        ),
+                      }))
+                    }
+                    className="w-full rounded-xl border border-stone-200 px-3 py-2.5"
+                  />
+                </div>
+                <input type="hidden" name="datetime" value={draft.datetime} />
+              </div>
               <label className="block text-sm text-stone-700">
                 Vestimenta
                 <select
@@ -431,7 +488,7 @@ export function InvitationBuilder({
                 <button
                   type="button"
                   onClick={() => {
-                    setDraft(emptyDraft());
+                    setDraft(emptyDraft(eventDatetime));
                     setOpenForm(false);
                   }}
                   className="rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-stone-700"

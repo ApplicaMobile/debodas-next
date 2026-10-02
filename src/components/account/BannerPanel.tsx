@@ -164,14 +164,7 @@ export function BannerPanel({
           <div className="mt-4">
             <AccountEmptyState
               title="Todavía no hay fotos en la galería"
-              description="Subí la primera imagen para que tus invitados vean más de ustedes."
-              actions={[
-                {
-                  label: "Subir primera foto",
-                  href: "#agregar-galeria",
-                  primary: true,
-                },
-              ]}
+              description="Elegí una imagen abajo y subila para que tus invitados vean más de ustedes."
             />
           </div>
         ) : (
@@ -236,24 +229,29 @@ export function BannerPanel({
           </button>
         </form>
 
-        <form action={addAction} className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <input
-            name="url"
-            className="min-w-0 flex-1 rounded-xl border border-stone-200 px-4 py-3 text-sm"
-            placeholder="URL de nueva imagen"
-            disabled={atPictureLimit}
-          />
-          <button
-            type="submit"
-            disabled={addPending || atPictureLimit}
-            className="w-full rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60 sm:w-auto"
-          >
-            {addPending ? "Agregando…" : "Agregar URL"}
-          </button>
-        </form>
-        <div className="mt-3">
-          <FormAlert error={addState.error} success={addState.success} />
-        </div>
+        <details className="mt-6 border-t border-stone-100 pt-4">
+          <summary className="cursor-pointer text-sm text-stone-500">
+            Agregar desde una URL
+          </summary>
+          <form action={addAction} className="mt-3 flex flex-col gap-3 sm:flex-row">
+            <input
+              name="url"
+              className="min-w-0 flex-1 rounded-xl border border-stone-200 px-4 py-3 text-sm"
+              placeholder="https://..."
+              disabled={atPictureLimit}
+            />
+            <button
+              type="submit"
+              disabled={addPending || atPictureLimit}
+              className="w-full rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60 sm:w-auto"
+            >
+              {addPending ? "Agregando…" : "Agregar"}
+            </button>
+          </form>
+          <div className="mt-3">
+            <FormAlert error={addState.error} success={addState.success} />
+          </div>
+        </details>
       </section>
     </div>
   );

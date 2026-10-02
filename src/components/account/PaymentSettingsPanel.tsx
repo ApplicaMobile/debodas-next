@@ -30,38 +30,6 @@ export function PaymentSettingsPanel({
     <form action={formAction} className="space-y-8">
       <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
         <h3 className="text-lg font-semibold text-stone-800">
-          Mercado Pago · Checkout online
-        </h3>
-        <p className="mt-2 text-sm text-stone-600">
-          Credenciales de tu cuenta MP para cobrar con tarjeta. Los invitados
-          pagan con un recargo del 6%.
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <FormInput
-            label="Public Key"
-            name="mp_public_key"
-            defaultValue={settings.mp_tokens?.public_key}
-          />
-          <FormInput
-            label="Access Token"
-            name="mp_access_token"
-            defaultValue={settings.mp_tokens?.access_token}
-            placeholder={
-              (settings as { mp_access_token_saved?: boolean })
-                .mp_access_token_saved
-                ? "Dejá los puntos para mantener el token guardado"
-                : undefined
-            }
-          />
-          <p className="sm:col-span-2 text-xs text-stone-500">
-            El Access Token se cifra en la base. Si ya está guardado, dejá el
-            campo enmascarado o pegá uno nuevo para reemplazarlo.
-          </p>
-        </div>
-      </section>
-
-      <section className="rounded-2xl bg-white p-4 sm:rounded-3xl sm:p-8 shadow-sm">
-        <h3 className="text-lg font-semibold text-stone-800">
           Mercado Pago · Transferencia
         </h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">

@@ -30,5 +30,5 @@ runCliImport(parseArgs(process.argv.slice(2)))
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+  await prisma.$disconnect();
 });
