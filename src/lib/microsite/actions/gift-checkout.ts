@@ -17,7 +17,13 @@ import {
   createMercadoPagoPreference,
   MercadoPagoApiError,
 } from "@/lib/mercadopago/api";
-import { getAppBaseUrl, getMercadoPagoWebhookUrl } from "@/lib/mercadopago/config";
+import {
+  getAppBaseUrl,
+  getMercadoPagoAccessToken,
+  getMercadoPagoWebhookUrl,
+  isMercadoPagoConfigured,
+} from "@/lib/mercadopago/config";
+import { canUsePlatformGiftCheckout } from "@/lib/plans/demo";
 import { allowsFreeGiftAmount } from "@/lib/bodas/options";
 import { prisma } from "@/lib/db/prisma";
 import { notifyNoviosGift } from "@/lib/email/notify";
@@ -242,19 +248,26 @@ export async function createGiftCheckoutAction(
     const settings = getDecryptedPaymentSettings(
       boda.misc as Record<string, unknown>,
     );
-    const availableMethods = getAvailableGiftPaymentMethods(settings, boda.plan);
+    const platformCheckout =
+      canUsePlatformGiftCheckout(boda.slug) && (await isMercadoPagoConfigured());
+    const availableMethods = getAvailableGiftPaymentMethods(settings, boda.plan, {
+      platformCheckout,
+    });
     if (!availableMethods.includes(GIFT_PAYMENT_METHODS.MP_CHECKOUT)) {
       return {
         error:
-          "MercadoPago checkout no está habilitado. La pareja debe configurar sus credenciales.",
+          "MercadoPago checkout no está habilitado. En demo, cargá un Access Token de prueba en /admin/mercadopago.",
       };
     }
 
-    if (!hasMpCheckout(settings)) {
+    const coupleToken = hasMpCheckout(settings)
+      ? settings.mp_tokens?.access_token?.trim() || null
+      : null;
+    const accessToken =
+      coupleToken || (platformCheckout ? await getMercadoPagoAccessToken() : null);
+    if (!accessToken) {
       return { error: "MercadoPago no está configurado para esta boda." };
     }
-
-    const accessToken = settings.mp_tokens!.access_token!.trim();
     const cartLines = await buildCartLines(
       boda.id,
       cartItems,

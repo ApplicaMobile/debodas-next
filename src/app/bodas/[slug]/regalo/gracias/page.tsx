@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCoupleDisplayName } from "@/data/bodas";
 import { getBodaBySlug } from "@/lib/bodas/queries";
 import { prisma } from "@/lib/db/prisma";
+import { syncMercadoPagoReturn } from "@/lib/payments/sync-mp-return";
 
 interface GiftThankYouPageProps {
   params: Promise<{ slug: string }>;
@@ -11,6 +12,9 @@ interface GiftThankYouPageProps {
     status?: string;
     transfer?: string;
     method?: string;
+    collection_id?: string;
+    payment_id?: string;
+    external_reference?: string;
   }>;
 }
 
@@ -122,6 +126,12 @@ export default async function GiftThankYouPage({
   }
 
   let paymentStatus: string | null = null;
+  await syncMercadoPagoReturn({
+    mpPaymentId: query.payment_id,
+    collectionId: query.collection_id,
+    externalRef: query.external_reference ?? query.ref,
+    bodaId: String(boda.id),
+  });
   if (query.ref) {
     const payment = await prisma.payment.findUnique({
       where: { externalRef: query.ref },

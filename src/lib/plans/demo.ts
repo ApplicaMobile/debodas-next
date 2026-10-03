@@ -11,3 +11,14 @@ export function isDemoPlanSwitchEnabled(): boolean {
   }
   return process.env.NODE_ENV !== "production";
 }
+
+/**
+ * En demo/local, regalos pueden usar el Access Token de la plataforma
+ * (sandbox) si la pareja no tiene credenciales propias.
+ */
+export function canUsePlatformGiftCheckout(slug?: string | null): boolean {
+  if (slug === "demo") {
+    return true;
+  }
+  return isDemoPlanSwitchEnabled();
+}

@@ -150,6 +150,7 @@ export function hasPaypal(settings: BodaPaymentSettings): boolean {
 export function getAvailableGiftPaymentMethods(
   settings: BodaPaymentSettings,
   plan: string,
+  extras?: { platformCheckout?: boolean },
 ): string[] {
   const methods: string[] = [];
 
@@ -162,7 +163,7 @@ export function getAvailableGiftPaymentMethods(
   if (hasMpTransfer(settings)) {
     methods.push("mp_transfer");
   }
-  if (hasMpCheckout(settings)) {
+  if (hasMpCheckout(settings) || extras?.platformCheckout) {
     methods.push("mp_checkout");
   }
   if (hasPaypal(settings)) {
@@ -183,9 +184,10 @@ export interface PublicPaymentOptions {
 export function getPublicPaymentOptions(
   settings: BodaPaymentSettings,
   plan: string,
+  extras?: { platformCheckout?: boolean },
 ): PublicPaymentOptions {
   return {
-    methods: getAvailableGiftPaymentMethods(settings, plan),
+    methods: getAvailableGiftPaymentMethods(settings, plan, extras),
     mp_alias_cvu: settings.mp_alias_cvu,
     bank_account: settings.bank_account,
     bank_account_usd: hasBankTransferUsd(settings, plan)

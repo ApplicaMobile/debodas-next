@@ -141,7 +141,7 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
 
   const embedded = embeddedParam === "1";
   const { boda: publicBoda, paymentOptions } =
-    buildPublicMicrositePayload(boda);
+    await buildPublicMicrositePayload(boda);
 
   return (
     <ThemeProvider

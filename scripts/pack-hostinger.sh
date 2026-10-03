@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Arma un tar.gz del código de debodas-next para subirlo a Hostinger.
+# Arma un tar.gz fechado del código de debodas-next para subirlo a Hostinger.
 # Hostinger instala dependencias y corre `npm run build` en el servidor.
 # No incluye node_modules, .next, .git ni archivos .env con secretos.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="${1:-$(dirname "$ROOT")/debodas-next.tar.gz}"
+STAMP="$(date +%Y%m%d-%H%M%S)"
+OUT="${1:-$(dirname "$ROOT")/debodas-next-${STAMP}.tar.gz}"
 
 if [[ "$OUT" != /* ]]; then
   OUT="$(pwd)/$OUT"

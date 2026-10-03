@@ -9,6 +9,7 @@ import {
   isAccountSectionActive,
   type AccountSection,
 } from "@/lib/account/sections";
+import { AccountNavIcon } from "@/components/account/AccountNavIcon";
 
 export type AccountSidebarBadges = Partial<Record<string, number>>;
 
@@ -72,7 +73,10 @@ function SectionLink({
         <span
           className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm ${className}`}
         >
-          {section.label}
+          <span className="flex min-w-0 items-center gap-2.5">
+            <AccountNavIcon href={section.href} className="h-4 w-4 shrink-0" />
+            <span className="truncate">{section.label}</span>
+          </span>
           <span className="text-[10px] uppercase tracking-wide">Pronto</span>
         </span>
       </li>
@@ -86,7 +90,10 @@ function SectionLink({
         onClick={onNavigate}
         className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm transition ${className}`}
       >
-        <span>{section.label}</span>
+        <span className="flex min-w-0 items-center gap-2.5">
+          <AccountNavIcon href={section.href} className="h-4 w-4 shrink-0" />
+          <span className="truncate">{section.label}</span>
+        </span>
         {badge && badge > 0 ? (
           <span
             className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white"
@@ -221,6 +228,10 @@ export function AccountSidebar({
               Sección
             </span>
             <span className="mt-0.5 flex items-center gap-2 text-sm font-semibold text-stone-800">
+              <AccountNavIcon
+                href={activeSection.href}
+                className="h-4 w-4 shrink-0"
+              />
               <span className="truncate">{activeSection.label}</span>
               {activeBadge > 0 ? (
                 <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
@@ -266,7 +277,11 @@ export function AccountSidebar({
                 >
                   Panel
                 </p>
-                <p className="mt-0.5 text-sm font-semibold text-stone-800">
+                <p className="mt-0.5 flex items-center gap-2 text-sm font-semibold text-stone-800">
+                  <AccountNavIcon
+                    href={activeSection.href}
+                    className="h-4 w-4 shrink-0"
+                  />
                   {activeSection.label}
                 </p>
               </div>

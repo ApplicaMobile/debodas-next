@@ -3,13 +3,20 @@ import { PlanPanel } from "@/components/account/PlanPanel";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 import { isMercadoPagoConfigured } from "@/lib/mercadopago/config";
 import { isDemoPlanSwitchEnabled } from "@/lib/plans/demo";
+import { syncMercadoPagoReturn } from "@/lib/payments/sync-mp-return";
 
 function optionEnabled(value: unknown): boolean {
   return value === 1 || value === true || value === "1";
 }
 
 interface MiCuentaPlanPageProps {
-  searchParams: Promise<{ payment?: string }>;
+  searchParams: Promise<{
+    payment?: string;
+    collection_id?: string;
+    payment_id?: string;
+    external_reference?: string;
+    status?: string;
+  }>;
 }
 
 export default async function MiCuentaPlanPage({
@@ -20,8 +27,19 @@ export default async function MiCuentaPlanPage({
     notFound();
   }
 
-  const { payment } = await searchParams;
-  const options = boda.options as Record<string, unknown>;
+  const query = await searchParams;
+  await syncMercadoPagoReturn({
+    mpPaymentId: query.payment_id,
+    collectionId: query.collection_id,
+    externalRef: query.external_reference,
+    bodaId: boda.id,
+  });
+  const latest = (await getOwnedBoda()) ?? boda;
+  const options = latest.options as Record<string, unknown>;
+  const paymentNotice =
+    query.payment ??
+    (query.status === "approved" ? "success" : query.status) ??
+    null;
 
   return (
     <div className="space-y-6">
@@ -34,17 +52,17 @@ export default async function MiCuentaPlanPage({
         </p>
       </div>
       <PlanPanel
-        plan={boda.plan}
+        plan={latest.plan}
         showFaq={optionEnabled(options.show_faq)}
         showDressCode={optionEnabled(options.show_dress_code)}
-        isOnline={boda.isOnline}
+        isOnline={latest.isOnline}
         freeMount={optionEnabled(options.free_mount)}
         hideGiftsList={optionEnabled(options.hide_gifts_list)}
         mpConfigured={await isMercadoPagoConfigured()}
         demoPlanSwitch={isDemoPlanSwitchEnabled()}
-        paymentNotice={payment ?? null}
-        giftCount={boda.gifts.length}
-        guestCount={boda.rsvpGuests.length}
+        paymentNotice={paymentNotice}
+        giftCount={latest.gifts.length}
+        guestCount={latest.rsvpGuests.length}
       />
     </div>
   );

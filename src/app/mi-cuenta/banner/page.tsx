@@ -25,7 +25,6 @@ export default async function MiCuentaBannerPage() {
       <LocalUploadsNotice />
       <BannerPanel
         bannerUrl={bannerUrl}
-        featuredUrl={boda.featuredImageUrl ?? ""}
         plan={boda.plan}
         pictures={boda.pictures.map((p) => ({
           id: p.id,

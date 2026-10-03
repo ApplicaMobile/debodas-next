@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountSetupSticky } from "@/components/account/AccountSetupSticky";
+import { AccountNavIconBadge } from "@/components/account/AccountNavIcon";
 import { getSession } from "@/lib/auth/session";
 import { accountSections } from "@/lib/account/sections";
 import { prisma } from "@/lib/db/prisma";
@@ -270,6 +271,7 @@ export default async function MiCuentaPage() {
               href="/mi-cuenta/invitar"
               className="rounded-2xl border border-[#25D366]/30 bg-[#25D366]/10 px-4 py-4 transition hover:bg-[#25D366]/15"
             >
+              <AccountNavIconBadge href="/mi-cuenta/invitar" tone="whatsapp" />
               <p className="text-sm font-semibold text-stone-800">
                 Compartir / invitar
               </p>
@@ -281,6 +283,7 @@ export default async function MiCuentaPage() {
               href="/mi-cuenta/invitados"
               className="rounded-2xl border border-stone-200 px-4 py-4 transition hover:bg-stone-50"
             >
+              <AccountNavIconBadge href="/mi-cuenta/invitados" />
               <p className="text-sm font-semibold text-stone-800">
                 Invitados / RSVP
               </p>
@@ -296,6 +299,10 @@ export default async function MiCuentaPage() {
                   : "border-stone-200 hover:bg-stone-50"
               }`}
             >
+              <AccountNavIconBadge
+                href="/mi-cuenta/regalos-recibidos"
+                tone={pendingGiftsCount > 0 ? "gift" : "neutral"}
+              />
               <p className="text-sm font-semibold text-stone-800">
                 Regalos recibidos
                 {pendingGiftsCount > 0 ? (
@@ -314,6 +321,7 @@ export default async function MiCuentaPage() {
               href="/mi-cuenta/boda"
               className="rounded-2xl border border-stone-200 px-4 py-4 transition hover:bg-stone-50"
             >
+              <AccountNavIconBadge href="/mi-cuenta/boda" />
               <p className="text-sm font-semibold text-stone-800">
                 Datos de la boda
               </p>

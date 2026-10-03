@@ -2,9 +2,8 @@
 
 import { useActionState } from "react";
 import {
-  addPictureAction,
   deletePictureAction,
-  updateBannerAction,
+  resetBannerToDefaultAction,
   uploadBannerFileAction,
   uploadGalleryFileAction,
 } from "@/lib/account/actions/banner";
@@ -21,9 +20,12 @@ import {
   pictureLimitMessage,
 } from "@/lib/plans/limits";
 
+/** Misma imagen que WP cuando la pareja todavía no subió banner. */
+export const DEFAULT_BANNER_IMAGE_URL =
+  "/assets/img/themes/banner_wedding_placeholder.png";
+
 interface BannerPanelProps {
   bannerUrl: string;
-  featuredUrl: string;
   plan: string;
   pictures: Array<{ id: string; url: string; alt: string | null }>;
 }
@@ -32,22 +34,15 @@ const initialState: FormState = {};
 
 export function BannerPanel({
   bannerUrl,
-  featuredUrl,
   plan,
   pictures,
 }: BannerPanelProps) {
   const limits = getPlanLimits(plan);
   const atPictureLimit = !canAddPicture(plan, pictures.length);
-  const [bannerState, bannerAction, bannerPending] = useActionState(
-    updateBannerAction,
-    initialState,
-  );
+  const hasCustomBanner = Boolean(bannerUrl);
+  const previewUrl = hasCustomBanner ? bannerUrl : DEFAULT_BANNER_IMAGE_URL;
   const [uploadBannerState, uploadBannerAction, uploadBannerPending] =
     useActionState(uploadBannerFileAction, initialState);
-  const [addState, addAction, addPending] = useActionState(
-    addPictureAction,
-    initialState,
-  );
   const [uploadGalleryState, uploadGalleryAction, uploadGalleryPending] =
     useActionState(uploadGalleryFileAction, initialState);
 
@@ -58,46 +53,53 @@ export function BannerPanel({
           Imagen del banner
         </h3>
         <p className="mt-1 text-sm text-stone-500">
-          Subí una foto o pegá la URL del encabezado del micrositio.
+          Es la primera imagen que ven tus invitados. Subí una foto horizontal.
         </p>
 
-        <div className="mt-6">
-          {bannerUrl ? (
-            <div className="overflow-hidden rounded-2xl border border-stone-100 bg-stone-50">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={bannerUrl}
-                alt="Vista previa del banner"
-                className="max-h-56 w-full object-cover"
-              />
-              <p className="truncate px-3 py-2 text-xs text-stone-500">
-                {bannerUrl}
-              </p>
-            </div>
-          ) : (
-            <AccountEmptyState
-              title="Todavía no hay banner"
-              description="Es la primera imagen que ven tus invitados. Subí una foto horizontal o pegá una URL."
-              actions={[
-                {
-                  label: "Subir banner",
-                  href: "#subir-banner",
-                  primary: true,
-                },
-              ]}
-            />
-          )}
+        <div className="mt-6 overflow-hidden rounded-2xl border border-stone-100 bg-stone-50">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={previewUrl}
+            alt={
+              hasCustomBanner
+                ? "Vista previa del banner"
+                : "Imagen por defecto del banner"
+            }
+            className="max-h-56 w-full object-cover"
+          />
+          <div className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-stone-500">
+              {hasCustomBanner
+                ? "Banner actual. Elegí otra foto abajo para reemplazarlo."
+                : "Imagen por defecto. Se usa hasta que subas una foto."}
+            </p>
+            {hasCustomBanner ? (
+              <ConfirmDeleteForm
+                action={resetBannerToDefaultAction}
+                message="¿Quitar tu foto y volver a la imagen por defecto?"
+                successMessage="Volviste a la imagen por defecto."
+                className="shrink-0"
+              >
+                <button
+                  type="submit"
+                  className="text-sm font-medium text-stone-600 hover:text-stone-900 hover:underline"
+                >
+                  Volver a la imagen por defecto
+                </button>
+              </ConfirmDeleteForm>
+            ) : null}
+          </div>
         </div>
 
         <form
           id="subir-banner"
           action={uploadBannerAction}
-          className="mt-6 scroll-mt-28 space-y-4"
+          className="mt-6 space-y-4"
         >
           <BannerCropInput
             name="banner_file"
-            label="Subir banner"
-            hint="JPG, PNG, WebP o GIF. Máximo 5 MB. Recortá a 16:9 antes de subir."
+            label="Cambiar banner"
+            hint="JPG, PNG, WebP o GIF. Máximo 5 MB. Recorte 1400×500. Comprobá que se vea centrada en el celular."
           />
           <FormAlert
             error={uploadBannerState.error}
@@ -108,36 +110,11 @@ export function BannerPanel({
             disabled={uploadBannerPending}
             className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
           >
-            {uploadBannerPending ? "Subiendo…" : "Subir banner"}
-          </button>
-        </form>
-
-        <form action={bannerAction} className="mt-8 space-y-4 border-t border-stone-100 pt-8">
-          <p className="text-sm font-medium text-stone-700">
-            O usar URL externa
-          </p>
-          <input
-            name="banner_url"
-            defaultValue={bannerUrl}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
-            placeholder="https://..."
-          />
-          <input
-            name="featured_url"
-            defaultValue={featuredUrl}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
-            placeholder="URL imagen destacada (opcional)"
-          />
-          <FormAlert
-            error={bannerState.error}
-            success={bannerState.success}
-          />
-          <button
-            type="submit"
-            disabled={bannerPending}
-            className="w-full rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60 sm:w-auto"
-          >
-            {bannerPending ? "Guardando…" : "Guardar URLs"}
+            {uploadBannerPending
+              ? "Subiendo…"
+              : hasCustomBanner
+                ? "Guardar banner"
+                : "Subir banner"}
           </button>
         </form>
       </section>
@@ -228,30 +205,6 @@ export function BannerPanel({
                 : "Subir imagen"}
           </button>
         </form>
-
-        <details className="mt-6 border-t border-stone-100 pt-4">
-          <summary className="cursor-pointer text-sm text-stone-500">
-            Agregar desde una URL
-          </summary>
-          <form action={addAction} className="mt-3 flex flex-col gap-3 sm:flex-row">
-            <input
-              name="url"
-              className="min-w-0 flex-1 rounded-xl border border-stone-200 px-4 py-3 text-sm"
-              placeholder="https://..."
-              disabled={atPictureLimit}
-            />
-            <button
-              type="submit"
-              disabled={addPending || atPictureLimit}
-              className="w-full rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 disabled:opacity-60 sm:w-auto"
-            >
-              {addPending ? "Agregando…" : "Agregar"}
-            </button>
-          </form>
-          <div className="mt-3">
-            <FormAlert error={addState.error} success={addState.success} />
-          </div>
-        </details>
       </section>
     </div>
   );

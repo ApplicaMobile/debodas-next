@@ -26,43 +26,6 @@ function getBannerUrl(banner: Record<string, unknown>): string {
   return "";
 }
 
-export async function updateBannerAction(
-  _prev: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const { error, boda } = await requireOwnedBoda();
-  if (error || !boda) {
-    return { error: error ?? "No encontramos tu boda." };
-  }
-
-  const bannerUrl = String(formData.get("banner_url") ?? "").trim();
-  const featuredUrl = String(formData.get("featured_url") ?? "").trim();
-  const banner = parseBanner(boda.banner);
-
-  const image = bannerUrl.length > 0 ? { url: bannerUrl } : undefined;
-
-  const nextBanner = {
-    ...banner,
-    ...(image ? { image } : { image: undefined }),
-  };
-
-  try {
-    await prisma.boda.update({
-      where: { id: boda.id },
-      data: {
-        banner: nextBanner,
-        featuredImageUrl: featuredUrl || null,
-      },
-    });
-
-    revalidateBodaPaths(boda.slug, ["/mi-cuenta/banner"]);
-    return { success: "Banner actualizado." };
-  } catch (err) {
-    console.error("[updateBannerAction]", err);
-    return { error: "No se pudo guardar el banner." };
-  }
-}
-
 export async function uploadBannerFileAction(
   _prev: FormState,
   formData: FormData,
@@ -105,40 +68,34 @@ export async function uploadBannerFileAction(
   }
 }
 
-export async function addPictureAction(
-  _prev: FormState,
-  formData: FormData,
-): Promise<FormState> {
+export async function resetBannerToDefaultAction(
+  _formData?: FormData,
+): Promise<void> {
   const { error, boda } = await requireOwnedBoda();
   if (error || !boda) {
-    return { error: error ?? "No encontramos tu boda." };
+    throw new Error(error ?? "No encontramos tu boda.");
   }
 
-  const url = String(formData.get("url") ?? "").trim();
-  if (!url) {
-    return { error: "Ingresá la URL de la imagen." };
+  const banner = parseBanner(boda.banner);
+  const previousUrl = getBannerUrl(banner);
+  if (!previousUrl) {
+    return;
   }
 
-  const count = await prisma.picture.count({ where: { bodaId: boda.id } });
-  if (!canAddPicture(boda.plan, count)) {
-    return { error: pictureLimitError(boda.plan) };
-  }
+  const restBanner = { ...banner };
+  delete restBanner.image;
+  const featuredMatchesBanner = boda.featuredImageUrl === previousUrl;
 
-  try {
-    await prisma.picture.create({
-      data: {
-        bodaId: boda.id,
-        url,
-        sortOrder: count,
-      },
-    });
+  await prisma.boda.update({
+    where: { id: boda.id },
+    data: {
+      banner: restBanner,
+      ...(featuredMatchesBanner ? { featuredImageUrl: null } : {}),
+    },
+  });
 
-    revalidateBodaPaths(boda.slug, ["/mi-cuenta/banner"]);
-    return { success: "Imagen agregada a la galería." };
-  } catch (err) {
-    console.error("[addPictureAction]", err);
-    return { error: "No se pudo agregar la imagen." };
-  }
+  await deleteLocalUpload(previousUrl);
+  revalidateBodaPaths(boda.slug, ["/mi-cuenta/banner"]);
 }
 
 export async function uploadGalleryFileAction(

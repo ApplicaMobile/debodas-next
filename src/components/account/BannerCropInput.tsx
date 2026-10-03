@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
-const OUTPUT_WIDTH = 1600;
-const OUTPUT_HEIGHT = 900;
+const OUTPUT_WIDTH = 1400;
+const OUTPUT_HEIGHT = 500;
 const RATIO = OUTPUT_WIDTH / OUTPUT_HEIGHT;
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
@@ -165,9 +165,23 @@ export function BannerCropInput({ name, label, hint }: BannerCropInputProps) {
             height={OUTPUT_HEIGHT}
             className="w-full rounded-2xl border border-stone-100 bg-stone-50"
           />
-          <p className="text-xs text-stone-500">
-            Recorte 16:9 · {fileName}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="min-w-0 truncate text-xs text-stone-500">
+              Recorte 1400×500 · {fileName}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (pickRef.current) {
+                  pickRef.current.value = "";
+                }
+                onPick(null);
+              }}
+              className="shrink-0 text-sm font-medium text-stone-500 hover:text-stone-800"
+            >
+              Quitar
+            </button>
+          </div>
           <label className="block text-xs font-medium text-stone-600">
             Zoom
             <input

@@ -115,8 +115,19 @@ export function PlanComparison({
 
       {!mpConfigured && demoPlanSwitch ? (
         <p className="rounded-xl bg-sky-50 px-4 py-3 text-sm text-sky-900">
-          Estás en <strong>modo demo</strong>: podés cambiar de plan sin
-          MercadoPago. En producción se usa el checkout real.
+          Estás en <strong>modo demo</strong>. Para probar el checkout de
+          MercadoPago, cargá un Access Token de prueba (TEST-) en{" "}
+          <a href="/admin/mercadopago" className="font-semibold underline">
+            /admin/mercadopago
+          </a>
+          . Mientras tanto podés cambiar de plan sin pagar.
+        </p>
+      ) : null}
+
+      {mpConfigured && demoPlanSwitch ? (
+        <p className="rounded-xl bg-sky-50 px-4 py-3 text-sm text-sky-900">
+          Modo demo con MercadoPago sandbox: el botón de upgrade abre el
+          checkout de prueba. Usá una tarjeta de prueba de MercadoPago.
         </p>
       ) : null}
 

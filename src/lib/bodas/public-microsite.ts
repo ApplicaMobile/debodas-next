@@ -1,4 +1,6 @@
 import type { Boda, BodaOptions } from "@/types/boda";
+import { isMercadoPagoConfigured } from "@/lib/mercadopago/config";
+import { canUsePlatformGiftCheckout } from "@/lib/plans/demo";
 import {
   getPaymentSettings,
   getPublicPaymentOptions,
@@ -11,10 +13,10 @@ import {
  * - Quita `misc.payment_settings.mp_tokens` (access_token cifrado / public_key).
  * - Calcula `paymentOptions` en server (hasMpCheckout usa decrypt).
  */
-export function buildPublicMicrositePayload(boda: Boda): {
+export async function buildPublicMicrositePayload(boda: Boda): Promise<{
   boda: Boda;
   paymentOptions: PublicPaymentOptions;
-} {
+}> {
   const plan = String(boda.plan ?? "free");
   const misc =
     boda.misc && typeof boda.misc === "object" && !Array.isArray(boda.misc)
@@ -22,7 +24,11 @@ export function buildPublicMicrositePayload(boda: Boda): {
       : {};
 
   const paymentSettings = getPaymentSettings(misc);
-  const paymentOptions = getPublicPaymentOptions(paymentSettings, plan);
+  const platformCheckout =
+    canUsePlatformGiftCheckout(boda.slug) && (await isMercadoPagoConfigured());
+  const paymentOptions = getPublicPaymentOptions(paymentSettings, plan, {
+    platformCheckout,
+  });
 
   const safePaymentSettings = { ...paymentSettings };
   delete safePaymentSettings.mp_tokens;

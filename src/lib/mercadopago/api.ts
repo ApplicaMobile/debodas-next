@@ -89,6 +89,7 @@ async function mercadoPagoFetch<T>(
 export async function createMercadoPagoPreference(
   input: CreatePreferenceInput,
 ): Promise<MercadoPagoPreferenceResult> {
+  const isLocalBackUrl = /localhost|127\.0\.0\.1/.test(input.backUrls.success);
   const body = {
     items: input.items.map((item) => ({
       ...item,
@@ -96,9 +97,9 @@ export async function createMercadoPagoPreference(
     })),
     payer: input.payerEmail ? { email: input.payerEmail } : undefined,
     back_urls: input.backUrls,
-    auto_return: "approved",
+    auto_return: isLocalBackUrl ? undefined : "approved",
     external_reference: input.externalReference,
-    notification_url: input.notificationUrl,
+    notification_url: isLocalBackUrl ? undefined : input.notificationUrl,
     metadata: input.metadata,
   };
 
