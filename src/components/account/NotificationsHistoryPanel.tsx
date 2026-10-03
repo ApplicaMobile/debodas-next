@@ -4,13 +4,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationBell } from "@/components/account/AccountIllustrations";
+import {
+  AccountItemList,
+  AccountListItem,
+  AccountSection,
+} from "@/components/account/AccountPage";
+import { Badge, Button } from "@/components/ui";
 import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
 } from "@/lib/notifications/actions";
 import {
   formatNotificationRelative,
-  notificationTypeBadgeClass,
   notificationTypeLabel,
 } from "@/lib/notifications/format";
 import type { PanelNotificationItem } from "@/lib/notifications/queries";
@@ -64,101 +70,91 @@ export function NotificationsHistoryPanel({
 
   if (items.length === 0) {
     return (
-      <AccountEmptyState
-        title="Todavía no hay notificaciones"
-        description="Cuando alguien confirme asistencia o envíe un regalo, vas a ver el historial acá."
-        actions={[
-          {
-            label: "Compartir / invitar",
-            href: "/mi-cuenta/invitar",
-            primary: true,
-          },
-          { label: "Ver invitados", href: "/mi-cuenta/invitados" },
-        ]}
-      />
+      <AccountSection id="notificaciones-historial" title="Historial">
+        <AccountEmptyState
+          illustration={IllustrationBell}
+          title="Todavía no hay notificaciones"
+          description="Cuando alguien confirme asistencia o envíe un regalo, vas a ver el historial acá."
+          actions={[
+            {
+              label: "Compartir / invitar",
+              href: "/mi-cuenta/invitar",
+              primary: true,
+            },
+            { label: "Ver invitados", href: "/mi-cuenta/invitados" },
+          ]}
+        />
+      </AccountSection>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm sm:px-6">
-        <p className="text-sm text-stone-600">
-          {unreadCount > 0 ? (
-            <>
-              <strong className="text-stone-800">{unreadCount}</strong> sin leer
-              de {items.length} avisos
-            </>
-          ) : (
-            <>Estás al día · {items.length} avisos</>
-          )}
-        </p>
-        {unreadCount > 0 ? (
-          <button
+    <AccountSection
+      id="notificaciones-historial"
+      title="Historial"
+      description={`${items.length} avisos. Abrí uno para ver el detalle; se marca como leído.`}
+      badge={
+        unreadCount > 0 ? (
+          <Badge tone="info">{unreadCount} sin leer</Badge>
+        ) : (
+          <Badge tone="aprobado">Al día</Badge>
+        )
+      }
+      actions={
+        unreadCount > 0 ? (
+          <Button
             type="button"
+            variant="secundario"
+            size="sm"
             disabled={pending}
             onClick={markAll}
-            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-[#6f5f47] hover:bg-stone-50 disabled:opacity-60"
           >
             Marcar todas como leídas
-          </button>
-        ) : null}
-      </div>
-
-      <ul className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          </Button>
+        ) : null
+      }
+    >
+      <AccountItemList label="Notificaciones">
         {items.map((item) => {
           const unread = !item.readAt;
           return (
-            <li
+            <AccountListItem
               key={item.id}
-              className="border-b border-stone-100 last:border-0"
-            >
-              <button
-                type="button"
-                onClick={() => openItem(item)}
-                className={`flex w-full flex-col gap-1.5 px-4 py-4 text-left transition hover:bg-stone-50 sm:px-6 ${
-                  unread ? "bg-[#e6dac7]/12" : ""
-                }`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${notificationTypeBadgeClass(item.type)}`}
-                  >
-                    {notificationTypeLabel(item.type)}
-                  </span>
-                  <span className="text-xs text-stone-400">
-                    {formatNotificationRelative(item.createdAt)}
-                  </span>
-                </div>
-                <p
-                  className={`text-sm sm:text-base ${
-                    unread
-                      ? "font-semibold text-stone-900"
-                      : "font-medium text-stone-800"
-                  }`}
-                >
-                  {item.title}
-                </p>
-                {item.body ? (
-                  <p className="text-sm text-stone-500">{item.body}</p>
-                ) : null}
-                <span className="text-xs font-medium text-[#6f5f47]">
-                  Ver detalle →
+              onSelect={() => openItem(item)}
+              highlighted={unread}
+              leading={
+                <Badge tone="neutro" icon={false}>
+                  {notificationTypeLabel(item.type)}
+                </Badge>
+              }
+              title={item.title}
+              meta={
+                <span className="inline-flex flex-wrap items-center gap-2">
+                  <span>{formatNotificationRelative(item.createdAt)}</span>
+                  {unread ? (
+                    <Badge tone="info" icon={false}>
+                      Nueva
+                    </Badge>
+                  ) : null}
+                  <span className="sr-only">. Ver detalle</span>
                 </span>
-              </button>
-            </li>
+              }
+            >
+              {item.body || null}
+            </AccountListItem>
           );
         })}
-      </ul>
+      </AccountItemList>
 
-      <p className="text-center text-sm text-stone-500">
+      <p className="mt-6 type-body-sm text-text-secondary">
         ¿Querés avisar a tus invitados?{" "}
         <Link
           href="/mi-cuenta/invitar"
-          className="font-medium text-[#6f5f47] hover:underline"
+          className="focus-ring rounded-sm font-semibold text-text-link underline-offset-2 hover:underline"
         >
           Compartir el micrositio
         </Link>
       </p>
-    </div>
+    </AccountSection>
   );
 }

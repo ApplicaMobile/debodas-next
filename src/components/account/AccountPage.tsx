@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { AccountNavIconBadge } from "@/components/account/AccountNavIcon";
-import { Card, IconTrash } from "@/components/ui";
+import { Card, IconArrowRight, IconTrash } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 /**
@@ -236,7 +236,11 @@ export function AccountDeleteButton({
   );
 }
 
-/** Fila de una AccountItemList: dato destacado a la izquierda, contenido y acciones. */
+/**
+ * Fila de una AccountItemList: dato destacado a la izquierda, contenido y acciones.
+ * Con `onSelect` toda la fila es un botón (p. ej. abrir una notificación); en ese
+ * caso no se muestran `actions` (no se anidan controles) y aparece una flecha.
+ */
 export function AccountListItem({
   leading,
   title,
@@ -244,6 +248,9 @@ export function AccountListItem({
   children,
   actions,
   as: Component = "li",
+  onSelect,
+  disabled,
+  highlighted,
   className,
 }: {
   leading?: ReactNode;
@@ -252,21 +259,57 @@ export function AccountListItem({
   children?: ReactNode;
   actions?: ReactNode;
   as?: "li" | "article";
+  /** Hace que toda la fila sea un botón. */
+  onSelect?: () => void;
+  disabled?: boolean;
+  /** Resalta la fila (p. ej. no leída). Acompañar con un Badge de texto. */
+  highlighted?: boolean;
   className?: string;
 }) {
-  return (
-    <Component
-      className={cn(
-        "flex flex-col gap-3 rounded-md border border-border-subtle bg-surface-default p-4 sm:flex-row sm:items-start sm:gap-4",
-        className,
-      )}
-    >
+  const rowClass = cn(
+    "flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-start sm:gap-4",
+    highlighted
+      ? "border-border-accent bg-surface-muted"
+      : "border-border-subtle bg-surface-default",
+  );
+  const content = (
+    <>
       {leading ? <div className="shrink-0 sm:w-20">{leading}</div> : null}
       <div className="min-w-0 flex-1">
         <p className="type-label text-text-primary">{title}</p>
         {meta ? <div className="mt-1 type-caption text-text-secondary">{meta}</div> : null}
         {children ? <div className="mt-2 type-body-sm text-text-secondary">{children}</div> : null}
       </div>
+    </>
+  );
+
+  if (onSelect) {
+    return (
+      <Component className={className}>
+        <button
+          type="button"
+          onClick={onSelect}
+          disabled={disabled}
+          className={cn(
+            rowClass,
+            "focus-ring group w-full text-left transition-colors hover:border-border-strong disabled:cursor-wait motion-reduce:transition-none",
+          )}
+        >
+          {content}
+          <span
+            className="hidden shrink-0 self-center text-text-accent transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none sm:block"
+            aria-hidden
+          >
+            <IconArrowRight size={20} />
+          </span>
+        </button>
+      </Component>
+    );
+  }
+
+  return (
+    <Component className={cn(rowClass, className)}>
+      {content}
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2 sm:-mr-2 sm:-mt-1">{actions}</div> : null}
     </Component>
   );
