@@ -37,7 +37,7 @@ export function FormAlert({ error, success }: FormAlertProps) {
       <p
         ref={ref}
         role="alert"
-        className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+        className="rounded-md border border-status-error-border bg-status-error-bg px-4 py-3 type-body-sm font-medium text-status-error-fg"
       >
         {error}
       </p>
@@ -49,7 +49,7 @@ export function FormAlert({ error, success }: FormAlertProps) {
       ref={ref}
       role="status"
       aria-live="polite"
-      className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800"
+      className="rounded-md border border-status-success-border bg-status-success-bg px-4 py-3 type-body-sm font-medium text-status-success-fg"
     >
       {success}
     </p>

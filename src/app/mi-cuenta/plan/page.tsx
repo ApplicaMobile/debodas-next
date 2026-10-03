@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AccountPageHeader } from "@/components/account/AccountPage";
 import { PlanPanel } from "@/components/account/PlanPanel";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 import { isMercadoPagoConfigured } from "@/lib/mercadopago/config";
@@ -50,15 +51,12 @@ export default async function MiCuentaPlanPage({
 
   return (
     <div className="space-y-8">
-      <header className="max-w-3xl">
-        <p className="type-overline text-text-accent">Mi cuenta · Plan</p>
-        <h2 className="mt-2 type-h2 text-text-primary">Plan y facturación</h2>
-        <p className="mt-3 type-body-lg text-text-secondary">
-          Elegí el plan para tu boda: pagás una sola vez con MercadoPago y no
-          hay mensualidad. También podés configurar las opciones del
-          micrositio.
-        </p>
-      </header>
+      <AccountPageHeader
+        href="/mi-cuenta/plan"
+        section="Plan"
+        title="Plan y facturación"
+        description="Elegí el plan para tu boda: pagás una sola vez con MercadoPago y no hay mensualidad. También podés configurar las opciones del micrositio."
+      />
       <PlanPanel
         plan={latest.plan}
         showFaq={optionEnabled(options.show_faq)}

@@ -138,3 +138,63 @@ export function IllustrationCalendar(props: IllustrationProps) {
     </Base>
   );
 }
+
+/** Fotos apiladas: portada y galería. */
+export function IllustrationPhotos(props: IllustrationProps) {
+  return (
+    <Base {...props}>
+      <circle cx="80" cy="62" r="50" fill={c.crema100} />
+      <rect x="40" y="38" width="62" height="48" rx="4" transform="rotate(-8 71 62)" fill={c.crema200} stroke={c.crema400} strokeWidth="2" />
+      <rect x="58" y="40" width="64" height="50" rx="4" fill={c.white} stroke={c.crema400} strokeWidth="2" />
+      <rect x="64" y="46" width="52" height="32" rx="2" fill={c.crema100} />
+      <circle cx="76" cy="56" r="4" fill={c.oro} />
+      <path d="M64 78l16-14 10 8 10-10 16 16z" fill={c.verde} opacity=".55" />
+      <circle cx="132" cy="34" r="2.5" fill={c.oro} />
+      <circle cx="30" cy="44" r="2" fill={c.crema700} />
+    </Base>
+  );
+}
+
+/** Globos de diálogo con signo de pregunta: preguntas frecuentes. */
+export function IllustrationQuestions(props: IllustrationProps) {
+  return (
+    <Base {...props}>
+      <circle cx="80" cy="62" r="50" fill={c.crema100} />
+      <path d="M40 40h52a6 6 0 0 1 6 6v26a6 6 0 0 1-6 6H58l-12 10v-10h-6a6 6 0 0 1-6-6V46a6 6 0 0 1 6-6z" fill={c.white} stroke={c.crema400} strokeWidth="2" strokeLinejoin="round" />
+      <path d="M58 52a8 8 0 1 1 10 8c-2 1-2 2-2 4M66 70h.01" stroke={c.crema700} strokeWidth="3" strokeLinecap="round" />
+      <path d="M104 58h16a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6h-2v8l-10-8h-4a6 6 0 0 1-6-6V64a6 6 0 0 1 6-6z" fill={c.crema300} />
+      <circle cx="106" cy="73" r="2" fill={c.white} />
+      <circle cx="113" cy="73" r="2" fill={c.white} />
+      <circle cx="120" cy="73" r="2" fill={c.white} />
+    </Base>
+  );
+}
+
+/** Percha con moño: dress code. */
+export function IllustrationHanger(props: IllustrationProps) {
+  return (
+    <Base {...props}>
+      <circle cx="80" cy="62" r="50" fill={c.crema100} />
+      <path d="M80 40v-4a6 6 0 1 1 6-6" stroke={c.crema700} strokeWidth="3" strokeLinecap="round" />
+      <path d="M80 40 36 74c-3 2-1 6 2 6h84c3 0 5-4 2-6z" fill={c.white} stroke={c.crema400} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M70 90l10-6 10 6-10 6z" fill={c.oro} />
+      <path d="M70 90v8l10-2 10 2v-8" fill={c.oroSoft} />
+      <circle cx="122" cy="36" r="2.5" fill={c.oro} />
+      <circle cx="38" cy="42" r="2" fill={c.crema700} />
+    </Base>
+  );
+}
+
+/** Campana con destellos: notificaciones. */
+export function IllustrationBell(props: IllustrationProps) {
+  return (
+    <Base {...props}>
+      <circle cx="80" cy="62" r="50" fill={c.crema100} />
+      <path d="M56 78c4-4 6-10 6-22a18 18 0 0 1 36 0c0 12 2 18 6 22z" fill={c.white} stroke={c.crema400} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M52 80h56" stroke={c.crema700} strokeWidth="3" strokeLinecap="round" />
+      <path d="M72 88a8 8 0 0 0 16 0" fill={c.oro} />
+      <circle cx="80" cy="36" r="3" fill={c.crema700} />
+      <path d="M116 38l6-4M118 50h7M40 50h-7M44 38l-6-4" stroke={c.oro} strokeWidth="2" strokeLinecap="round" />
+    </Base>
+  );
+}

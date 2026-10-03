@@ -1,11 +1,19 @@
 import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
-const LABEL_CLASS = "mb-1.5 block text-sm font-medium text-stone-700";
+// Mismo estilo que los controles de @/components/ui (etiqueta arriba, ayuda debajo).
+const LABEL_CLASS = "mb-2 block type-label text-text-primary";
 // Sin outline-none: el foco visible lo da el anillo del sistema de diseño (focus-ring).
 const INPUT_CLASS =
-  "focus-ring w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-border-strong";
-const HINT_CLASS = "mt-1 text-xs text-stone-500";
-const ERROR_CLASS = "mt-1 text-xs font-medium text-red-700";
+  "focus-ring w-full rounded-md border border-border-strong bg-surface-default px-4 py-3 type-body text-text-primary placeholder:text-text-tertiary transition-colors hover:border-text-primary motion-reduce:transition-none disabled:cursor-not-allowed disabled:border-border-default disabled:bg-surface-disabled disabled:text-text-tertiary read-only:bg-surface-muted";
+const INVALID_CLASS = "border-2 border-status-error-border px-[15px] py-[11px]";
+const HINT_CLASS = "-mt-1 mb-2 type-body-sm text-text-secondary";
+const ERROR_CLASS = "mt-2 type-body-sm font-medium text-status-error-fg";
+
+function describedBy(id: string | undefined, hint?: string, error?: string) {
+  if (!id) return undefined;
+  const ids = [hint ? `${id}-ayuda` : "", error ? `${id}-error` : ""].filter(Boolean);
+  return ids.length > 0 ? ids.join(" ") : undefined;
+}
 
 interface FormFieldBaseProps {
   label: string;
@@ -30,10 +38,12 @@ export function FormFieldLabel({
     <label htmlFor={htmlFor} className={LABEL_CLASS}>
       {children}
       {required ? (
-        <span className="text-red-600" aria-hidden>
-          {" "}
-          *
-        </span>
+        <>
+          <span className="ml-1 text-status-error-fg" aria-hidden>
+            *
+          </span>
+          <span className="sr-only"> (obligatorio)</span>
+        </>
       ) : null}
     </label>
   );
@@ -53,9 +63,17 @@ export function FormField({
       <FormFieldLabel htmlFor={htmlFor} required={required}>
         {label}
       </FormFieldLabel>
+      {hint ? (
+        <p id={htmlFor ? `${htmlFor}-ayuda` : undefined} className={HINT_CLASS}>
+          {hint}
+        </p>
+      ) : null}
       {children}
-      {error ? <p className={ERROR_CLASS}>{error}</p> : null}
-      {!error && hint ? <p className={HINT_CLASS}>{hint}</p> : null}
+      {error ? (
+        <p id={htmlFor ? `${htmlFor}-error` : undefined} className={ERROR_CLASS}>
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -94,7 +112,8 @@ export function FormInput({
         name={name}
         required={required}
         aria-invalid={error ? true : undefined}
-        className={`${INPUT_CLASS} ${error ? "border-red-300" : ""} ${inputClassName}`}
+        aria-describedby={describedBy(fieldId, hint, error)}
+        className={`${INPUT_CLASS} min-h-12 ${error ? INVALID_CLASS : ""} ${inputClassName}`}
         {...inputProps}
       />
     </FormField>
@@ -138,7 +157,8 @@ export function FormTextarea({
         name={name}
         required={required}
         aria-invalid={error ? true : undefined}
-        className={`${INPUT_CLASS} ${error ? "border-red-300" : ""} ${textareaClassName}`}
+        aria-describedby={describedBy(fieldId, hint, error)}
+        className={`${INPUT_CLASS} ${error ? INVALID_CLASS : ""} ${textareaClassName}`}
         {...textareaProps}
       />
     </FormField>
