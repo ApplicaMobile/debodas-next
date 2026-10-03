@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+} from "@/components/account/AccountPage";
 import { BannerPanel } from "@/components/account/BannerPanel";
 import { LocalUploadsNotice } from "@/components/account/LocalUploadsNotice";
 import { getOwnedBoda } from "@/lib/account/require-boda";
@@ -13,15 +17,13 @@ export default async function MiCuentaBannerPage() {
   const bannerUrl = banner?.image?.url ?? "";
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
-          Banner y galería
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Imagen principal del encabezado y fotos de la galería.
-        </p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/banner"
+        section="Portada"
+        title="Portada y galería"
+        description="La imagen principal que abre tu micrositio y las fotos de la galería."
+      />
       <LocalUploadsNotice />
       <BannerPanel
         bannerUrl={bannerUrl}
@@ -32,6 +34,6 @@ export default async function MiCuentaBannerPage() {
           alt: p.alt,
         }))}
       />
-    </div>
+    </AccountPageBody>
   );
 }

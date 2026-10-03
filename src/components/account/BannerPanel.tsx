@@ -13,7 +13,13 @@ import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { BannerCropInput } from "@/components/account/BannerCropInput";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
-import { PlanUsageMeter } from "@/components/account/PlanUsageMeter";
+import {
+  AccountDeleteButton,
+  AccountFormActions,
+  AccountSection,
+} from "@/components/account/AccountPage";
+import { IllustrationPhotos } from "@/components/account/AccountIllustrations";
+import { Badge, Button, UsageMeter } from "@/components/ui";
 import {
   canAddPicture,
   getPlanLimits,
@@ -47,16 +53,20 @@ export function BannerPanel({
     useActionState(uploadGalleryFileAction, initialState);
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <h3 className="text-lg font-semibold text-stone-800">
-          Imagen del banner
-        </h3>
-        <p className="mt-1 text-sm text-stone-500">
-          Es la primera imagen que ven tus invitados. Subí una foto horizontal.
-        </p>
-
-        <div className="mt-6 overflow-hidden rounded-2xl border border-stone-100 bg-stone-50">
+    <>
+      <AccountSection
+        id="banner-imagen"
+        title="Imagen de portada"
+        description="Es la primera imagen que ven tus invitados. Subí una foto horizontal."
+        badge={
+          hasCustomBanner ? (
+            <Badge tone="aprobado">Foto propia</Badge>
+          ) : (
+            <Badge tone="neutro">Imagen por defecto</Badge>
+          )
+        }
+      >
+        <figure className="overflow-hidden rounded-md border border-border-subtle bg-surface-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
@@ -67,12 +77,12 @@ export function BannerPanel({
             }
             className="max-h-56 w-full object-cover"
           />
-          <div className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-stone-500">
+          <figcaption className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="type-body-sm text-text-secondary">
               {hasCustomBanner
                 ? "Banner actual. Elegí otra foto abajo para reemplazarlo."
                 : "Imagen por defecto. Se usa hasta que subas una foto."}
-            </p>
+            </span>
             {hasCustomBanner ? (
               <ConfirmDeleteForm
                 action={resetBannerToDefaultAction}
@@ -80,16 +90,13 @@ export function BannerPanel({
                 successMessage="Volviste a la imagen por defecto."
                 className="shrink-0"
               >
-                <button
-                  type="submit"
-                  className="text-sm font-medium text-stone-600 hover:text-stone-900 hover:underline"
-                >
+                <Button type="submit" variant="fantasma" size="sm">
                   Volver a la imagen por defecto
-                </button>
+                </Button>
               </ConfirmDeleteForm>
             ) : null}
-          </div>
-        </div>
+          </figcaption>
+        </figure>
 
         <form
           id="subir-banner"
@@ -101,55 +108,67 @@ export function BannerPanel({
             label="Cambiar banner"
             hint="JPG, PNG, WebP o GIF. Máximo 5 MB. Recorte 1400×500. Comprobá que se vea centrada en el celular."
           />
-          <FormAlert
-            error={uploadBannerState.error}
-            success={uploadBannerState.success}
-          />
-          <button
-            type="submit"
-            disabled={uploadBannerPending}
-            className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
+          <AccountFormActions
+            alert={
+              <FormAlert
+                error={uploadBannerState.error}
+                success={uploadBannerState.success}
+              />
+            }
           >
-            {uploadBannerPending
-              ? "Subiendo…"
-              : hasCustomBanner
-                ? "Guardar banner"
-                : "Subir banner"}
-          </button>
+            <Button
+              type="submit"
+              loading={uploadBannerPending}
+              loadingLabel="Subiendo…"
+            >
+              {hasCustomBanner ? "Guardar banner" : "Subir banner"}
+            </Button>
+          </AccountFormActions>
         </form>
-      </section>
+      </AccountSection>
 
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <h3 className="text-lg font-semibold text-stone-800">Galería</h3>
-        <p className="mt-1 text-sm text-stone-500">
-          Fotos que se muestran en el micrositio.
-        </p>
-        <div className="mt-4">
-          <PlanUsageMeter
-            label="fotos"
-            current={pictures.length}
+      <AccountSection
+        id="banner-galeria"
+        title="Galería"
+        description="Fotos que se muestran en el micrositio."
+        badge={
+          <Badge tone="neutro" icon={false}>
+            {pictures.length} {pictures.length === 1 ? "foto" : "fotos"}
+          </Badge>
+        }
+      >
+        <div className="max-w-md">
+          <UsageMeter
+            label="Fotos de la galería"
+            value={pictures.length}
             max={limits.maxPictures}
+            unit="fotos"
+            upgradeHref="/mi-cuenta/plan"
           />
           {limits.maxPictures !== null ? (
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 type-caption text-text-secondary">
               {pictureLimitMessage(plan)}
             </p>
           ) : null}
         </div>
 
         {pictures.length === 0 ? (
-          <div className="mt-4">
+          <div className="mt-6">
             <AccountEmptyState
+              illustration={IllustrationPhotos}
               title="Todavía no hay fotos en la galería"
               description="Elegí una imagen abajo y subila para que tus invitados vean más de ustedes."
             />
           </div>
         ) : (
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          <ul
+            role="list"
+            className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+          >
             {pictures.map((picture) => (
               <li
                 key={picture.id}
-                className="overflow-hidden rounded-xl border border-stone-100"
+                className="overflow-hidden rounded-md border border-border-subtle bg-surface-default"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -158,7 +177,7 @@ export function BannerPanel({
                   className="aspect-[4/3] w-full object-cover"
                 />
                 <div className="flex items-center justify-between gap-2 px-3 py-2">
-                  <p className="min-w-0 flex-1 truncate text-xs text-stone-500">
+                  <p className="min-w-0 flex-1 truncate type-caption text-text-secondary">
                     {picture.alt || picture.url}
                   </p>
                   <ConfirmDeleteForm
@@ -166,12 +185,7 @@ export function BannerPanel({
                     message="¿Eliminar esta imagen de la galería?"
                   >
                     <input type="hidden" name="picture_id" value={picture.id} />
-                    <button
-                      type="submit"
-                      className="shrink-0 text-sm text-red-600 hover:underline"
-                    >
-                      Eliminar
-                    </button>
+                    <AccountDeleteButton />
                   </ConfirmDeleteForm>
                 </div>
               </li>
@@ -182,30 +196,32 @@ export function BannerPanel({
         <form
           id="agregar-galeria"
           action={uploadGalleryAction}
-          className="mt-6 scroll-mt-24 space-y-4 border-t border-stone-100 pt-6"
+          className="mt-8 scroll-mt-24 space-y-4 border-t border-border-subtle pt-6"
         >
           <ImageFileInput
             name="gallery_file"
             label="Subir a la galería"
             hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
           />
-          <FormAlert
-            error={uploadGalleryState.error}
-            success={uploadGalleryState.success}
-          />
-          <button
-            type="submit"
-            disabled={uploadGalleryPending || atPictureLimit}
-            className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
+          <AccountFormActions
+            alert={
+              <FormAlert
+                error={uploadGalleryState.error}
+                success={uploadGalleryState.success}
+              />
+            }
           >
-            {atPictureLimit
-              ? "Límite de fotos alcanzado"
-              : uploadGalleryPending
-                ? "Subiendo…"
-                : "Subir imagen"}
-          </button>
+            <Button
+              type="submit"
+              disabled={atPictureLimit}
+              loading={uploadGalleryPending}
+              loadingLabel="Subiendo…"
+            >
+              {atPictureLimit ? "Límite de fotos alcanzado" : "Subir imagen"}
+            </Button>
+          </AccountFormActions>
         </form>
-      </section>
-    </div>
+      </AccountSection>
+    </>
   );
 }

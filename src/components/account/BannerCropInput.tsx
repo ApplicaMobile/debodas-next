@@ -142,9 +142,9 @@ export function BannerCropInput({ name, label, hint }: BannerCropInputProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <input ref={hiddenRef} type="file" name={name} className="hidden" />
-      <label htmlFor={inputId} className="block text-sm font-medium text-stone-700">
+      <label htmlFor={inputId} className="block type-label text-text-primary">
         {label}
       </label>
       <input
@@ -152,21 +152,25 @@ export function BannerCropInput({ name, label, hint }: BannerCropInputProps) {
         ref={pickRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
-        className="block w-full text-sm text-stone-600 file:mr-3 file:rounded-full file:border-0 file:bg-[#e6dac7] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-stone-800"
+        className="focus-ring block w-full cursor-pointer rounded-md border border-dashed border-border-strong bg-surface-muted p-3 type-body-sm text-text-secondary file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-action-secondary-bg file:px-4 file:py-2 file:type-button-sm file:text-action-secondary-fg hover:file:bg-action-secondary-bg-hover"
         onChange={(event) => onPick(event.target.files?.[0] ?? null)}
       />
-      {hint ? <p className="text-xs text-stone-500">{hint}</p> : null}
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {hint ? <p className="type-body-sm text-text-secondary">{hint}</p> : null}
+      {error ? (
+        <p role="alert" className="type-body-sm font-medium text-status-error-fg">
+          {error}
+        </p>
+      ) : null}
       {fileName ? (
-        <div className="space-y-3">
+        <div className="space-y-3 pt-2">
           <canvas
             ref={previewRef}
             width={OUTPUT_WIDTH}
             height={OUTPUT_HEIGHT}
-            className="w-full rounded-2xl border border-stone-100 bg-stone-50"
+            className="w-full rounded-md border border-border-subtle bg-surface-muted"
           />
           <div className="flex items-center justify-between gap-3">
-            <p className="min-w-0 truncate text-xs text-stone-500">
+            <p className="min-w-0 truncate type-caption text-text-secondary">
               Recorte 1400×500 · {fileName}
             </p>
             <button
@@ -177,12 +181,12 @@ export function BannerCropInput({ name, label, hint }: BannerCropInputProps) {
                 }
                 onPick(null);
               }}
-              className="shrink-0 text-sm font-medium text-stone-500 hover:text-stone-800"
+              className="focus-ring shrink-0 rounded-sm type-button-sm text-text-secondary hover:text-text-primary hover:underline"
             >
               Quitar
             </button>
           </div>
-          <label className="block text-xs font-medium text-stone-600">
+          <label className="block type-caption font-semibold text-text-secondary">
             Zoom
             <input
               type="range"
@@ -191,10 +195,10 @@ export function BannerCropInput({ name, label, hint }: BannerCropInputProps) {
               step="0.05"
               value={zoom}
               onChange={(event) => setZoom(Number(event.target.value))}
-              className="mt-1 w-full"
+              className="mt-1 w-full accent-action-primary-bg"
             />
           </label>
-          <label className="block text-xs font-medium text-stone-600">
+          <label className="block type-caption font-semibold text-text-secondary">
             Horizontal
             <input
               type="range"
@@ -203,10 +207,10 @@ export function BannerCropInput({ name, label, hint }: BannerCropInputProps) {
               step="0.01"
               value={panX}
               onChange={(event) => setPanX(Number(event.target.value))}
-              className="mt-1 w-full"
+              className="mt-1 w-full accent-action-primary-bg"
             />
           </label>
-          <label className="block text-xs font-medium text-stone-600">
+          <label className="block type-caption font-semibold text-text-secondary">
             Vertical
             <input
               type="range"
@@ -215,7 +219,7 @@ export function BannerCropInput({ name, label, hint }: BannerCropInputProps) {
               step="0.01"
               value={panY}
               onChange={(event) => setPanY(Number(event.target.value))}
-              className="mt-1 w-full"
+              className="mt-1 w-full accent-action-primary-bg"
             />
           </label>
         </div>
