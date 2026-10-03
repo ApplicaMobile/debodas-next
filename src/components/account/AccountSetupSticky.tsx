@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { IconArrowRight } from "@/components/ui";
 
 interface AccountSetupStickyProps {
   label: string;
@@ -16,20 +17,19 @@ export function AccountSetupSticky({
   if (ready) return null;
 
   return (
-    <div
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:hidden"
-    >
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle bg-surface-default/95 px-4 py-3 shadow-elevation-3 backdrop-blur-sm sm:hidden">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-stone-600">
-          <span className="font-semibold text-stone-800">Siguiente paso:</span>
+        <p className="type-caption text-text-secondary">
+          <span className="font-semibold text-text-primary">Siguiente paso:</span>
           <br />
           {label}
         </p>
         <Link
           href={href}
-          className="shrink-0 rounded-full bg-[#06263a] px-4 py-2.5 text-sm font-semibold text-white"
+          className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-action-primary-bg px-4 type-button-sm text-action-primary-fg hover:bg-action-primary-bg-hover"
         >
-          Continuar →
+          Continuar
+          <IconArrowRight size={16} />
         </Link>
       </div>
     </div>
