@@ -7,7 +7,18 @@ import { planLabels, normalizePlan } from "@/lib/plans/features";
 import { getCurrentPlanFeatures } from "@/lib/plans/comparison";
 import { FormAlert } from "@/components/account/FormAlert";
 import { PlanComparison } from "@/components/account/PlanComparison";
-import { PlanUsageMeter } from "@/components/account/PlanUsageMeter";
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  IconCheck,
+  PaymentStatusBadge,
+  PlanBadge,
+  UsageMeter,
+  type AlertTone,
+  type MercadoPagoStatus,
+} from "@/components/ui";
 import { getPlanLimits } from "@/lib/plans/limits";
 
 interface PlanPanelProps {
@@ -24,16 +35,46 @@ interface PlanPanelProps {
   checkoutError?: string | null;
   giftCount: number;
   guestCount: number;
+  pictureCount: number;
 }
 
 const initialState: FormState = {};
 
-const PAYMENT_NOTICES: Record<string, string> = {
-  success:
-    "Pago recibido. Si tu plan no se actualizó aún, aguardá unos segundos mientras confirmamos con MercadoPago.",
-  pending:
-    "Tu pago está pendiente. Te avisaremos cuando MercadoPago lo confirme.",
-  failure: "El pago no se completó. Podés intentarlo nuevamente.",
+type PaymentNoticeKey = "success" | "pending" | "failure";
+
+const PAYMENT_NOTICES: Record<
+  PaymentNoticeKey,
+  { tone: AlertTone; status: MercadoPagoStatus; title: string; body: string }
+> = {
+  success: {
+    tone: "exito",
+    status: "approved",
+    title: "Pago recibido",
+    body: "Si tu plan no se actualizó aún, aguardá unos segundos mientras confirmamos con MercadoPago.",
+  },
+  pending: {
+    tone: "pendiente",
+    status: "pending",
+    title: "Tu pago está pendiente",
+    body: "Te avisaremos cuando MercadoPago lo confirme. No hace falta que vuelvas a pagar.",
+  },
+  failure: {
+    tone: "error",
+    status: "rejected",
+    title: "El pago no se completó",
+    body: "Podés intentarlo nuevamente desde la comparación de planes.",
+  },
+};
+
+/** Valores de ?payment= y estados de retorno de MercadoPago (?status=) → aviso. */
+const PAYMENT_NOTICE_ALIASES: Record<string, PaymentNoticeKey> = {
+  success: "success",
+  approved: "success",
+  pending: "pending",
+  in_process: "pending",
+  failure: "failure",
+  rejected: "failure",
+  cancelled: "failure",
 };
 
 export function PlanPanel({
@@ -49,6 +90,7 @@ export function PlanPanel({
   checkoutError,
   giftCount,
   guestCount,
+  pictureCount,
 }: PlanPanelProps) {
   const [state, formAction, isPending] = useActionState(
     updateOptionsAction,
@@ -58,64 +100,82 @@ export function PlanPanel({
   const label = planLabels[plan] ?? planLabels[normalized];
   const features = getCurrentPlanFeatures(plan);
   const limits = getPlanLimits(plan);
-  const notice =
-    paymentNotice && PAYMENT_NOTICES[paymentNotice]
-      ? PAYMENT_NOTICES[paymentNotice]
-      : null;
+  const noticeKey = paymentNotice
+    ? PAYMENT_NOTICE_ALIASES[paymentNotice]
+    : undefined;
+  const notice = noticeKey ? PAYMENT_NOTICES[noticeKey] : null;
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <p className="text-xs uppercase tracking-wide text-stone-500">
-          Plan actual
-        </p>
-        <h3 className="mt-1 font-serif text-3xl font-semibold text-stone-800">
-          {label}
-        </h3>
-        <ul className="mt-4 space-y-2 text-sm text-stone-600">
-          {features.map((feature) => (
-            <li key={feature}>✓ {feature}</li>
-          ))}
-        </ul>
+    <div className="space-y-10">
+      {notice ? (
+        <Alert
+          tone={notice.tone}
+          title={
+            <span className="flex flex-wrap items-center gap-2">
+              {notice.title}
+              <PaymentStatusBadge status={notice.status} />
+            </span>
+          }
+        >
+          {notice.body}
+        </Alert>
+      ) : null}
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-stone-50 px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
-              Uso de regalos
-            </p>
-            <PlanUsageMeter
-              label="regalos"
-              current={giftCount}
-              max={limits.maxGifts}
-            />
+      {checkoutError ? (
+        <Alert tone="error" title="No pudimos abrir el pago">
+          {checkoutError}
+        </Alert>
+      ) : null}
+
+      <Card as="section" aria-labelledby="plan-actual" padding="lg">
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <p className="type-overline text-text-accent">Plan actual</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <h3 id="plan-actual" className="type-h3 text-text-primary">
+                {label}
+              </h3>
+              <PlanBadge plan={normalized} />
+            </div>
           </div>
-          <div className="rounded-2xl bg-stone-50 px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
-              Uso de RSVP
-            </p>
-            <PlanUsageMeter
-              label="invitados"
-              current={guestCount}
+
+          <ul className="grid gap-3 sm:grid-cols-2" role="list">
+            {features.map((feature) => (
+              <li key={feature} className="flex items-start gap-3">
+                <IconCheck
+                  size={20}
+                  className="mt-[3px] shrink-0 text-status-success-fg"
+                />
+                <span className="type-body text-text-primary">{feature}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="grid gap-6 sm:grid-cols-3 sm:gap-8">
+            <UsageMeter
+              label="Regalos"
+              value={giftCount}
+              max={limits.maxGifts}
+              unit="regalos"
+              upgradeHref="#comparar-planes"
+            />
+            <UsageMeter
+              label="Invitados (RSVP)"
+              value={guestCount}
               max={limits.maxRsvpGuests}
+              unit="invitados"
+              upgradeHref="#comparar-planes"
+            />
+            <UsageMeter
+              label="Fotos del álbum"
+              value={pictureCount}
+              max={limits.maxPictures}
+              unit="fotos"
+              upgradeHref="#comparar-planes"
             />
           </div>
         </div>
-
-        {notice ? (
-          <p className="mt-6 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
-            {notice}
-          </p>
-        ) : null}
-
-        {checkoutError ? (
-          <p
-            role="alert"
-            className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900"
-          >
-            {checkoutError}
-          </p>
-        ) : null}
-      </section>
+      </Card>
 
       <PlanComparison
         currentPlan={plan}
@@ -123,70 +183,53 @@ export function PlanPanel({
         demoPlanSwitch={demoPlanSwitch}
       />
 
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <h3 className="text-lg font-semibold text-stone-800">
+      <Card as="section" aria-labelledby="opciones-micrositio" padding="lg">
+        <h3 id="opciones-micrositio" className="type-h4 text-text-primary">
           Opciones del micrositio
         </h3>
-        <form action={formAction} className="mt-4 space-y-4">
-          <label className="flex items-center gap-3 text-sm text-stone-700">
-            <input
-              type="checkbox"
-              name="is_online"
-              defaultChecked={isOnline}
-              className="h-4 w-4 rounded border-stone-300"
-            />
-            Micrositio online (visible / activo)
-          </label>
-          <label className="flex items-center gap-3 text-sm text-stone-700">
-            <input
-              type="checkbox"
-              name="show_faq"
-              defaultChecked={showFaq}
-              className="h-4 w-4 rounded border-stone-300"
-            />
-            Mostrar sección FAQ en el micrositio
-          </label>
-          <label className="flex items-center gap-3 text-sm text-stone-700">
-            <input
-              type="checkbox"
-              name="show_dress_code"
-              defaultChecked={showDressCode}
-              className="h-4 w-4 rounded border-stone-300"
-            />
-            Mostrar sección Dress Code en el micrositio
-          </label>
+        <form action={formAction} className="mt-4 space-y-2">
+          <Checkbox
+            name="is_online"
+            defaultChecked={isOnline}
+            label="Micrositio online (visible / activo)"
+          />
+          <Checkbox
+            name="show_faq"
+            defaultChecked={showFaq}
+            label="Mostrar sección FAQ en el micrositio"
+          />
+          <Checkbox
+            name="show_dress_code"
+            defaultChecked={showDressCode}
+            label="Mostrar sección Dress Code en el micrositio"
+          />
           {normalized === "premium" ? (
-            <label className="flex items-center gap-3 text-sm text-stone-700">
-              <input
-                type="checkbox"
-                name="free_mount"
-                defaultChecked={freeMount}
-                className="h-4 w-4 rounded border-stone-300"
-              />
-              Permitir regalo con monto libre
-            </label>
+            <Checkbox
+              name="free_mount"
+              defaultChecked={freeMount}
+              label="Permitir regalo con monto libre"
+            />
           ) : freeMount ? (
             <input type="hidden" name="free_mount" value="on" />
           ) : null}
-          <label className="flex items-center gap-3 text-sm text-stone-700">
-            <input
-              type="checkbox"
-              name="hide_gifts_list"
-              defaultChecked={hideGiftsList}
-              className="h-4 w-4 rounded border-stone-300"
-            />
-            Ocultar la lista de regalos en el micrositio
-          </label>
-          <FormAlert error={state.error} success={state.success} />
-          <button
-            type="submit"
-            disabled={isPending}
-            className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
-          >
-            Guardar opciones
-          </button>
+          <Checkbox
+            name="hide_gifts_list"
+            defaultChecked={hideGiftsList}
+            label="Ocultar la lista de regalos en el micrositio"
+          />
+          <div className="space-y-4 pt-4">
+            <FormAlert error={state.error} success={state.success} />
+            <Button
+              type="submit"
+              variant="secundario"
+              loading={isPending}
+              loadingLabel="Guardando…"
+            >
+              Guardar opciones
+            </Button>
+          </div>
         </form>
-      </section>
+      </Card>
     </div>
   );
 }

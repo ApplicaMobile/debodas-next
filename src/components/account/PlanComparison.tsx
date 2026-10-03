@@ -10,10 +10,12 @@ import {
   type DemoPlanState,
 } from "@/lib/account/actions/demo-plan";
 import { FormAlert } from "@/components/account/FormAlert";
+import { Alert, Button, PlanCard, type ButtonVariant } from "@/components/ui";
 import {
   canUpgradeToPlan,
   getAccountPlanCards,
   getPlanRank,
+  RECOMMENDED_PLAN,
   type AccountPlanId,
 } from "@/lib/plans/comparison";
 import { normalizePlan } from "@/lib/plans/features";
@@ -27,14 +29,26 @@ interface PlanComparisonProps {
 const checkoutInitial: PlanCheckoutState = {};
 const demoInitial: DemoPlanState = {};
 
+function CtaHelper({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-3 text-center type-body-sm text-text-secondary">
+      {children}
+    </p>
+  );
+}
+
 function MpUpgradeButton({
   planSlug,
   disabled,
   label,
+  variant,
+  helper,
 }: {
   planSlug: AccountPlanId;
   disabled: boolean;
   label: string;
+  variant: ButtonVariant;
+  helper: string;
 }) {
   const [state, formAction, isPending] = useActionState(
     createPlanCheckoutAction,
@@ -48,16 +62,21 @@ function MpUpgradeButton({
   }, [state.redirectTo]);
 
   return (
-    <form action={formAction} className="mt-auto space-y-3 pt-5">
+    <form action={formAction} className="space-y-3">
       <input type="hidden" name="plan" value={planSlug} />
       <FormAlert error={state.error} />
-      <button
+      <Button
         type="submit"
-        disabled={disabled || isPending}
-        className="w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
+        variant={variant}
+        size="lg"
+        fullWidth
+        disabled={disabled}
+        loading={isPending}
+        loadingLabel="Redirigiendo a MercadoPago…"
       >
-        {isPending ? "Redirigiendo a MercadoPago…" : label}
-      </button>
+        {label}
+      </Button>
+      <CtaHelper>{helper}</CtaHelper>
     </form>
   );
 }
@@ -75,19 +94,20 @@ function DemoPlanButton({
   );
 
   return (
-    <form action={formAction} className="mt-auto space-y-3 pt-5">
+    <form action={formAction} className="space-y-3">
       <input type="hidden" name="plan" value={planSlug} />
       <FormAlert error={state.error} success={state.success} />
-      <button
+      <Button
         type="submit"
-        disabled={isPending}
-        className="w-full rounded-full border border-[#e6dac7] bg-white px-5 py-2.5 text-sm font-semibold text-[#e6dac7] disabled:opacity-60"
+        variant="secundario"
+        size="lg"
+        fullWidth
+        loading={isPending}
+        loadingLabel="Actualizando…"
       >
-        {isPending ? "Actualizando…" : label}
-      </button>
-      <p className="text-center text-[11px] text-stone-400">
-        Modo demo · sin MercadoPago
-      </p>
+        {label}
+      </Button>
+      <CtaHelper>Modo demo · sin MercadoPago</CtaHelper>
     </form>
   );
 }
@@ -100,128 +120,121 @@ export function PlanComparison({
   const current = normalizePlan(currentPlan);
   const currentRank = getPlanRank(currentPlan);
   const cards = getAccountPlanCards();
+  const paymentsUnavailable = !mpConfigured && !demoPlanSwitch;
+  const hasPurchasableUpgrade = cards.some(
+    (card) => card.purchasable && canUpgradeToPlan(currentPlan, card.id),
+  );
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold text-stone-800">
+    <section aria-labelledby="comparar-planes" className="space-y-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <h3 id="comparar-planes" className="type-h3 text-text-primary">
           Compará los planes
         </h3>
-        <p className="mt-1 text-sm text-stone-600">
-          Mirá las diferencias y mejorá cuando quieras. Pago único, sin
-          mensualidad.
+        <p className="type-body-sm text-text-secondary">
+          Pago único · Sin mensualidad · Precios en pesos argentinos
         </p>
       </div>
 
       {!mpConfigured && demoPlanSwitch ? (
-        <p className="rounded-xl bg-sky-50 px-4 py-3 text-sm text-sky-900">
-          Estás en <strong>modo demo</strong>. Para probar el checkout de
-          MercadoPago, cargá un Access Token de prueba (TEST-) en{" "}
-          <a href="/admin/mercadopago" className="font-semibold underline">
-            /admin/mercadopago
-          </a>
-          . Mientras tanto podés cambiar de plan sin pagar.
-        </p>
+        <Alert tone="info" title="Estás en modo demo">
+          Podés cambiar de plan sin pagar. Para probar el checkout de
+          MercadoPago, un administrador tiene que cargar un Access Token de
+          prueba (TEST-) en el panel de administración.
+        </Alert>
       ) : null}
 
       {mpConfigured && demoPlanSwitch ? (
-        <p className="rounded-xl bg-sky-50 px-4 py-3 text-sm text-sky-900">
-          Modo demo con MercadoPago sandbox: el botón de upgrade abre el
-          checkout de prueba. Usá una tarjeta de prueba de MercadoPago.
-        </p>
+        <Alert tone="info" title="Modo demo con MercadoPago sandbox">
+          El botón para mejorar el plan abre el checkout de prueba. Usá una
+          tarjeta de prueba de MercadoPago.
+        </Alert>
       ) : null}
 
-      {!mpConfigured && !demoPlanSwitch ? (
-        <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          MercadoPago todavía no está configurado. El administrador puede
-          cargarlo en el panel, en{" "}
-          <code className="text-xs">/admin/mercadopago</code>.
-        </p>
-      ) : null}
-
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
         {cards.map((card) => {
           const isCurrent = card.id === current;
           const canUpgrade = canUpgradeToPlan(currentPlan, card.id);
           const isLower = getPlanRank(card.id) < currentRank;
+          const recommended =
+            card.id === RECOMMENDED_PLAN && !isCurrent && canUpgrade;
+          const variant: ButtonVariant = recommended ? "primario" : "secundario";
+
+          let footer: React.ReactNode = null;
+          if (isCurrent) {
+            footer = null;
+          } else if (mpConfigured && canUpgrade && card.purchasable) {
+            footer = (
+              <MpUpgradeButton
+                planSlug={card.id}
+                disabled={false}
+                label={`Pasar a ${card.label}`}
+                variant={variant}
+                helper="Pagás con MercadoPago: tarjeta, débito o dinero en cuenta."
+              />
+            );
+          } else if (demoPlanSwitch) {
+            footer = (
+              <DemoPlanButton
+                planSlug={card.id}
+                label={
+                  canUpgrade
+                    ? `Pasar a ${card.label} (demo)`
+                    : `Cambiar a ${card.label} (demo)`
+                }
+              />
+            );
+          } else if (canUpgrade && card.purchasable) {
+            footer = (
+              <MpUpgradeButton
+                planSlug={card.id}
+                disabled
+                label={`Pasar a ${card.label}`}
+                variant={variant}
+                helper="Los pagos online no están disponibles en este momento. Escribinos y te ayudamos a mejorar tu plan."
+              />
+            );
+          } else {
+            footer = (
+              <p className="rounded-md bg-surface-muted px-4 py-3 text-center type-body-sm text-text-secondary">
+                {isLower
+                  ? "Incluido en tu plan actual."
+                  : "Plan de entrada sin costo."}
+              </p>
+            );
+          }
 
           return (
-            <article
+            <PlanCard
               key={card.id}
-              className={`flex flex-col rounded-2xl border bg-white p-5 shadow-sm ${
-                isCurrent
-                  ? "border-[#e6dac7] ring-2 ring-[#e6dac7]/20"
-                  : "border-stone-200"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
-                    Plan
-                  </p>
-                  <h4 className="mt-1 font-serif text-2xl font-semibold text-stone-800">
-                    {card.label}
-                  </h4>
-                </div>
-                {isCurrent ? (
-                  <span className="rounded-full bg-[#e6dac7]/10 px-3 py-1 text-xs font-semibold text-[#d4c4a8]">
-                    Tu plan
-                  </span>
-                ) : null}
-              </div>
-
-              <p className="mt-4 text-3xl font-semibold text-[#e6dac7]">
-                {card.priceLabel}
-              </p>
-              {card.priceNote ? (
-                <p className="mt-1 text-xs text-stone-500">{card.priceNote}</p>
-              ) : null}
-
-              <ul className="mt-5 space-y-2 text-sm text-stone-600">
-                {card.features.map((feature) => (
-                  <li key={feature} className="flex gap-2">
-                    <span className="text-[#e6dac7]">✓</span>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {isCurrent ? (
-                <p className="mt-auto rounded-xl bg-stone-50 px-4 py-3 pt-5 text-sm text-stone-600">
-                  Este es tu plan activo.
-                </p>
-              ) : mpConfigured && canUpgrade && card.purchasable ? (
-                <MpUpgradeButton
-                  planSlug={card.id}
-                  disabled={false}
-                  label={`Pasar a ${card.label}`}
-                />
-              ) : demoPlanSwitch ? (
-                <DemoPlanButton
-                  planSlug={card.id}
-                  label={
-                    canUpgrade
-                      ? `Pasar a ${card.label} (demo)`
-                      : `Cambiar a ${card.label} (demo)`
-                  }
-                />
-              ) : canUpgrade && card.purchasable ? (
-                <MpUpgradeButton
-                  planSlug={card.id}
-                  disabled
-                  label={`Pasar a ${card.label}`}
-                />
-              ) : (
-                <p className="mt-auto pt-5 text-sm text-stone-500">
-                  {isLower
-                    ? "Incluido en tu plan actual."
-                    : "Plan de entrada sin costo."}
-                </p>
-              )}
-            </article>
+              headingLevel="h4"
+              name={card.label}
+              price={card.priceArs}
+              priceNote={card.priceNote}
+              description={card.description}
+              features={card.featureRows}
+              recommended={recommended}
+              current={isCurrent}
+              footer={footer}
+            />
           );
         })}
       </div>
+
+      {paymentsUnavailable && hasPurchasableUpgrade ? (
+        <Alert
+          tone="info"
+          title="Los pagos online no están disponibles por ahora"
+          action={
+            <Button variant="secundario" href="/contacto">
+              Escribinos
+            </Button>
+          }
+        >
+          Estamos terminando de configurar MercadoPago. Si querés mejorar tu
+          plan hoy, escribinos y te ayudamos a hacerlo por otro medio.
+        </Alert>
+      ) : null}
     </section>
   );
 }

@@ -49,15 +49,16 @@ export default async function MiCuentaPlanPage({
       : null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
-          Plan y facturación
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Compará planes, mejorá el tuyo y configurá opciones del micrositio.
+    <div className="space-y-8">
+      <header className="max-w-3xl">
+        <p className="type-overline text-text-accent">Mi cuenta · Plan</p>
+        <h2 className="mt-2 type-h2 text-text-primary">Plan y facturación</h2>
+        <p className="mt-3 type-body-lg text-text-secondary">
+          Elegí el plan para tu boda: pagás una sola vez con MercadoPago y no
+          hay mensualidad. También podés configurar las opciones del
+          micrositio.
         </p>
-      </div>
+      </header>
       <PlanPanel
         plan={latest.plan}
         showFaq={optionEnabled(options.show_faq)}
@@ -71,6 +72,7 @@ export default async function MiCuentaPlanPage({
         checkoutError={checkoutError}
         giftCount={latest.gifts.length}
         guestCount={latest.rsvpGuests.length}
+        pictureCount={latest.pictures.length}
       />
     </div>
   );
