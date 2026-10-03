@@ -18,13 +18,13 @@ import {
   AccountDeleteButton,
   AccountFormActions,
   AccountSection,
+  AccountPlanUsage,
 } from "@/components/account/AccountPage";
 import {
   Badge,
   Button,
   Checkbox,
   Input,
-  UsageMeter,
 } from "@/components/ui";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
 import { resolveGiftImageUrl } from "@/lib/gifts/image";
@@ -192,20 +192,13 @@ export function GiftsPanel({
           ) : null
         }
       >
-        <div className="max-w-md">
-          <UsageMeter
-            label="Regalos"
-            value={gifts.length}
-            max={limits.maxGifts}
-            unit="regalos"
-            upgradeHref="/mi-cuenta/plan"
-          />
-          {limits.maxGifts !== null ? (
-            <p className="mt-1 type-caption text-text-secondary">
-              {giftLimitMessage(plan)}
-            </p>
-          ) : null}
-        </div>
+        <AccountPlanUsage
+          label="Regalos"
+          value={gifts.length}
+          max={limits.maxGifts}
+          unit="regalos"
+          message={giftLimitMessage(plan)}
+        />
         {gifts.length === 0 ? (
           <div className="mt-6">
             <AccountEmptyState

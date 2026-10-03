@@ -22,6 +22,7 @@ import {
   accountTableRowClass,
   accountTableTdClass,
   accountTableThClass,
+  AccountPlanUsage,
 } from "@/components/account/AccountPage";
 import {
   FormFieldLabel,
@@ -32,7 +33,6 @@ import {
   Button,
   Input,
   Select,
-  UsageMeter,
   type BadgeTone,
 } from "@/components/ui";
 import {
@@ -412,20 +412,13 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
           ) : null
         }
       >
-        <div className="max-w-md">
-          <UsageMeter
-            label="Invitados (RSVP)"
-            value={guests.length}
-            max={limits.maxRsvpGuests}
-            unit="invitados"
-            upgradeHref="/mi-cuenta/plan"
-          />
-          {limits.maxRsvpGuests !== null ? (
-            <p className="mt-1 type-caption text-text-secondary">
-              {rsvpLimitMessage(plan)}
-            </p>
-          ) : null}
-        </div>
+        <AccountPlanUsage
+          label="Invitados (RSVP)"
+          value={guests.length}
+          max={limits.maxRsvpGuests}
+          unit="invitados"
+          message={rsvpLimitMessage(plan)}
+        />
 
         {guests.length > 0 ? (
           <div

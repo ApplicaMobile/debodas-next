@@ -17,9 +17,10 @@ import {
   AccountDeleteButton,
   AccountFormActions,
   AccountSection,
+  AccountPlanUsage,
 } from "@/components/account/AccountPage";
 import { IllustrationPhotos } from "@/components/account/AccountIllustrations";
-import { Badge, Button, UsageMeter } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
 import {
   canAddPicture,
   getPlanLimits,
@@ -137,20 +138,13 @@ export function BannerPanel({
           </Badge>
         }
       >
-        <div className="max-w-md">
-          <UsageMeter
-            label="Fotos de la galería"
-            value={pictures.length}
-            max={limits.maxPictures}
-            unit="fotos"
-            upgradeHref="/mi-cuenta/plan"
-          />
-          {limits.maxPictures !== null ? (
-            <p className="mt-1 type-caption text-text-secondary">
-              {pictureLimitMessage(plan)}
-            </p>
-          ) : null}
-        </div>
+        <AccountPlanUsage
+          label="Fotos de la galería"
+          value={pictures.length}
+          max={limits.maxPictures}
+          unit="fotos"
+          message={pictureLimitMessage(plan)}
+        />
 
         {pictures.length === 0 ? (
           <div className="mt-6">

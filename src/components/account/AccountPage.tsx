@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { AccountNavIconBadge } from "@/components/account/AccountNavIcon";
-import { Card, IconArrowRight, IconTrash } from "@/components/ui";
+import { Card, IconArrowRight, IconTrash, UsageMeter } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 /**
@@ -106,8 +106,44 @@ export function AccountSection({
         </div>
         {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
       </div>
-      {children ? <div className="mt-6">{children}</div> : null}
+      {children ? <div className="mt-6 *:first:mt-0">{children}</div> : null}
     </Card>
+  );
+}
+
+/**
+ * Uso del plan dentro de una sección (fotos, regalos, invitados). Con plan
+ * ilimitado no se muestra: el contador del título ya informa la cantidad.
+ */
+export function AccountPlanUsage({
+  label,
+  value,
+  max,
+  unit,
+  message,
+}: {
+  label: string;
+  value: number;
+  /** null = ilimitado. */
+  max: number | null;
+  unit: string;
+  /** Texto del límite del plan actual. */
+  message?: ReactNode;
+}) {
+  if (max === null) return null;
+  return (
+    <div className="max-w-md">
+      <UsageMeter
+        label={label}
+        value={value}
+        max={max}
+        unit={unit}
+        upgradeHref="/mi-cuenta/plan"
+      />
+      {message ? (
+        <p className="mt-1 type-caption text-text-secondary">{message}</p>
+      ) : null}
+    </div>
   );
 }
 
