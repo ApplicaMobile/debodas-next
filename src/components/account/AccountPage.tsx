@@ -311,3 +311,46 @@ function AccountNavIconInline() {
     </svg>
   );
 }
+
+/** Control compacto (selects/inputs dentro de tablas y listas densas). */
+export const accountCompactControlClass =
+  "focus-ring min-h-9 rounded-sm border border-border-strong bg-surface-default px-2 py-1.5 type-body-sm text-text-primary hover:border-text-primary disabled:cursor-not-allowed disabled:bg-surface-disabled";
+
+/** Chip de filtro (aria-pressed) con contador opcional. */
+export function AccountFilterChip({
+  active,
+  onClick,
+  count,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  count?: number;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "focus-ring inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 type-button-sm transition-colors motion-reduce:transition-none",
+        active
+          ? "border-action-primary-bg bg-action-primary-bg text-action-primary-fg"
+          : "border-border-default bg-surface-default text-text-primary hover:bg-surface-muted",
+      )}
+    >
+      {children}
+      {count !== undefined ? (
+        <span
+          className={cn(
+            "rounded-full px-1.5 py-0.5 type-caption font-semibold tabular-nums",
+            active ? "bg-surface-default/20" : "bg-surface-muted text-text-secondary",
+          )}
+        >
+          {count}
+        </span>
+      ) : null}
+    </button>
+  );
+}

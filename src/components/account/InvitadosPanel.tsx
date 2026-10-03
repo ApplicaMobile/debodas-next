@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
   addRsvpGuestAction,
@@ -12,7 +11,30 @@ import type { FormState } from "@/lib/account/form-state";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
-import { PlanUsageMeter } from "@/components/account/PlanUsageMeter";
+import { IllustrationGuests } from "@/components/account/AccountIllustrations";
+import {
+  AccountDeleteButton,
+  AccountFilterChip,
+  AccountFormActions,
+  AccountSection,
+  accountCompactControlClass,
+  accountTableHeadClass,
+  accountTableRowClass,
+  accountTableTdClass,
+  accountTableThClass,
+} from "@/components/account/AccountPage";
+import {
+  FormFieldLabel,
+  formControlClassName,
+} from "@/components/account/FormField";
+import {
+  Badge,
+  Button,
+  Input,
+  Select,
+  UsageMeter,
+  type BadgeTone,
+} from "@/components/ui";
 import {
   canAddRsvpGuest,
   getPlanLimits,
@@ -58,6 +80,20 @@ const statusLabels: Record<string, string> = {
   declined: "No asiste",
 };
 
+const statusTones: Record<string, BadgeTone> = {
+  pending: "pendiente",
+  confirmed: "aprobado",
+  declined: "neutro",
+};
+
+function GuestStatusBadge({ status }: { status: string }) {
+  return (
+    <Badge tone={statusTones[status] ?? "neutro"}>
+      {statusLabels[status] ?? status}
+    </Badge>
+  );
+}
+
 const OTHER_TABLE = "__other__";
 const initialState: FormState = {};
 
@@ -76,7 +112,7 @@ function GuestStatusSelect({
       <select
         name="status"
         defaultValue={status}
-        className="w-full rounded-lg border border-stone-200 px-2 py-1.5 text-xs sm:w-auto"
+        className={`${accountCompactControlClass} w-full sm:w-auto`}
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
         aria-label="Estado del invitado"
       >
@@ -116,7 +152,7 @@ function GuestTableField({
       <select
         value={selectValue}
         aria-label="Mesa del invitado"
-        className="w-full min-w-0 rounded-lg border border-stone-200 px-2 py-1.5 text-xs sm:max-w-[11rem]"
+        className={`${accountCompactControlClass} w-full min-w-0 sm:max-w-[11rem]`}
         onChange={(event) => {
           const next = event.target.value;
           setSelectValue(next);
@@ -148,12 +184,12 @@ function GuestTableField({
             placeholder="Nombre de mesa"
             maxLength={60}
             required
-            className="min-w-0 flex-1 rounded-lg border border-stone-200 px-2 py-1.5 text-xs"
+            className={`${accountCompactControlClass} min-w-0 flex-1`}
             aria-label="Nueva mesa"
           />
           <button
             type="submit"
-            className="shrink-0 rounded-lg px-2 py-1.5 text-xs font-medium text-[#6f5f47] hover:bg-stone-100"
+            className="focus-ring min-h-9 shrink-0 rounded-sm px-2 type-button-sm text-text-accent hover:bg-surface-muted"
           >
             OK
           </button>
@@ -177,11 +213,13 @@ function AddGuestTableFields({
 
   return (
     <div className="space-y-2 sm:col-span-2">
+      <FormFieldLabel htmlFor="add-guest-table">Mesa</FormFieldLabel>
       <select
+        id="add-guest-table"
         value={selectValue}
         disabled={disabled}
         aria-label="Mesa"
-        className="w-full rounded-xl border border-stone-200 px-4 py-3"
+        className={`${formControlClassName} min-h-12`}
         onChange={(event) => setSelectValue(event.target.value)}
       >
         <option value="">Sin mesa</option>
@@ -198,7 +236,8 @@ function AddGuestTableFields({
           required
           maxLength={60}
           disabled={disabled}
-          className="w-full rounded-xl border border-stone-200 px-4 py-3"
+          aria-label="Nombre de la nueva mesa"
+          className={`${formControlClassName} min-h-12`}
           placeholder="Nombre de la nueva mesa — ej. Mesa 1"
         />
       ) : (
@@ -222,12 +261,9 @@ function GuestQuickActions({
       <form action={statusAction} className="mt-3">
         <input type="hidden" name="guest_id" value={guestId} />
         <input type="hidden" name="status" value="declined" />
-        <button
-          type="submit"
-          className="text-xs font-medium text-stone-500 hover:text-stone-800"
-        >
+        <Button type="submit" variant="fantasma" size="sm">
           Marcar como no asiste
-        </button>
+        </Button>
       </form>
     );
   }
@@ -238,36 +274,27 @@ function GuestQuickActions({
         <form action={statusAction}>
           <input type="hidden" name="guest_id" value={guestId} />
           <input type="hidden" name="status" value="confirmed" />
-          <button
-            type="submit"
-            className="rounded-full bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white"
-          >
+          <Button type="submit" size="sm">
             Confirmar
-          </button>
+          </Button>
         </form>
       ) : null}
       {status !== "declined" ? (
         <form action={statusAction}>
           <input type="hidden" name="guest_id" value={guestId} />
           <input type="hidden" name="status" value="declined" />
-          <button
-            type="submit"
-            className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700"
-          >
+          <Button type="submit" variant="secundario" size="sm">
             No asiste
-          </button>
+          </Button>
         </form>
       ) : null}
       {status !== "pending" ? (
         <form action={statusAction}>
           <input type="hidden" name="guest_id" value={guestId} />
           <input type="hidden" name="status" value="pending" />
-          <button
-            type="submit"
-            className="rounded-full px-3 py-1.5 text-xs font-medium text-stone-500 hover:bg-stone-100"
-          >
+          <Button type="submit" variant="fantasma" size="sm">
             Pendiente
-          </button>
+          </Button>
         </form>
       ) : null}
     </div>
@@ -282,9 +309,7 @@ function GuestDeleteButton({ guestId }: { guestId: string }) {
       className="inline"
     >
       <input type="hidden" name="guest_id" value={guestId} />
-      <button type="submit" className="text-sm text-red-600 hover:underline">
-        Eliminar
-      </button>
+      <AccountDeleteButton />
     </ConfirmDeleteForm>
   );
 }
@@ -357,187 +382,103 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
     downloadTextFile(`invitados-${stamp}.csv`, csv);
   }
 
+  const filtersActive =
+    statusFilter !== "all" || tableFilter !== TABLE_FILTER_ALL || Boolean(query.trim());
+
   return (
-    <div className="space-y-8">
-      {!tablesEnabled ? (
-        <section className="rounded-2xl border border-dashed border-stone-300 bg-white p-4 sm:rounded-3xl sm:p-6">
-          <h3 className="text-base font-semibold text-stone-800">
-            Gestión de mesas
-          </h3>
-          <p className="mt-1 text-sm text-stone-600">
-            En Premium podés asignar mesas a cada invitado y ver el resumen por
-            mesa.
-          </p>
-          <Link
-            href="/mi-cuenta/plan"
-            className="mt-3 inline-flex rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800"
-          >
-            Ver plan Premium
-          </Link>
-        </section>
-      ) : null}
-
-      {tablesEnabled && guests.length > 0 ? (
-        <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-          <h3 className="text-lg font-semibold text-stone-800">
-            Resumen de mesas
-          </h3>
-          <p className="mt-1 text-sm text-stone-600">
-            Elegí una mesa del desplegable o creá una nueva con “Otra mesa…”.
-            Tocá una tarjeta para filtrar la lista.
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {tableGroups.map((group) => {
-              const filterValue =
-                group.table === "Sin mesa" ? TABLE_FILTER_NONE : group.table;
-              const active = tableFilter === filterValue;
-              return (
-                <button
-                  key={group.table}
-                  type="button"
-                  onClick={() =>
-                    setTableFilter((current) =>
-                      current === filterValue ? TABLE_FILTER_ALL : filterValue,
-                    )
-                  }
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    active
-                      ? "border-sky-400 bg-sky-50 ring-2 ring-sky-200"
-                      : "border-stone-100 bg-stone-50/80 hover:border-sky-200"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-stone-800">
-                    {group.table}
-                  </p>
-                  <p className="mt-0.5 text-xs text-stone-500">
-                    {group.guests.length} invitado
-                    {group.guests.length === 1 ? "" : "s"}
-                  </p>
-                  <ul className="mt-2 space-y-1 text-sm text-stone-600">
-                    {group.guests.map((guest) => (
-                      <li key={guest.id} className="truncate">
-                        {guest.name}
-                      </li>
-                    ))}
-                  </ul>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-stone-800">
-            Lista de invitados
-          </h3>
-          {guests.length > 0 ? (
-            <button
-              type="button"
-              onClick={exportFilteredCsv}
-              className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-            >
-              Exportar CSV
-              {filteredGuests.length !== guests.length
-                ? ` (${filteredGuests.length})`
-                : ""}
-            </button>
+    <>
+      <AccountSection
+        id="invitados-lista"
+        title="Lista de invitados"
+        description="Confirmaciones que llegan desde el micrositio y los invitados que cargues a mano."
+        badge={
+          <Badge tone="neutro" icon={false}>
+            {guests.length} {guests.length === 1 ? "invitado" : "invitados"}
+          </Badge>
+        }
+        actions={
+          guests.length > 0 ? (
+            <>
+              <Button type="button" variant="secundario" size="sm" onClick={exportFilteredCsv}>
+                Exportar CSV
+                {filteredGuests.length !== guests.length
+                  ? ` (${filteredGuests.length})`
+                  : ""}
+              </Button>
+              <Button href="#agregar-invitado" size="sm">
+                Agregar invitado
+              </Button>
+            </>
+          ) : null
+        }
+      >
+        <div className="max-w-md">
+          <UsageMeter
+            label="Invitados (RSVP)"
+            value={guests.length}
+            max={limits.maxRsvpGuests}
+            unit="invitados"
+            upgradeHref="/mi-cuenta/plan"
+          />
+          {limits.maxRsvpGuests !== null ? (
+            <p className="mt-1 type-caption text-text-secondary">
+              {rsvpLimitMessage(plan)}
+            </p>
           ) : null}
         </div>
-        <PlanUsageMeter
-          label="invitados"
-          current={guests.length}
-          max={limits.maxRsvpGuests}
-        />
-        {limits.maxRsvpGuests !== null ? (
-          <p className="mt-1 text-xs text-stone-500">{rsvpLimitMessage(plan)}</p>
-        ) : null}
 
         {guests.length > 0 ? (
-          <div className="mt-4 space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {RSVP_STATUS_FILTERS.map((filter) => {
-                const active = statusFilter === filter.value;
-                const count = statusCounts[filter.value];
-                return (
-                  <button
-                    key={filter.value}
-                    type="button"
-                    onClick={() => setStatusFilter(filter.value)}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                      active ? filter.activeClass : filter.idleClass
-                    }`}
-                  >
-                    {filter.label}
-                    <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                        active ? "bg-white/25" : "bg-black/5"
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
+          <div
+            role="search"
+            aria-label="Filtrar invitados"
+            className="mt-6 space-y-3 rounded-md border border-border-subtle bg-surface-muted p-4"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 type-caption font-semibold uppercase tracking-wide text-text-secondary">
+                Estado
+              </span>
+              {RSVP_STATUS_FILTERS.map((filter) => (
+                <AccountFilterChip
+                  key={filter.value}
+                  active={statusFilter === filter.value}
+                  onClick={() => setStatusFilter(filter.value)}
+                  count={statusCounts[filter.value]}
+                >
+                  {filter.label}
+                </AccountFilterChip>
+              ))}
             </div>
 
             {tablesEnabled ? (
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="mr-1 type-caption font-semibold uppercase tracking-wide text-text-secondary">
+                  Mesa
+                </span>
+                <AccountFilterChip
+                  active={tableFilter === TABLE_FILTER_ALL}
                   onClick={() => setTableFilter(TABLE_FILTER_ALL)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                    tableFilter === TABLE_FILTER_ALL
-                      ? "border-sky-600 bg-sky-600 text-white"
-                      : "border-sky-200 bg-sky-50 text-sky-900 hover:bg-sky-100"
-                  }`}
                 >
                   Todas las mesas
-                </button>
-                <button
-                  type="button"
+                </AccountFilterChip>
+                <AccountFilterChip
+                  active={tableFilter === TABLE_FILTER_NONE}
                   onClick={() => setTableFilter(TABLE_FILTER_NONE)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                    tableFilter === TABLE_FILTER_NONE
-                      ? "border-violet-600 bg-violet-600 text-white"
-                      : "border-violet-200 bg-violet-50 text-violet-900 hover:bg-violet-100"
-                  }`}
                 >
                   Sin mesa
-                </button>
-                {knownTables.map((name, index) => {
-                  const palette = [
-                    "border-teal-200 bg-teal-50 text-teal-900 hover:bg-teal-100",
-                    "border-indigo-200 bg-indigo-50 text-indigo-900 hover:bg-indigo-100",
-                    "border-orange-200 bg-orange-50 text-orange-900 hover:bg-orange-100",
-                    "border-pink-200 bg-pink-50 text-pink-900 hover:bg-pink-100",
-                  ];
-                  const activePalette = [
-                    "border-teal-600 bg-teal-600 text-white",
-                    "border-indigo-600 bg-indigo-600 text-white",
-                    "border-orange-600 bg-orange-600 text-white",
-                    "border-pink-600 bg-pink-600 text-white",
-                  ];
-                  const i = index % palette.length;
-                  const active = tableFilter === name;
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() =>
-                        setTableFilter((current) =>
-                          current === name ? TABLE_FILTER_ALL : name,
-                        )
-                      }
-                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                        active ? activePalette[i] : palette[i]
-                      }`}
-                    >
-                      {name}
-                    </button>
-                  );
-                })}
+                </AccountFilterChip>
+                {knownTables.map((name) => (
+                  <AccountFilterChip
+                    key={name}
+                    active={tableFilter === name}
+                    onClick={() =>
+                      setTableFilter((current) =>
+                        current === name ? TABLE_FILTER_ALL : name,
+                      )
+                    }
+                  >
+                    {name}
+                  </AccountFilterChip>
+                ))}
               </div>
             ) : null}
 
@@ -546,28 +487,26 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar por nombre, email, mesa o notas…"
-              className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm"
+              className={`${formControlClassName} min-h-12`}
               aria-label="Buscar invitados"
             />
-            <p className="text-xs text-stone-500">
+            <p className="type-caption text-text-secondary" aria-live="polite">
               Mostrando {filteredGuests.length} de {guests.length}
-              {statusFilter !== "all" ||
-              tableFilter !== TABLE_FILTER_ALL ||
-              query.trim()
-                ? " · filtro activo"
-                : ""}
+              {filtersActive ? " · filtro activo" : ""}
             </p>
           </div>
         ) : null}
 
-        <FormAlert error={statusState.error} success={statusState.success} />
-        <FormAlert error={tableState.error} success={tableState.success} />
+        <div className="mt-4 space-y-2 empty:hidden">
+          <FormAlert error={statusState.error} success={statusState.success} />
+          <FormAlert error={tableState.error} success={tableState.success} />
+        </div>
         {guests.length === 0 ? (
           <div className="mt-6">
             <AccountEmptyState
+              illustration={IllustrationGuests}
               title="Todavía no hay invitados"
               description="Cargalos manualmente abajo o compartí el micrositio para que confirmen solos."
-              icon="✓"
               actions={[
                 {
                   label: "Agregar primer invitado",
@@ -582,50 +521,44 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
             />
           </div>
         ) : filteredGuests.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
-            <p className="font-medium text-stone-700">
+          <div className="mt-6 flex flex-col items-center rounded-md border border-dashed border-border-default bg-surface-muted px-4 py-8 text-center">
+            <p className="type-label text-text-primary">
               Ningún invitado con estos filtros
             </p>
-            <p className="mt-1 text-sm text-stone-500">
+            <p className="mt-1 type-body-sm text-text-secondary">
               Probá otro estado, mesa o búsqueda.
             </p>
-            <button
+            <Button
               type="button"
+              variant="secundario"
+              size="sm"
+              className="mt-4"
               onClick={() => {
                 setStatusFilter("all");
                 setTableFilter(TABLE_FILTER_ALL);
                 setQuery("");
               }}
-              className="mt-4 rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800"
             >
               Limpiar filtros
-            </button>
+            </Button>
           </div>
         ) : (
           <>
-            <ul id="lista-invitados" className="mt-4 space-y-3 md:hidden">
+            <ul id="lista-invitados" role="list" className="mt-6 space-y-3 md:hidden">
               {filteredGuests.map((guest) => (
                 <li
                   key={guest.id}
-                  className="rounded-2xl border border-stone-100 bg-stone-50/80 p-4"
+                  className="rounded-md border border-border-subtle bg-surface-default p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-medium text-stone-800">{guest.name}</p>
-                      <p className="mt-0.5 truncate text-sm text-stone-500">
+                      <p className="type-label text-text-primary">{guest.name}</p>
+                      <p className="mt-0.5 truncate type-body-sm text-text-secondary">
                         {guest.email ?? "Sin email"}
                       </p>
-                      <span
-                        className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                          guest.status === "confirmed"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : guest.status === "declined"
-                              ? "bg-stone-200 text-stone-700"
-                              : "bg-amber-100 text-amber-900"
-                        }`}
-                      >
-                        {statusLabels[guest.status] ?? guest.status}
-                      </span>
+                      <div className="mt-2">
+                        <GuestStatusBadge status={guest.status} />
+                      </div>
                     </div>
                     <GuestDeleteButton guestId={guest.id} />
                   </div>
@@ -634,17 +567,17 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                     status={guest.status}
                     statusAction={statusAction}
                   />
-                  <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                  <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-border-subtle pt-3 type-body-sm">
                     <div>
-                      <dt className="text-xs uppercase tracking-wide text-stone-400">
+                      <dt className="type-caption font-semibold uppercase tracking-wide text-text-secondary">
                         Menú
                       </dt>
-                      <dd className="mt-0.5 text-stone-700">
+                      <dd className="mt-0.5 text-text-primary">
                         {rsvpMenuLabel(guest.menu)}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs uppercase tracking-wide text-stone-400">
+                      <dt className="type-caption font-semibold uppercase tracking-wide text-text-secondary">
                         Estado
                       </dt>
                       <dd className="mt-1">
@@ -657,7 +590,7 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                     </div>
                     {tablesEnabled ? (
                       <div className="col-span-2">
-                        <dt className="text-xs uppercase tracking-wide text-stone-400">
+                        <dt className="type-caption font-semibold uppercase tracking-wide text-text-secondary">
                           Mesa
                         </dt>
                         <dd className="mt-1">
@@ -673,41 +606,43 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                     ) : null}
                   </dl>
                   {guest.notes ? (
-                    <p className="mt-3 text-sm text-stone-600">{guest.notes}</p>
+                    <p className="mt-3 type-body-sm text-text-secondary">{guest.notes}</p>
                   ) : null}
                 </li>
               ))}
             </ul>
 
-            <div className="mt-4 hidden overflow-x-auto md:block">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stone-100 text-left text-stone-500">
-                    <th className="py-2 pr-4">Nombre</th>
-                    <th className="py-2 pr-4">Email</th>
-                    <th className="py-2 pr-4">Menú</th>
+            <div className="mt-6 hidden overflow-x-auto rounded-md border border-border-subtle md:block">
+              <table className="min-w-full text-left type-body-sm text-text-primary">
+                <thead className={accountTableHeadClass}>
+                  <tr>
+                    <th className={accountTableThClass}>Nombre</th>
+                    <th className={accountTableThClass}>Email</th>
+                    <th className={accountTableThClass}>Menú</th>
                     {tablesEnabled ? (
-                      <th className="py-2 pr-4">Mesa</th>
+                      <th className={accountTableThClass}>Mesa</th>
                     ) : null}
-                    <th className="py-2 pr-4">Notas</th>
-                    <th className="py-2 pr-4">Estado</th>
-                    <th className="py-2">Acciones</th>
+                    <th className={accountTableThClass}>Notas</th>
+                    <th className={accountTableThClass}>Estado</th>
+                    <th className={accountTableThClass}>
+                      <span className="sr-only">Acciones</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredGuests.map((guest) => (
-                    <tr key={guest.id} className="border-b border-stone-50">
-                      <td className="py-3 pr-4 font-medium text-stone-800">
+                    <tr key={guest.id} className={accountTableRowClass}>
+                      <td className={`${accountTableTdClass} font-semibold`}>
                         {guest.name}
                       </td>
-                      <td className="py-3 pr-4 text-stone-600">
+                      <td className={`${accountTableTdClass} text-text-secondary`}>
                         {guest.email ?? "—"}
                       </td>
-                      <td className="py-3 pr-4 text-stone-600">
+                      <td className={`${accountTableTdClass} text-text-secondary`}>
                         {rsvpMenuLabel(guest.menu)}
                       </td>
                       {tablesEnabled ? (
-                        <td className="min-w-[11rem] py-3 pr-4">
+                        <td className={`${accountTableTdClass} min-w-[11rem]`}>
                           <GuestTableField
                             key={`${guest.id}-d-${guest.tableName ?? ""}`}
                             guestId={guest.id}
@@ -717,17 +652,17 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                           />
                         </td>
                       ) : null}
-                      <td className="max-w-[12rem] truncate py-3 pr-4 text-stone-500">
+                      <td className={`${accountTableTdClass} max-w-[12rem] truncate text-text-secondary`}>
                         {guest.notes ?? "—"}
                       </td>
-                      <td className="py-3 pr-4">
+                      <td className={accountTableTdClass}>
                         <GuestStatusSelect
                           guestId={guest.id}
                           status={guest.status}
                           statusAction={statusAction}
                         />
                       </td>
-                      <td className="py-3">
+                      <td className={`${accountTableTdClass} text-right`}>
                         <GuestDeleteButton guestId={guest.id} />
                       </td>
                     </tr>
@@ -737,88 +672,153 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
             </div>
           </>
         )}
-      </section>
+      </AccountSection>
 
-      <section
-        id="agregar-invitado"
-        className="scroll-mt-24 rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8"
+      {tablesEnabled && guests.length > 0 ? (
+        <AccountSection
+          id="invitados-mesas"
+          title="Resumen de mesas"
+          description="Elegí una mesa del desplegable o creá una nueva con “Otra mesa…”. Tocá una tarjeta para filtrar la lista."
+        >
+          <ul role="list" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {tableGroups.map((group) => {
+              const filterValue =
+                group.table === "Sin mesa" ? TABLE_FILTER_NONE : group.table;
+              const active = tableFilter === filterValue;
+              return (
+                <li key={group.table}>
+                  <button
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      setTableFilter((current) =>
+                        current === filterValue ? TABLE_FILTER_ALL : filterValue,
+                      )
+                    }
+                    className={`focus-ring h-full w-full rounded-md border p-4 text-left transition-colors motion-reduce:transition-none ${
+                      active
+                        ? "border-border-accent bg-surface-brand ring-2 ring-border-accent"
+                        : "border-border-subtle bg-surface-muted hover:border-border-strong"
+                    }`}
+                  >
+                    <p className="type-label text-text-primary">{group.table}</p>
+                    <p className="mt-0.5 type-caption text-text-secondary">
+                      {group.guests.length} invitado
+                      {group.guests.length === 1 ? "" : "s"}
+                    </p>
+                    <ul className="mt-2 space-y-1 type-body-sm text-text-secondary">
+                      {group.guests.map((guest) => (
+                        <li key={guest.id} className="truncate">
+                          {guest.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </AccountSection>
+      ) : null}
+
+      <AccountSection
+        id="agregar-invitado-titulo"
+        className="scroll-mt-24"
+        title="Agregar invitado"
+        description="Para quienes confirman por otro medio. Lo que cargues acá aparece en la lista de arriba."
       >
-        <h3 className="text-lg font-semibold text-stone-800">
-          Agregar invitado
-        </h3>
-        <form action={addAction} className="mt-4 grid gap-3 sm:grid-cols-2">
-            <input
+        <form id="agregar-invitado" action={addAction} className="scroll-mt-24">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Input
+              id="add-guest-name"
+              label="Nombre del invitado"
               name="name"
               required
-              className="rounded-xl border border-stone-200 px-4 py-3"
               placeholder="Nombre"
               disabled={atGuestLimit}
-              aria-label="Nombre del invitado"
             />
-            <input
+            <Input
+              id="add-guest-email"
+              label="Email del invitado"
+              optional
               name="email"
               type="email"
-              className="rounded-xl border border-stone-200 px-4 py-3"
               placeholder="Email (opcional)"
               disabled={atGuestLimit}
-              aria-label="Email del invitado"
             />
-          <select
-            name="status"
-            defaultValue="pending"
-            className="rounded-xl border border-stone-200 px-4 py-3"
-            disabled={atGuestLimit}
-          >
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          {menuEnabled ? (
-            <select
-              name="menu"
-              defaultValue="general"
-              className="rounded-xl border border-stone-200 px-4 py-3"
+            <Select
+              id="add-guest-status"
+              label="Estado"
+              name="status"
+              defaultValue="pending"
               disabled={atGuestLimit}
-            >
-              {RSVP_MENU_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input type="hidden" name="menu" value="general" />
-          )}
-          {tablesEnabled ? (
-            <AddGuestTableFields
-              knownTables={knownTables}
+              options={Object.entries(statusLabels).map(([value, label]) => ({
+                value,
+                label,
+              }))}
+            />
+            {menuEnabled ? (
+              <Select
+                id="add-guest-menu"
+                label="Menú"
+                name="menu"
+                defaultValue="general"
+                disabled={atGuestLimit}
+                options={RSVP_MENU_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+              />
+            ) : (
+              <input type="hidden" name="menu" value="general" />
+            )}
+            {tablesEnabled ? (
+              <AddGuestTableFields
+                knownTables={knownTables}
+                disabled={atGuestLimit}
+              />
+            ) : null}
+            <Input
+              id="add-guest-notes"
+              label="Notas"
+              optional
+              className="sm:col-span-2"
+              name="notes"
+              placeholder="Notas (opcional)"
               disabled={atGuestLimit}
             />
-          ) : null}
-          <input
-            name="notes"
-            className="rounded-xl border border-stone-200 px-4 py-3 sm:col-span-2"
-            placeholder="Notas (opcional)"
-            disabled={atGuestLimit}
-          />
-          <div className="sm:col-span-2">
-            <FormAlert error={addState.error} success={addState.success} />
-            <button
-              type="submit"
-              disabled={addPending || atGuestLimit}
-              className="mt-2 rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
-            >
-              {atGuestLimit
-                ? "Límite de invitados alcanzado"
-                : addPending
-                  ? "Agregando…"
-                  : "Agregar invitado"}
-            </button>
           </div>
+          <AccountFormActions
+            alert={<FormAlert error={addState.error} success={addState.success} />}
+          >
+            <Button
+              type="submit"
+              disabled={atGuestLimit}
+              loading={addPending}
+              loadingLabel="Agregando…"
+            >
+              {atGuestLimit ? "Límite de invitados alcanzado" : "Agregar invitado"}
+            </Button>
+          </AccountFormActions>
         </form>
-      </section>
-    </div>
+      </AccountSection>
+
+      {!tablesEnabled ? (
+        <AccountSection
+          id="invitados-mesas-premium"
+          title="Gestión de mesas"
+          badge={
+            <Badge tone="premium">
+              <span className="sr-only">Plan </span>Premium
+            </Badge>
+          }
+          description="En Premium podés asignar mesas a cada invitado y ver el resumen por mesa."
+        >
+          <Button href="/mi-cuenta/plan" variant="secundario">
+            Ver plan Premium
+          </Button>
+        </AccountSection>
+      ) : null}
+    </>
   );
 }
