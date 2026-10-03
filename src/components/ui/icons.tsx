@@ -68,6 +68,12 @@ export const IconTrash = (p: IconProps) => (
 export const IconStar = (p: IconProps) => (
   <Svg {...p}><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9Z" /></Svg>
 );
+export const IconMenu = (p: IconProps) => (
+  <Svg {...p}><path d="M4 6h16M4 12h16M4 18h16" /></Svg>
+);
+export const IconExternalLink = (p: IconProps) => (
+  <Svg {...p}><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></Svg>
+);
 
 export function Spinner({ size = 20, ...props }: IconProps) {
   return (
