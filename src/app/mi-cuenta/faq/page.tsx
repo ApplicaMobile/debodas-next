@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+} from "@/components/account/AccountPage";
 import { FaqPanel } from "@/components/account/ContentPanels";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 
@@ -9,13 +13,13 @@ export default async function MiCuentaFaqPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">FAQ</h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Preguntas frecuentes para tus invitados.
-        </p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/faq"
+        section="FAQ"
+        title="Preguntas frecuentes"
+        description="Respondé de antemano las dudas típicas de tus invitados para que encuentren todo en tu micrositio."
+      />
       <FaqPanel
         items={boda.faqItems
           .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -25,6 +29,6 @@ export default async function MiCuentaFaqPage() {
             answer: item.answer,
           }))}
       />
-    </div>
+    </AccountPageBody>
   );
 }

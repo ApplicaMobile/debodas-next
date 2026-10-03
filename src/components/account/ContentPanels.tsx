@@ -9,7 +9,10 @@ import {
 } from "@/lib/account/actions/content";
 import type { FormState } from "@/lib/account/form-state";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
-import { IllustrationCalendar } from "@/components/account/AccountIllustrations";
+import {
+  IllustrationCalendar,
+  IllustrationQuestions,
+} from "@/components/account/AccountIllustrations";
 import {
   AccountDeleteButton,
   AccountFormActions,
@@ -17,15 +20,9 @@ import {
   AccountListItem,
   AccountSection,
 } from "@/components/account/AccountPage";
-import { Badge, Button, Input, Select } from "@/components/ui";
+import { Badge, Button, Input, Select, Textarea } from "@/components/ui";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
-import {
-  FormField,
-  FormInput,
-  FormTextarea,
-  formControlClassName,
-} from "@/components/account/FormField";
 import {
   SCHEDULE_ICON_OPTIONS,
   scheduleIconLabel,
@@ -174,13 +171,24 @@ export function FaqPanel({
   );
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+    <>
+      <AccountSection
+        id="faq-preguntas"
+        title="Preguntas publicadas"
+        description="Se muestran en tu micrositio en este orden."
+        badge={
+          items.length > 0 ? (
+            <Badge tone="neutro" icon={false}>
+              {items.length} {items.length === 1 ? "pregunta" : "preguntas"}
+            </Badge>
+          ) : null
+        }
+      >
         {items.length === 0 ? (
           <AccountEmptyState
+            illustration={IllustrationQuestions}
             title="Todavía no hay preguntas frecuentes"
             description="Respondé dudas típicas (estacionamiento, dress code, niños) para que los invitados encuentren todo en un solo lugar."
-            icon="?"
             actions={[
               {
                 label: "Agregar primera pregunta",
@@ -192,61 +200,58 @@ export function FaqPanel({
             ]}
           />
         ) : (
-          <ul className="divide-y divide-stone-100">
+          <AccountItemList label="Preguntas frecuentes">
             {items.map((item) => (
-              <li
+              <AccountListItem
                 key={item.id}
-                className="flex items-start justify-between gap-4 py-4"
-              >
-                <div>
-                  <p className="font-medium text-stone-800">{item.question}</p>
-                  <p className="mt-1 text-sm text-stone-500">{item.answer}</p>
-                </div>
-                <ConfirmDeleteForm
-                  action={deleteFaqItemAction}
-                  message="¿Eliminar esta pregunta?"
-                >
-                  <input type="hidden" name="item_id" value={item.id} />
-                  <button
-                    type="submit"
-                    className="text-sm text-red-600 hover:underline"
+                title={item.question}
+                actions={
+                  <ConfirmDeleteForm
+                    action={deleteFaqItemAction}
+                    message="¿Eliminar esta pregunta?"
                   >
-                    Eliminar
-                  </button>
-                </ConfirmDeleteForm>
-              </li>
+                    <input type="hidden" name="item_id" value={item.id} />
+                    <AccountDeleteButton />
+                  </ConfirmDeleteForm>
+                }
+              >
+                {item.answer}
+              </AccountListItem>
             ))}
-          </ul>
+          </AccountItemList>
         )}
+      </AccountSection>
 
-        <form
-          id="agregar-faq"
-          action={addAction}
-          className="mt-6 scroll-mt-24 space-y-4"
-        >
-          <FormInput
+      <AccountSection
+        id="faq-agregar"
+        title="Agregar una pregunta"
+        description="Escribí la duda tal como la haría un invitado y una respuesta corta."
+      >
+        <form id="agregar-faq" action={addAction} className="scroll-mt-24 space-y-5">
+          <Input
+            id="question"
             label="Pregunta"
             name="question"
             required
             placeholder="¿Hay estacionamiento?"
           />
-          <FormTextarea
+          <Textarea
+            id="answer"
             label="Respuesta"
             name="answer"
             required
             rows={3}
             placeholder="Sí, hay cochera gratuita frente al salón."
           />
-          <FormAlert error={addState.error} success={addState.success} />
-          <button
-            type="submit"
-            disabled={addPending}
-            className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
+          <AccountFormActions
+            alert={<FormAlert error={addState.error} success={addState.success} />}
           >
-            {addPending ? "Agregando…" : "Agregar FAQ"}
-          </button>
+            <Button type="submit" loading={addPending} loadingLabel="Agregando…">
+              Agregar FAQ
+            </Button>
+          </AccountFormActions>
         </form>
-      </section>
-    </div>
+      </AccountSection>
+    </>
   );
 }
