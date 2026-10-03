@@ -182,7 +182,7 @@ export function ConfirmedGiftsPanel({ gifts }: ConfirmedGiftsPanelProps) {
         <AccountEmptyState
           illustration={IllustrationGift}
           title="Todavía no recibiste regalos"
-          description="Cuando un invitado complete un regalo desde el micrositio, va a aparecer acá para que lo confirms."
+          description="Cuando un invitado complete un regalo desde el micrositio, va a aparecer acá para que lo confirmes."
           actions={[
             {
               label: "Armar lista de regalos",
