@@ -75,6 +75,10 @@ export const IconExternalLink = (p: IconProps) => (
   <Svg {...p}><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></Svg>
 );
 
+export const IconDownload = (p: IconProps) => (
+  <Svg {...p}><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></Svg>
+);
+
 export function Spinner({ size = 20, ...props }: IconProps) {
   return (
     <svg
