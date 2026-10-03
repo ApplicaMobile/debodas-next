@@ -7,47 +7,43 @@ import {
 } from "@/lib/admin/format";
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationRings } from "@/components/account/AccountIllustrations";
+import {
+  AccountFilterBar,
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+  AccountTable,
+  accountCompactControlClass,
+  accountTableHeadClass,
+  accountTableRowClass,
+  accountTableTdClass,
+  accountTableThClass,
+} from "@/components/account/AccountPage";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import { AdminPlanBadge } from "@/components/admin/AdminStatusBadge";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 import {
-  ACCOUNT_STATUS_LABELS,
-  normalizeAccountStatus,
-} from "@/lib/account/status";
-
-/** Por defecto se ocultan las bodas de cuentas eliminadas. */
-const ESTADO_FILTERS: Record<string, { label: string; where: Prisma.UserWhereInput | null }> = {
-  visibles: { label: "Activas y suspendidas", where: { status: { in: ["active", "suspended"] } } },
-  active: { label: "Activas", where: { status: "active" } },
-  suspended: { label: "Suspendidas", where: { status: "suspended" } },
-  deleted: { label: "Eliminadas", where: { status: "deleted" } },
-  todas: { label: "Todas", where: null },
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const normalized = normalizeAccountStatus(status);
-  if (normalized === "active") return null;
-  return (
-    <span
-      className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-        normalized === "suspended" ? "bg-amber-50 text-amber-900" : "bg-stone-200 text-stone-600"
-      }`}
-    >
-      {ACCOUNT_STATUS_LABELS[normalized]}
-    </span>
-  );
-}
+  Button,
+  IconDownload,
+  IconExternalLink,
+  Input,
+  Select,
+  buttonClasses,
+  planLabels,
+} from "@/components/ui";
 
 const PAGE_SIZE = 25;
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; plan?: string; page?: string; estado?: string }>;
+  searchParams: Promise<{ q?: string; plan?: string; page?: string }>;
 }
 
 export default async function AdminBodasPage({ searchParams }: PageProps) {
   await requireAdmin();
-  const { q, plan, page: pageRaw, estado: estadoRaw } = await searchParams;
-  const estado = estadoRaw && estadoRaw in ESTADO_FILTERS ? estadoRaw : "visibles";
+  const { q, plan, page: pageRaw } = await searchParams;
   const query = (q ?? "").trim();
   const planFilter = (plan ?? "").trim().toLowerCase();
 
@@ -63,10 +59,6 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
   if (planFilter && ["free", "basico", "premium"].includes(planFilter)) {
     where.plan = planFilter;
   }
-  const estadoWhere = ESTADO_FILTERS[estado].where;
-  if (estadoWhere) {
-    where.user = estadoWhere;
-  }
 
   const total = await prisma.boda.count({ where });
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -81,7 +73,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
     skip: (page - 1) * PAGE_SIZE,
     take: PAGE_SIZE,
     include: {
-      user: { select: { email: true, name: true, status: true } },
+      user: { select: { email: true, name: true } },
       _count: {
         select: {
           gifts: true,
@@ -101,289 +93,307 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
       : ""
   }`;
 
+  const planOptions = ["free", "basico", "premium"] as const;
+  const hasFilters = Boolean(query || planFilter);
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="font-serif text-2xl font-semibold text-stone-800">
-              Bodas
-            </h2>
-            <p className="mt-2 text-stone-600">
-              {total} resultado{total === 1 ? "" : "s"}.
-            </p>
-          </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/admin/bodas"
+        area="Panel admin"
+        section="Bodas y clientes"
+        title="Bodas"
+        description="Micrositios, dueños, planes y actividad de cada boda."
+        meta={
+          <span className="type-body-sm tabular-nums text-text-secondary">
+            {total} resultado{total === 1 ? "" : "s"}.
+          </span>
+        }
+        actions={
           <a
             href={exportHref}
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            className={buttonClasses({ variant: "secundario", size: "sm" })}
           >
+            <IconDownload size={16} />
             Exportar CSV
           </a>
-        </div>
+        }
+      />
 
-        <form className="mt-6 flex flex-wrap gap-3" method="get">
-          <label htmlFor="admin-bodas-search" className="sr-only">
-            Buscar bodas
-          </label>
-          <input
+      <AccountSection
+        id="admin-bodas-listado"
+        title="Listado de bodas"
+        description="Buscá por título, slug, email o nombre del dueño y filtrá por plan. El cambio de plan pide confirmación."
+      >
+        <AccountFilterBar
+          label="Buscar bodas"
+          clearHref="/admin/bodas"
+          showClear={hasFilters}
+        >
+          <Input
             id="admin-bodas-search"
             type="search"
             name="q"
+            label="Buscar bodas"
             defaultValue={query}
             placeholder="Buscar título, slug o email…"
-            className="min-w-[220px] flex-1 rounded-xl border border-stone-200 px-4 py-2.5 text-sm"
+            className="lg:flex-[2]"
           />
-          <label htmlFor="admin-bodas-plan" className="sr-only">
-            Filtrar por plan
-          </label>
-          <select
+          <Select
             id="admin-bodas-plan"
             name="plan"
+            label="Filtrar por plan"
             defaultValue={planFilter}
-            className="min-h-11 rounded-xl border border-stone-300 px-3 py-2.5 text-sm"
-          >
-            <option value="">Todos los planes</option>
-            <option value="free">free</option>
-            <option value="basico">basico</option>
-            <option value="premium">premium</option>
-          </select>
-          <label htmlFor="admin-bodas-estado" className="sr-only">
-            Filtrar por estado de cuenta
-          </label>
-          <select
-            id="admin-bodas-estado"
-            name="estado"
-            defaultValue={estado}
-            className="min-h-11 rounded-xl border border-stone-300 px-3 py-2.5 text-sm"
-          >
-            {Object.entries(ESTADO_FILTERS).map(([key, filter]) => (
-              <option key={key} value={key}>
-                {filter.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="min-h-11 rounded-full bg-[#06263a] px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            Filtrar
-          </button>
-        </form>
-      </section>
+            options={[
+              { value: "", label: "Todos los planes" },
+              ...planOptions.map((value) => ({
+                value,
+                label: planLabels[value],
+              })),
+            ]}
+          />
+        </AccountFilterBar>
 
-      <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <h3 className="sr-only">Listado de bodas</h3>
-        <div className="divide-y divide-stone-100 lg:hidden">
-          {bodas.map((boda) => (
-            <article key={boda.id} className="space-y-4 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <Link
-                    href={`/admin/bodas/${boda.id}`}
-                    className="text-base font-semibold text-stone-800 underline-offset-4 hover:underline"
-                  >
-                    {coupleLabel(boda.couple, boda.title)}
-                  </Link>
-                  <StatusBadge status={boda.user.status} />
-                  <p className="mt-1 break-all text-xs text-stone-500">
-                    /{boda.slug}
-                  </p>
-                </div>
-                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
-                  {boda.plan}
-                </span>
-              </div>
-              <dl className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="text-xs font-medium text-stone-500">Fecha</dt>
-                  <dd className="mt-1 text-stone-800">
-                    {eventDateFromJson(boda.event)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium text-stone-500">Dueño</dt>
-                  <dd className="mt-1 break-all text-stone-800">
-                    {boda.user.email}
-                  </dd>
-                </div>
-                <div className="col-span-2">
-                  <dt className="text-xs font-medium text-stone-500">
-                    Actividad
-                  </dt>
-                  <dd className="mt-1 text-stone-800">
-                    {boda._count.rsvpGuests} RSVP · {boda._count.gifts} regalos ·{" "}
-                    {boda._count.ratings} ratings
-                  </dd>
-                </div>
-              </dl>
-              <AdminActionForm
-                action={updateBodaPlanAction}
-                className="flex gap-2"
-                confirmMessage={`¿Confirmás el cambio de plan de ${coupleLabel(boda.couple, boda.title)}?`}
-              >
-                <input type="hidden" name="boda_id" value={boda.id} />
-                <label htmlFor={`mobile-plan-${boda.id}`} className="sr-only">
-                  Plan de {coupleLabel(boda.couple, boda.title)}
-                </label>
-                <select
-                  id={`mobile-plan-${boda.id}`}
-                  name="plan"
-                  defaultValue={boda.plan}
-                  className="min-h-11 min-w-0 flex-1 rounded-xl border border-stone-300 px-3 text-sm"
-                >
-                  <option value="free">free</option>
-                  <option value="basico">basico</option>
-                  <option value="premium">premium</option>
-                </select>
-                <AdminSubmitButton
-                  idleLabel="Guardar"
-                  pendingLabel="Guardando…"
-                  className="min-h-11 rounded-xl bg-stone-800 px-4 text-sm font-semibold text-white"
-                />
-              </AdminActionForm>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href={`/admin/bodas/${boda.id}`}
-                  className="inline-flex min-h-11 items-center rounded-xl bg-[#06263a] px-4 text-sm font-semibold text-white"
-                >
-                  Ver detalle
-                </Link>
-                <Link
-                  href={`/bodas/${boda.slug}`}
-                  target="_blank"
-                  className="inline-flex min-h-11 items-center rounded-xl border border-stone-300 px-4 text-sm font-semibold text-stone-700"
-                >
-                  Ver sitio ↗
-                </Link>
-              </div>
-            </article>
-          ))}
+        <div className="mt-6">
           {bodas.length === 0 ? (
-            <p className="p-8 text-center text-stone-500">
-              No hay bodas con ese filtro.
-            </p>
-          ) : null}
-        </div>
+            <AccountEmptyState
+              illustration={IllustrationRings}
+              title="No hay bodas con ese filtro."
+              description={
+                hasFilters
+                  ? "Probá con otra búsqueda o quitá el filtro de plan."
+                  : "Cuando una pareja cree su micrositio, va a aparecer acá."
+              }
+              actions={
+                hasFilters
+                  ? [{ label: "Limpiar filtros", href: "/admin/bodas" }]
+                  : undefined
+              }
+            />
+          ) : (
+            <>
+              <ul role="list" className="space-y-3 lg:hidden">
+                {bodas.map((boda) => {
+                  const name = coupleLabel(boda.couple, boda.title);
+                  return (
+                    <li key={boda.id}>
+                      <article className="space-y-4 rounded-md border border-border-subtle bg-surface-default p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <Link
+                              href={`/admin/bodas/${boda.id}`}
+                              className="focus-ring rounded-sm type-label text-text-primary underline-offset-4 hover:underline"
+                            >
+                              {name}
+                            </Link>
+                            <p className="mt-1 break-all type-caption text-text-secondary">
+                              /{boda.slug}
+                            </p>
+                          </div>
+                          <AdminPlanBadge plan={boda.plan} />
+                        </div>
+                        <dl className="grid grid-cols-2 gap-3">
+                          <div>
+                            <dt className="type-caption font-semibold text-text-tertiary">
+                              Fecha
+                            </dt>
+                            <dd className="mt-1 type-body-sm text-text-primary">
+                              {eventDateFromJson(boda.event)}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="type-caption font-semibold text-text-tertiary">
+                              Dueño
+                            </dt>
+                            <dd className="mt-1 break-all type-body-sm text-text-primary">
+                              {boda.user.email}
+                            </dd>
+                          </div>
+                          <div className="col-span-2">
+                            <dt className="type-caption font-semibold text-text-tertiary">
+                              Actividad
+                            </dt>
+                            <dd className="mt-1 type-body-sm text-text-primary">
+                              {boda._count.rsvpGuests} RSVP · {boda._count.gifts}{" "}
+                              regalos · {boda._count.ratings} ratings
+                            </dd>
+                          </div>
+                        </dl>
+                        <AdminActionForm
+                          action={updateBodaPlanAction}
+                          className="flex items-end gap-2"
+                          confirmMessage={`¿Confirmás el cambio de plan de ${name}?`}
+                        >
+                          <input type="hidden" name="boda_id" value={boda.id} />
+                          <div className="min-w-0 flex-1">
+                            <label
+                              htmlFor={`mobile-plan-${boda.id}`}
+                              className="mb-1 block type-caption font-semibold text-text-secondary"
+                            >
+                              Plan
+                              <span className="sr-only"> de {name}</span>
+                            </label>
+                            <select
+                              id={`mobile-plan-${boda.id}`}
+                              name="plan"
+                              defaultValue={boda.plan}
+                              className={`${accountCompactControlClass} w-full`}
+                            >
+                              {planOptions.map((value) => (
+                                <option key={value} value={value}>
+                                  {planLabels[value]}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <AdminSubmitButton
+                            idleLabel="Guardar"
+                            pendingLabel="Guardando…"
+                            variant="secundario"
+                          />
+                        </AdminActionForm>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            href={`/admin/bodas/${boda.id}`}
+                            size="sm"
+                          >
+                            Ver detalle
+                          </Button>
+                          <Button
+                            href={`/bodas/${boda.slug}`}
+                            target="_blank"
+                            variant="fantasma"
+                            size="sm"
+                            icon={<IconExternalLink size={16} />}
+                            iconPosition="end"
+                          >
+                            Ver sitio
+                            <span className="sr-only"> (se abre en otra pestaña)</span>
+                          </Button>
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })}
+              </ul>
 
-        <div className="hidden overflow-x-auto lg:block">
-          <table className="w-full min-w-[900px] table-fixed text-left text-sm">
-            <caption className="sr-only">
-              Bodas, propietarios, planes y actividad
-            </caption>
-            <thead className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
-              <tr>
-                <th scope="col" className="w-[18%] px-4 py-3">Boda</th>
-                <th scope="col" className="w-[12%] px-4 py-3">Fecha</th>
-                <th scope="col" className="w-[22%] px-4 py-3">Dueño</th>
-                <th scope="col" className="w-[20%] px-4 py-3">Plan</th>
-                <th scope="col" className="w-[15%] px-4 py-3">RSVP / Regalos</th>
-                <th scope="col" className="w-[13%] px-4 py-3">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {bodas.map((boda) => (
-                <tr key={boda.id} className="align-top">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/bodas/${boda.id}`}
-                      className="font-medium text-stone-800 hover:text-[#06263a] hover:underline"
-                    >
-                      {coupleLabel(boda.couple, boda.title)}
-                    </Link>
-                    <StatusBadge status={boda.user.status} />
-                    <p className="text-xs text-stone-500">/{boda.slug}</p>
-                    <p className="text-xs text-stone-400">{boda.micrositeTheme}</p>
-                  </td>
-                  <td className="px-4 py-3 text-stone-600">
-                    {eventDateFromJson(boda.event)}
-                    <p className="text-xs text-stone-400">
-                      Alta {boda.createdAt.toLocaleDateString("es-AR")}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="break-words text-stone-800">
-                      {boda.user.name || "—"}
-                    </p>
-                    <p className="break-all text-xs text-stone-500">
-                      {boda.user.email}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <AdminActionForm
-                      action={updateBodaPlanAction}
-                      className="flex gap-2"
-                      confirmMessage={`¿Confirmás el cambio de plan de ${coupleLabel(boda.couple, boda.title)}?`}
-                    >
-                      <input type="hidden" name="boda_id" value={boda.id} />
-                      <label htmlFor={`plan-${boda.id}`} className="sr-only">
-                        Plan de {coupleLabel(boda.couple, boda.title)}
-                      </label>
-                      <select
-                        id={`plan-${boda.id}`}
-                        name="plan"
-                        defaultValue={boda.plan}
-                        className="min-h-11 min-w-0 rounded-lg border border-stone-300 px-2 text-sm"
-                      >
-                        <option value="free">free</option>
-                        <option value="basico">basico</option>
-                        <option value="premium">premium</option>
-                      </select>
-                      <AdminSubmitButton
-                        idleLabel="Guardar"
-                        pendingLabel="Guardando…"
-                        className="min-h-11 rounded-lg bg-stone-800 px-3 text-xs font-semibold text-white"
-                      />
-                    </AdminActionForm>
-                  </td>
-                  <td className="px-4 py-3 text-stone-600">
-                    {boda._count.rsvpGuests} RSVP · {boda._count.gifts} regalos ·{" "}
-                    {boda._count.ratings} ratings
-                  </td>
-                  <td className="px-4 py-3 space-y-1">
-                    <div>
-                      <Link
-                        href={`/admin/bodas/${boda.id}`}
-                        className="font-medium text-[#06263a] hover:underline"
-                      >
-                        Detalle
-                      </Link>
-                    </div>
-                    <div>
-                      <Link
-                        href={`/bodas/${boda.slug}`}
-                        target="_blank"
-                        className="font-medium text-[#6f5f47] hover:underline"
-                      >
-                        Ver sitio ↗
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {bodas.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-stone-500"
-                  >
-                    No hay bodas con ese filtro.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
+              <AccountTable
+                caption="Bodas, propietarios, planes y actividad"
+                className="hidden lg:block"
+                tableClassName="min-w-[840px]"
+              >
+                <thead className={accountTableHeadClass}>
+                  <tr>
+                    <th scope="col" className={accountTableThClass}>Boda</th>
+                    <th scope="col" className={accountTableThClass}>Fecha</th>
+                    <th scope="col" className={accountTableThClass}>Dueño</th>
+                    <th scope="col" className={accountTableThClass}>Plan</th>
+                    <th scope="col" className={accountTableThClass}>RSVP / Regalos</th>
+                    <th scope="col" className={accountTableThClass}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bodas.map((boda) => {
+                    const name = coupleLabel(boda.couple, boda.title);
+                    return (
+                      <tr key={boda.id} className={accountTableRowClass}>
+                        <td className={`${accountTableTdClass} min-w-[11rem]`}>
+                          <Link
+                            href={`/admin/bodas/${boda.id}`}
+                            className="focus-ring rounded-sm font-semibold text-text-primary hover:underline"
+                          >
+                            {name}
+                          </Link>
+                          <p className="break-all type-caption text-text-secondary">
+                            /{boda.slug}
+                          </p>
+                          <p className="type-caption text-text-tertiary">
+                            {boda.micrositeTheme}
+                          </p>
+                        </td>
+                        <td className={`${accountTableTdClass} whitespace-nowrap`}>
+                          {eventDateFromJson(boda.event)}
+                          <p className="type-caption text-text-tertiary">
+                            Alta {boda.createdAt.toLocaleDateString("es-AR")}
+                          </p>
+                        </td>
+                        <td className={`${accountTableTdClass} min-w-[12rem]`}>
+                          <p className="break-words">{boda.user.name || "—"}</p>
+                          <p className="break-all type-caption text-text-secondary">
+                            {boda.user.email}
+                          </p>
+                        </td>
+                        <td className={accountTableTdClass}>
+                          <AdminActionForm
+                            action={updateBodaPlanAction}
+                            className="flex flex-col items-start gap-2"
+                            confirmMessage={`¿Confirmás el cambio de plan de ${name}?`}
+                          >
+                            <input type="hidden" name="boda_id" value={boda.id} />
+                            <label htmlFor={`plan-${boda.id}`} className="sr-only">
+                              Plan de {name}
+                            </label>
+                            <select
+                              id={`plan-${boda.id}`}
+                              name="plan"
+                              defaultValue={boda.plan}
+                              className={accountCompactControlClass}
+                            >
+                              {planOptions.map((value) => (
+                                <option key={value} value={value}>
+                                  {planLabels[value]}
+                                </option>
+                              ))}
+                            </select>
+                            <AdminSubmitButton
+                              idleLabel="Guardar"
+                              pendingLabel="Guardando…"
+                              variant="secundario"
+                            />
+                          </AdminActionForm>
+                        </td>
+                        <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                          <p>{boda._count.rsvpGuests} RSVP</p>
+                          <p>{boda._count.gifts} regalos</p>
+                          <p>{boda._count.ratings} ratings</p>
+                        </td>
+                        <td className={`${accountTableTdClass} whitespace-nowrap`}>
+                          <div className="flex flex-col items-start gap-1">
+                            <Link
+                              href={`/admin/bodas/${boda.id}`}
+                              className="focus-ring rounded-sm font-semibold text-text-link hover:underline"
+                            >
+                              Detalle
+                            </Link>
+                            <Link
+                              href={`/bodas/${boda.slug}`}
+                              target="_blank"
+                              className="focus-ring rounded-sm font-semibold text-text-accent hover:underline"
+                            >
+                              Ver sitio <span aria-hidden="true">↗</span>
+                              <span className="sr-only"> (se abre en otra pestaña)</span>
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </AccountTable>
+            </>
+          )}
+
+          <AdminPagination
+            pathname="/admin/bodas"
+            currentPage={page}
+            totalPages={totalPages}
+            query={{
+              ...(query ? { q: query } : {}),
+              ...(planFilter ? { plan: planFilter } : {}),
+            }}
+          />
         </div>
-        <AdminPagination
-          pathname="/admin/bodas"
-          currentPage={page}
-          totalPages={totalPages}
-          query={{
-            ...(query ? { q: query } : {}),
-            ...(planFilter ? { plan: planFilter } : {}),
-            ...(estado !== "visibles" ? { estado } : {}),
-          }}
-        />
-      </section>
-    </div>
+      </AccountSection>
+    </AccountPageBody>
   );
 }
