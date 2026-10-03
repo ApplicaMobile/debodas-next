@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+} from "@/components/account/AccountPage";
 import { DressCodePanel } from "@/components/account/DressCodePanel";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 import { getDressCode } from "@/lib/bodas/dress-code";
@@ -31,20 +35,18 @@ export default async function MiCuentaDressCodePage() {
   const dressCode = getDressCode(parseMisc(boda.misc));
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold text-stone-800 sm:text-2xl">
-          Dress code
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Indicá cómo vestirse y, si querés, una paleta de colores sugeridos.
-        </p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/dress-code"
+        section="Dress code"
+        title="Dress code"
+        description="Indicá cómo vestirse y, si querés, una paleta de colores sugeridos para tus invitados."
+      />
       <DressCodePanel
         dressCode={dressCode}
         showDressCode={optionEnabled(options.show_dress_code)}
         micrositeSlug={boda.slug}
       />
-    </div>
+    </AccountPageBody>
   );
 }
