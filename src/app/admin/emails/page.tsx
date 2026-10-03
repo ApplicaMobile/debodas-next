@@ -1,4 +1,20 @@
 import Link from "next/link";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationEnvelope } from "@/components/account/AccountIllustrations";
+import {
+  AccountFilterBar,
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+  AccountStatCard,
+  AccountTable,
+  accountTableHeadClass,
+  accountTableRowClass,
+  accountTableTdClass,
+  accountTableThClass,
+} from "@/components/account/AccountPage";
+import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
+import { Alert, Badge, Input, Select } from "@/components/ui";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { isEmailConfigured } from "@/lib/email/client";
 import { prisma } from "@/lib/db/prisma";
@@ -95,243 +111,245 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
     take: PAGE_SIZE,
   });
 
+  const hasFilters = Boolean(query || status || type);
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
-          Emails
-        </h2>
-        <p className="mt-2 text-stone-600">
-          Historial de envíos ({total}). Estado del proveedor SMTP:{" "}
-          <strong className={configured ? "text-emerald-700" : "text-amber-700"}>
-            {configured ? "configurado" : "simulado (sin credenciales)"}
-          </strong>
-        </p>
-        {params.ok === "processed" ? (
-          <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Cola procesada: {params.claimed ?? "0"} reclamados,{" "}
-            {params.sent ?? "0"} enviados y {params.failed ?? "0"} con error.
-          </p>
-        ) : params.ok === "requeued" ? (
-          <p className="mt-4 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800">
-            {params.count ?? "0"} emails agregados nuevamente a la cola.
-          </p>
-        ) : null}
-        <div className="mt-5 flex flex-wrap gap-3">
-          <AdminActionForm action={processEmailQueueAdminAction}>
-            <AdminSubmitButton
-              idleLabel="Procesar cola ahora"
-              pendingLabel="Procesando…"
-              className="rounded-full bg-[#06263a] px-4 py-2.5 text-sm font-semibold text-white"
-            />
-          </AdminActionForm>
-          <AdminActionForm
-            action={retryFailedEmailsAdminAction}
-            confirmMessage="¿Agregar a la cola todos los emails fallidos o bloqueados que puedan reintentarse?"
-          >
-            <AdminSubmitButton
-              idleLabel="Reintentar todos los fallidos"
-              pendingLabel="Agregando…"
-              className="rounded-full border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700"
-            />
-          </AdminActionForm>
-        </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/admin/emails"
+        area="Panel admin"
+        section="Operación"
+        title="Emails"
+        description={`Historial de envíos (${total}), cola y reintentos.`}
+        meta={
+          <span className="flex flex-wrap items-center gap-2 type-body-sm text-text-secondary">
+            Estado del proveedor SMTP:
+            <Badge tone={configured ? "aprobado" : "pendiente"}>
+              {configured ? "configurado" : "simulado (sin credenciales)"}
+            </Badge>
+          </span>
+        }
+        actions={
+          <>
+            <AdminActionForm
+              action={retryFailedEmailsAdminAction}
+              confirmMessage="¿Agregar a la cola todos los emails fallidos o bloqueados que puedan reintentarse?"
+            >
+              <AdminSubmitButton
+                idleLabel="Reintentar todos los fallidos"
+                pendingLabel="Agregando…"
+                variant="secundario"
+              />
+            </AdminActionForm>
+            <AdminActionForm action={processEmailQueueAdminAction}>
+              <AdminSubmitButton
+                idleLabel="Procesar cola ahora"
+                pendingLabel="Procesando…"
+                variant="primario"
+              />
+            </AdminActionForm>
+          </>
+        }
+      />
+
+      {params.ok === "processed" ? (
+        <Alert tone="exito" title="Cola procesada">
+          {params.claimed ?? "0"} reclamados, {params.sent ?? "0"} enviados y{" "}
+          {params.failed ?? "0"} con error.
+        </Alert>
+      ) : params.ok === "requeued" ? (
+        <Alert
+          tone="info"
+          title={`${params.count ?? "0"} emails agregados nuevamente a la cola.`}
+        />
+      ) : null}
+
+      <section aria-label="Resumen de envíos">
+        <ul className="grid gap-4 sm:grid-cols-3">
+          <AccountStatCard
+            iconHref="/admin/emails"
+            label="En cola"
+            value={pendingCount}
+            detail="queued · processing · retry"
+          />
+          <AccountStatCard
+            iconHref="/admin/emails"
+            label="Enviados"
+            value={sentCount}
+            detail="sent"
+          />
+          <AccountStatCard
+            iconHref="/admin/emails"
+            label="Con problemas"
+            value={problemCount}
+            detail={problemCount > 0 ? "failed · blocked — revisalos abajo" : "failed · blocked"}
+            highlight={problemCount > 0}
+          />
+        </ul>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        {[
-          { label: "En cola", value: pendingCount, color: "text-blue-700" },
-          { label: "Enviados", value: sentCount, color: "text-emerald-700" },
-          { label: "Con problemas", value: problemCount, color: "text-red-700" },
-        ].map((item) => (
-          <div key={item.label} className="rounded-3xl bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-              {item.label}
-            </p>
-            <p className={`mt-2 text-3xl font-semibold ${item.color}`}>
-              {item.value}
-            </p>
-          </div>
-        ))}
-      </section>
-
-      <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <form className="flex flex-wrap gap-3" method="get">
-          <label htmlFor="email-search" className="sr-only">
-            Buscar por destinatario o asunto
-          </label>
-          <input
+      <AccountSection
+        id="admin-emails-historial"
+        title="Historial"
+        description="Filtrá por destinatario, asunto, estado o tipo. Reintentar y eliminar piden confirmación."
+      >
+        <AccountFilterBar
+          label="Filtrar emails"
+          clearHref="/admin/emails"
+          showClear={hasFilters}
+        >
+          <Input
             id="email-search"
             type="search"
             name="q"
+            label="Buscar por destinatario o asunto"
             defaultValue={query}
             placeholder="Buscar destinatario o asunto…"
-            className="min-h-11 min-w-[220px] flex-1 rounded-xl border border-stone-300 px-4 text-sm"
+            className="lg:flex-[2]"
           />
-          <label htmlFor="email-status" className="sr-only">
-            Estado
-          </label>
-          <select
+          <Select
             id="email-status"
             name="status"
+            label="Estado"
             defaultValue={status}
-            className="min-h-11 rounded-xl border border-stone-300 px-3 text-sm"
-          >
-            <option value="">Todos los estados</option>
-            {EMAIL_STATUSES.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-          <label htmlFor="email-type" className="sr-only">
-            Tipo
-          </label>
-          <select
+            options={[
+              { value: "", label: "Todos los estados" },
+              ...EMAIL_STATUSES.map((value) => ({ value, label: value })),
+            ]}
+          />
+          <Select
             id="email-type"
             name="type"
+            label="Tipo"
             defaultValue={type}
-            className="min-h-11 rounded-xl border border-stone-300 px-3 text-sm"
-          >
-            <option value="">Todos los tipos</option>
-            {typeGroups.map((group) => (
-              <option key={group.type} value={group.type}>
-                {group.type} ({group._count._all})
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="min-h-11 rounded-full bg-stone-800 px-5 text-sm font-semibold text-white"
-          >
-            Filtrar
-          </button>
-          {query || status || type ? (
-            <Link
-              href="/admin/emails"
-              className="inline-flex min-h-11 items-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700"
-            >
-              Limpiar
-            </Link>
-          ) : null}
-        </form>
-      </section>
+            options={[
+              { value: "", label: "Todos los tipos" },
+              ...typeGroups.map((group) => ({
+                value: group.type,
+                label: `${group.type} (${group._count._all})`,
+              })),
+            ]}
+          />
+        </AccountFilterBar>
 
-      <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
-              <tr>
-                <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3">Para</th>
-                <th className="px-4 py-3">Asunto</th>
-                <th className="px-4 py-3">Intentos</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Acción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {logs.map((log) => (
-                <tr key={log.id} className="align-top">
-                  <td className="px-4 py-3 text-stone-500 whitespace-nowrap">
-                    {log.createdAt.toLocaleString("es-AR")}
-                  </td>
-                  <td className="px-4 py-3 text-stone-700">{log.toAddress}</td>
-                  <td className="px-4 py-3 text-stone-800">
-                    {log.subject}
-                    {log.error ? (
-                      <p className="mt-1 text-xs text-red-600">{log.error}</p>
-                    ) : null}
-                    {["queued", "retry"].includes(log.status) ? (
-                      <p className="mt-1 text-xs text-stone-500">
-                        Próximo intento:{" "}
-                        {log.availableAt.toLocaleString("es-AR")}
-                      </p>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-3 text-stone-600">
-                    {log.attempts}/{log.maxAttempts}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase ${
-                        log.status === "sent"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : ["queued", "processing", "retry"].includes(log.status)
-                            ? "bg-blue-50 text-blue-700"
-                          : ["skipped", "blocked"].includes(log.status)
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {log.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        href={`/admin/emails/${log.id}`}
-                        className="text-xs font-semibold text-[#06263a] underline"
-                      >
-                        Ver
-                      </Link>
-                      {["failed", "blocked"].includes(log.status) &&
-                      log.contentEncrypted ? (
-                        <AdminActionForm
-                          action={retryEmailAdminAction}
-                          confirmMessage="¿Agregar nuevamente este email a la cola?"
-                        >
-                          <input type="hidden" name="email_id" value={log.id} />
-                          <AdminSubmitButton
-                            idleLabel="Reintentar"
-                            pendingLabel="Agregando…"
-                            className="rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700"
-                          />
-                        </AdminActionForm>
-                      ) : null}
-                      {["failed", "blocked", "skipped", "cancelled"].includes(
-                        log.status,
-                      ) ? (
-                        <AdminActionForm
-                          action={deleteEmailLogAdminAction}
-                          confirmMessage="¿Eliminar definitivamente este registro de email?"
-                        >
-                          <input type="hidden" name="email_id" value={log.id} />
-                          <AdminSubmitButton
-                            idleLabel="Eliminar"
-                            pendingLabel="Eliminando…"
-                            className="text-xs font-semibold text-red-700 underline"
-                          />
-                        </AdminActionForm>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {logs.length === 0 ? (
+        <div className="mt-6">
+          {logs.length === 0 ? (
+            <AccountEmptyState
+              illustration={IllustrationEnvelope}
+              title={
+                hasFilters
+                  ? "No hay emails con ese filtro."
+                  : "Todavía no hay emails registrados."
+              }
+              description={
+                hasFilters
+                  ? "Probá con otra búsqueda o limpiá los filtros."
+                  : "Los envíos del sistema (recuperación de contraseña, avisos, calificaciones) van a aparecer acá."
+              }
+              actions={
+                hasFilters
+                  ? [{ label: "Limpiar filtros", href: "/admin/emails" }]
+                  : undefined
+              }
+            />
+          ) : (
+            <AccountTable caption="Historial de emails" tableClassName="min-w-[860px]">
+              <thead className={accountTableHeadClass}>
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-stone-500"
-                  >
-                    Todavía no hay emails registrados.
-                  </td>
+                  <th scope="col" className={accountTableThClass}>Fecha</th>
+                  <th scope="col" className={accountTableThClass}>Para</th>
+                  <th scope="col" className={accountTableThClass}>Asunto</th>
+                  <th scope="col" className={accountTableThClass}>Intentos</th>
+                  <th scope="col" className={accountTableThClass}>Estado</th>
+                  <th scope="col" className={accountTableThClass}>Acción</th>
                 </tr>
-              ) : null}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id} className={accountTableRowClass}>
+                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                      {log.createdAt.toLocaleString("es-AR")}
+                    </td>
+                    <td className={`${accountTableTdClass} break-all`}>
+                      {log.toAddress}
+                    </td>
+                    <td className={accountTableTdClass}>
+                      <span className="font-semibold">{log.subject}</span>
+                      {log.error ? (
+                        <p className="mt-1 type-caption text-status-error-fg">
+                          {log.error}
+                        </p>
+                      ) : null}
+                      {["queued", "retry"].includes(log.status) ? (
+                        <p className="mt-1 type-caption text-text-secondary">
+                          Próximo intento:{" "}
+                          {log.availableAt.toLocaleString("es-AR")}
+                        </p>
+                      ) : null}
+                    </td>
+                    <td className={`${accountTableTdClass} tabular-nums text-text-secondary`}>
+                      {log.attempts}/{log.maxAttempts}
+                    </td>
+                    <td className={accountTableTdClass}>
+                      <AdminStatusBadge kind="email" status={log.status} />
+                    </td>
+                    <td className={accountTableTdClass}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/admin/emails/${log.id}`}
+                          className="focus-ring inline-flex min-h-9 items-center rounded-sm px-1 font-semibold text-text-link hover:underline"
+                        >
+                          Ver
+                          <span className="sr-only"> el email a {log.toAddress}</span>
+                        </Link>
+                        {["failed", "blocked"].includes(log.status) &&
+                        log.contentEncrypted ? (
+                          <AdminActionForm
+                            action={retryEmailAdminAction}
+                            confirmMessage="¿Agregar nuevamente este email a la cola?"
+                          >
+                            <input type="hidden" name="email_id" value={log.id} />
+                            <AdminSubmitButton
+                              idleLabel="Reintentar"
+                              pendingLabel="Agregando…"
+                              variant="secundario"
+                            />
+                          </AdminActionForm>
+                        ) : null}
+                        {["failed", "blocked", "skipped", "cancelled"].includes(
+                          log.status,
+                        ) ? (
+                          <AdminActionForm
+                            action={deleteEmailLogAdminAction}
+                            confirmMessage="¿Eliminar definitivamente este registro de email?"
+                          >
+                            <input type="hidden" name="email_id" value={log.id} />
+                            <AdminSubmitButton
+                              idleLabel="Eliminar"
+                              pendingLabel="Eliminando…"
+                              variant="eliminar"
+                            />
+                          </AdminActionForm>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </AccountTable>
+          )}
+          <AdminPagination
+            pathname="/admin/emails"
+            currentPage={page}
+            totalPages={totalPages}
+            query={{
+              ...(query ? { q: query } : {}),
+              ...(status ? { status } : {}),
+              ...(type ? { type } : {}),
+            }}
+          />
         </div>
-        <AdminPagination
-          pathname="/admin/emails"
-          currentPage={page}
-          totalPages={totalPages}
-          query={{
-            ...(query ? { q: query } : {}),
-            ...(status ? { status } : {}),
-            ...(type ? { type } : {}),
-          }}
-        />
-      </section>
-    </div>
+      </AccountSection>
+    </AccountPageBody>
   );
 }
