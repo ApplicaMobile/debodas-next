@@ -1,4 +1,14 @@
 import Link from "next/link";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationRings } from "@/components/account/AccountIllustrations";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+  AccountStatCard,
+} from "@/components/account/AccountPage";
+import { AdminPlanBadge } from "@/components/admin/AdminStatusBadge";
+import { Alert, Button } from "@/components/ui";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { getSystemAlerts } from "@/lib/admin/system-health";
 import { prisma } from "@/lib/db/prisma";
@@ -43,26 +53,47 @@ export default async function AdminDashboardPage() {
   ]);
 
   const cards = [
-    { label: "Bodas", value: bodasCount, href: "/admin/bodas", tone: "neutral" as const },
-    { label: "Usuarios", value: usersCount, href: "/admin/usuarios", tone: "neutral" as const },
+    {
+      label: "Bodas",
+      value: bodasCount,
+      href: "/admin/bodas",
+      iconHref: "/admin/bodas",
+      warn: false,
+    },
+    {
+      label: "Usuarios",
+      value: usersCount,
+      href: "/admin/usuarios",
+      iconHref: "/admin/usuarios",
+      warn: false,
+    },
     {
       label: "Ratings pendientes",
       value: pendingRatings,
       href: "/admin/calificaciones?status=pending",
-      tone: pendingRatings > 0 ? ("warn" as const) : ("neutral" as const),
+      iconHref: "/admin/calificaciones",
+      warn: pendingRatings > 0,
     },
     {
       label: "Ratings aprobados",
       value: approvedRatings,
       href: "/admin/calificaciones?status=approved",
-      tone: "neutral" as const,
+      iconHref: "/admin/calificaciones",
+      warn: false,
     },
-    { label: "Pagos registrados", value: paymentsCount, href: "/admin/pagos", tone: "neutral" as const },
+    {
+      label: "Pagos registrados",
+      value: paymentsCount,
+      href: "/admin/pagos",
+      iconHref: "/admin/pagos",
+      warn: false,
+    },
     {
       label: "Regalos por confirmar",
       value: pendingGifts,
       href: "/admin/pagos",
-      tone: pendingGifts > 0 ? ("warn" as const) : ("neutral" as const),
+      iconHref: "/admin/pagos",
+      warn: pendingGifts > 0,
     },
   ];
 
@@ -71,61 +102,55 @@ export default async function AdminDashboardPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
-          Resumen
-        </h2>
-        <p className="mt-2 text-stone-600">
-          Operación interna de DeBodas (reemplazo del admin de WordPress).
-        </p>
-        <div className="mt-4 flex flex-wrap gap-4">
-          <Link
-            href="/admin/estado"
-            className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
-          >
-            Estado del sistema →
-          </Link>
-          <Link
-            href="/admin/estadisticas"
-            className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
-          >
-            Ver estadísticas de bodas →
-          </Link>
-          <Link
-            href="/admin/mercadopago"
-            className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
-          >
-            Configurar MercadoPago →
-          </Link>
-        </div>
-      </section>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/admin"
+        area="Panel admin"
+        section="Inicio"
+        title="Resumen"
+        description="Operación interna de DeBodas (reemplazo del admin de WordPress)."
+        meta={
+          <ul className="flex flex-wrap gap-x-5 gap-y-2">
+            {[
+              { href: "/admin/estado", label: "Estado del sistema" },
+              { href: "/admin/estadisticas", label: "Ver estadísticas de bodas" },
+              { href: "/admin/mercadopago", label: "Configurar MercadoPago" },
+            ].map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className="focus-ring inline-flex min-h-9 items-center gap-1 rounded-sm type-body-sm font-semibold text-text-link hover:underline"
+                >
+                  {link.label} <span aria-hidden="true">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        }
+      />
 
       {systemAlerts.length > 0 ? (
         <section aria-label="Alertas del sistema" className="space-y-3">
           {systemAlerts.slice(0, 4).map((alert) => (
-            <div
+            <Alert
               key={alert.id}
-              role="alert"
-              className={
-                alert.level === "error"
-                  ? "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
-                  : "rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+              tone={alert.level === "error" ? "error" : "pendiente"}
+              title={alert.message}
+              action={
+                <Button
+                  href={alert.href ?? "/admin/estado"}
+                  variant="fantasma"
+                  size="sm"
+                >
+                  Revisar
+                </Button>
               }
-            >
-              <p>{alert.message}</p>
-              <Link
-                href={alert.href ?? "/admin/estado"}
-                className="mt-2 inline-flex text-sm font-medium underline underline-offset-2"
-              >
-                Revisar
-              </Link>
-            </div>
+            />
           ))}
           {systemAlerts.length > 4 ? (
             <Link
               href="/admin/estado"
-              className="inline-flex text-sm font-medium text-[#6f5f47] hover:underline"
+              className="focus-ring inline-flex rounded-sm type-body-sm font-semibold text-text-link hover:underline"
             >
               Ver las {systemAlerts.length} alertas →
             </Link>
@@ -133,92 +158,92 @@ export default async function AdminDashboardPage() {
         </section>
       ) : null}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((card) => (
-          <Link
-            key={card.label}
-            href={card.href}
-            className={`rounded-3xl p-5 shadow-sm transition ${
-              card.tone === "warn"
-                ? "border border-amber-200 bg-amber-50 hover:bg-amber-100/70"
-                : "bg-white hover:bg-stone-50"
-            }`}
-          >
-            <p className="text-xs uppercase tracking-wide text-stone-500">
-              {card.label}
-            </p>
-            <p
-              className={`mt-2 text-3xl font-semibold ${
-                card.tone === "warn" ? "text-amber-950" : "text-stone-800"
-              }`}
-            >
-              {card.value}
-            </p>
-            {card.tone === "warn" ? (
-              <p className="mt-2 text-xs font-medium text-amber-800">
-                Requiere atención →
-              </p>
-            ) : null}
-          </Link>
-        ))}
+      <section aria-labelledby="admin-indicadores">
+        <h3 id="admin-indicadores" className="type-h4 text-text-primary">
+          Indicadores
+        </h3>
+        <ul className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {cards.map((card) => (
+            <AccountStatCard
+              key={card.label}
+              href={card.href}
+              iconHref={card.iconHref}
+              label={card.label}
+              value={card.value}
+              detail={card.warn ? "Requiere atención →" : undefined}
+              highlight={card.warn}
+            />
+          ))}
+        </ul>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-stone-800">
-            Bodas por plan
-          </h3>
-          <ul className="mt-4 space-y-2 text-sm">
+      <div className="grid gap-6 sm:gap-8 xl:grid-cols-2">
+        <AccountSection
+          id="admin-bodas-por-plan"
+          title="Bodas por plan"
+          description="Cantidad de micrositios en cada plan."
+        >
+          <ul className="divide-y divide-border-subtle rounded-md border border-border-subtle">
             {["free", "basico", "premium"].map((plan) => (
               <li
                 key={plan}
-                className="flex items-center justify-between rounded-xl bg-stone-50 px-4 py-3"
+                className="flex items-center justify-between gap-3 px-4 py-3"
               >
-                <span className="capitalize text-stone-700">{plan}</span>
-                <span className="font-semibold text-stone-800">
+                <AdminPlanBadge plan={plan} />
+                <span className="type-label tabular-nums text-text-primary">
                   {planMap[plan] ?? 0}
                 </span>
               </li>
             ))}
           </ul>
-        </div>
+        </AccountSection>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-stone-800">
-              Últimas altas
-            </h3>
-            <Link
-              href="/admin/bodas"
-              className="text-sm font-medium text-[#6f5f47] hover:underline"
-            >
+        <AccountSection
+          id="admin-ultimas-altas"
+          title="Últimas altas"
+          description="Las cinco bodas creadas más recientemente."
+          actions={
+            <Button href="/admin/bodas" variant="fantasma" size="sm">
               Ver todas
-            </Link>
-          </div>
-          <ul className="mt-4 divide-y divide-stone-100">
-            {recentBodas.map((boda) => (
-              <li key={boda.id} className="flex items-center justify-between py-3 text-sm">
-                <div>
-                  <Link
-                    href={`/admin/bodas/${boda.id}`}
-                    className="font-medium text-stone-800 hover:underline"
-                  >
-                    {boda.title}
-                  </Link>
-                  <p className="text-xs text-stone-500">{boda.user.email}</p>
-                </div>
-                <div className="text-right text-xs text-stone-500">
-                  <p className="capitalize">{boda.plan}</p>
-                  <p>{boda.createdAt.toLocaleDateString("es-AR")}</p>
-                </div>
-              </li>
-            ))}
-            {recentBodas.length === 0 ? (
-              <li className="py-4 text-stone-500">Sin bodas todavía.</li>
-            ) : null}
-          </ul>
-        </div>
-      </section>
-    </div>
+            </Button>
+          }
+        >
+          {recentBodas.length > 0 ? (
+            <ul className="divide-y divide-border-subtle">
+              {recentBodas.map((boda) => (
+                <li
+                  key={boda.id}
+                  className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <div className="min-w-0">
+                    <Link
+                      href={`/admin/bodas/${boda.id}`}
+                      className="focus-ring rounded-sm type-label text-text-primary hover:underline"
+                    >
+                      {boda.title}
+                    </Link>
+                    <p className="break-all type-caption text-text-secondary">
+                      {boda.user.email}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <AdminPlanBadge plan={boda.plan} />
+                    <span className="type-caption tabular-nums text-text-tertiary">
+                      {boda.createdAt.toLocaleDateString("es-AR")}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <AccountEmptyState
+              illustration={IllustrationRings}
+              title="Sin bodas todavía."
+              description="Cuando una pareja cree su micrositio, va a aparecer acá."
+            />
+          )}
+        </AccountSection>
+      </div>
+    </AccountPageBody>
   );
 }
