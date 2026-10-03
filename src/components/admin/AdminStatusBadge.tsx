@@ -1,4 +1,10 @@
-import { Badge, type BadgeTone } from "@/components/ui";
+import {
+  Badge,
+  PlanBadge,
+  planLabels,
+  type BadgeTone,
+  type PlanId,
+} from "@/components/ui";
 import type { HealthLevel } from "@/lib/admin/system-health";
 
 /**
@@ -85,6 +91,25 @@ export function AdminHealthBadge({
   return (
     <Badge tone={tone} className={className}>
       {label}
+    </Badge>
+  );
+}
+
+/** Plan de una boda: PlanBadge si es un plan conocido; si no, el valor tal cual. */
+export function AdminPlanBadge({
+  plan,
+  className,
+}: {
+  plan: string;
+  className?: string;
+}) {
+  if (Object.prototype.hasOwnProperty.call(planLabels, plan)) {
+    return <PlanBadge plan={plan as PlanId} className={className} />;
+  }
+  return (
+    <Badge tone="neutro" icon={false} className={className}>
+      <span className="sr-only">Plan </span>
+      {plan || "—"}
     </Badge>
   );
 }
