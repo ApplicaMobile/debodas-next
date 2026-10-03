@@ -102,7 +102,7 @@ export function ThemePanel({
           </Button>
         }
       >
-        <ul role="list" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul role="list" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
           {themeList.map((theme) => {
             const allowed = canUseTheme(userPlan, theme.plan);
             const selected = selectedTheme === theme.slug;
