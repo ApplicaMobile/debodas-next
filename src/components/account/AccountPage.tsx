@@ -1,10 +1,20 @@
-import type { ReactNode } from "react";
-import { AccountNavIconBadge } from "@/components/account/AccountNavIcon";
-import { Card, IconArrowRight, IconTrash, UsageMeter } from "@/components/ui";
+import Link from "next/link";
+import type { ComponentType, ReactNode, SVGProps } from "react";
+import {
+  AccountNavIcon,
+  AccountNavIconBadge,
+} from "@/components/account/AccountNavIcon";
+import {
+  Button,
+  Card,
+  IconArrowRight,
+  IconTrash,
+  UsageMeter,
+} from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 /**
- * Piezas compartidas por todas las páginas de /mi-cuenta. Mismo patrón en
+ * Piezas compartidas por las páginas de /mi-cuenta y /admin. Mismo patrón en
  * cada sección: encabezado con ícono + título + una línea de propósito,
  * contenido agrupado en cards con título y ayuda, y acciones del formulario
  * abajo a la derecha (fijas abajo en mobile).
@@ -22,8 +32,12 @@ function slugify(text: string) {
 interface AccountPageHeaderProps {
   /** Ruta de la sección: define el ícono (igual que en el menú lateral). */
   href: string;
+  /** Panel al que pertenece la página, para la línea superior. Por defecto "Mi cuenta". */
+  area?: string;
   /** Texto corto de la sección para la línea superior ("Mi cuenta · …"). */
   section: string;
+  /** Enlace para volver al listado (páginas de detalle). */
+  back?: { href: string; label: string };
   title: string;
   /** Una línea: para qué sirve esta sección. */
   description: ReactNode;
@@ -35,7 +49,9 @@ interface AccountPageHeaderProps {
 
 export function AccountPageHeader({
   href,
+  area = "Mi cuenta",
   section,
+  back,
   title,
   description,
   actions,
@@ -46,7 +62,17 @@ export function AccountPageHeader({
       <div className="flex min-w-0 items-start gap-4">
         <AccountNavIconBadge href={href} size="lg" className="mt-1" />
         <div className="min-w-0 max-w-3xl">
-          <p className="type-overline text-text-accent">Mi cuenta · {section}</p>
+          {back ? (
+            <Link
+              href={back.href}
+              className="focus-ring mb-2 inline-flex min-h-9 items-center gap-1 rounded-sm type-body-sm font-semibold text-text-link hover:underline lg:hidden"
+            >
+              <span aria-hidden="true">←</span> {back.label}
+            </Link>
+          ) : null}
+          <p className="type-overline text-text-accent">
+            {area} · {section}
+          </p>
           <h2 className="mt-1 type-h2 text-text-primary">{title}</h2>
           <p className="mt-2 type-body-lg text-text-secondary">{description}</p>
           {meta ? <div className="mt-3 flex flex-wrap items-center gap-2">{meta}</div> : null}
@@ -226,14 +252,17 @@ export function AccountTable({
   children,
   caption,
   className,
+  tableClassName,
 }: {
   children: ReactNode;
   caption?: string;
   className?: string;
+  /** Clases extra de la tabla (p. ej. un ancho mínimo para tablas densas). */
+  tableClassName?: string;
 }) {
   return (
     <div className={cn("overflow-x-auto rounded-md border border-border-subtle", className)}>
-      <table className="min-w-full text-left type-body-sm text-text-primary">
+      <table className={cn("min-w-full text-left type-body-sm text-text-primary", tableClassName)}>
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         {children}
       </table>
@@ -431,5 +460,206 @@ export function AccountFilterChip({
         </span>
       ) : null}
     </button>
+  );
+}
+
+/** Chip de filtro como enlace (filtros por URL, p. ej. ?status=…). */
+export function AccountFilterChipLink({
+  href,
+  active,
+  count,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  count?: number;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "focus-ring inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 type-button-sm transition-colors motion-reduce:transition-none",
+        active
+          ? "border-action-primary-bg bg-action-primary-bg text-action-primary-fg"
+          : "border-border-default bg-surface-default text-text-primary hover:bg-surface-muted",
+      )}
+    >
+      {children}
+      {count !== undefined ? (
+        <span
+          className={cn(
+            "rounded-full px-1.5 py-0.5 type-caption font-semibold tabular-nums",
+            active ? "bg-surface-default/20" : "bg-surface-muted text-text-secondary",
+          )}
+        >
+          {count}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
+/**
+ * Barra de búsqueda y filtros por URL (formulario GET). Campos con etiqueta
+ * arriba; "Filtrar" y "Limpiar" a la derecha (debajo en mobile).
+ */
+export function AccountFilterBar({
+  children,
+  label = "Filtros",
+  submitLabel = "Filtrar",
+  clearHref,
+  showClear = false,
+  className,
+}: {
+  children: ReactNode;
+  /** Nombre accesible del formulario de búsqueda. */
+  label?: string;
+  submitLabel?: string;
+  clearHref?: string;
+  /** Muestra "Limpiar" (cuando hay filtros aplicados). */
+  showClear?: boolean;
+  className?: string;
+}) {
+  return (
+    <form
+      method="get"
+      role="search"
+      aria-label={label}
+      className={cn("flex flex-col gap-4 lg:flex-row lg:items-end", className)}
+    >
+      <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2 lg:flex lg:items-end [&>*]:min-w-0 lg:[&>*]:flex-1">
+        {children}
+      </div>
+      <div className="flex shrink-0 flex-wrap gap-3 [&>*]:flex-1 sm:[&>*]:flex-none">
+        <Button type="submit" variant="secundario">
+          {submitLabel}
+        </Button>
+        {showClear && clearHref ? (
+          <Button href={clearHref} variant="fantasma">
+            Limpiar
+          </Button>
+        ) : null}
+      </div>
+    </form>
+  );
+}
+
+export interface AccountDetailItem {
+  label: ReactNode;
+  value: ReactNode;
+  /** Ocupa todo el ancho de la grilla. */
+  wide?: boolean;
+}
+
+/** Lista de datos (término / valor) en grilla: fichas y detalles. */
+export function AccountDetailList({
+  items,
+  columns = 2,
+  className,
+}: {
+  items: AccountDetailItem[];
+  columns?: 1 | 2 | 3;
+  className?: string;
+}) {
+  return (
+    <dl
+      className={cn(
+        "grid gap-x-6 gap-y-5",
+        columns === 2 && "sm:grid-cols-2",
+        columns === 3 && "sm:grid-cols-2 lg:grid-cols-3",
+        className,
+      )}
+    >
+      {items.map((item, index) => (
+        <div
+          key={typeof item.label === "string" ? item.label : index}
+          className={cn("min-w-0", item.wide && "sm:col-span-full")}
+        >
+          <dt className="type-caption font-semibold text-text-tertiary">
+            {item.label}
+          </dt>
+          <dd className="mt-1 break-words type-body-sm text-text-primary">
+            {item.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * Tarjeta de indicador (número grande con etiqueta e ícono de sección).
+ * Va dentro de un <ul> en grilla. Con `href` toda la tarjeta es un enlace.
+ */
+export function AccountStatCard({
+  href,
+  iconHref,
+  label,
+  value,
+  detail,
+  empty = false,
+  highlight = false,
+  illustration: Illustration,
+}: {
+  href?: string;
+  /** Ruta que define el ícono (por defecto, `href`). */
+  iconHref?: string;
+  label: string;
+  value: ReactNode;
+  detail?: ReactNode;
+  /** Sin datos: muestra la ilustración. */
+  empty?: boolean;
+  /** Requiere atención (fondo de aviso). Acompañar con texto en `detail`. */
+  highlight?: boolean;
+  illustration?: ComponentType<SVGProps<SVGSVGElement>>;
+}) {
+  const icon = iconHref ?? href;
+  const boxClass = cn(
+    "flex h-full items-start justify-between gap-3 rounded-md p-4 shadow-elevation-1 sm:p-5",
+    highlight
+      ? "border border-status-warning-border bg-status-warning-bg"
+      : "bg-surface-default",
+  );
+  const content = (
+    <>
+      <span className="min-w-0">
+        <span className="flex items-center gap-2 type-caption font-semibold text-text-tertiary">
+          {icon ? (
+            <AccountNavIcon href={icon} className="h-4 w-4 text-text-accent" />
+          ) : null}
+          {label}
+        </span>
+        <span className="mt-1 block type-h2 tabular-nums text-text-primary">
+          {value}
+        </span>
+        {detail ? (
+          <span className="mt-1 block type-caption text-text-secondary">
+            {detail}
+          </span>
+        ) : null}
+      </span>
+      {empty && Illustration ? (
+        <Illustration className="h-12 w-14 shrink-0" />
+      ) : null}
+    </>
+  );
+  return (
+    <li>
+      {href ? (
+        <Link
+          href={href}
+          className={cn(
+            "focus-ring transition-shadow hover:shadow-elevation-2",
+            boxClass,
+          )}
+        >
+          {content}
+        </Link>
+      ) : (
+        <div className={boxClass}>{content}</div>
+      )}
+    </li>
   );
 }

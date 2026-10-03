@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentType, SVGProps } from "react";
+import { AccountStatCard } from "@/components/account/AccountPage";
 import { AccountSetupSticky } from "@/components/account/AccountSetupSticky";
 import {
   AccountNavIcon,
@@ -473,7 +474,7 @@ export default async function MiCuentaPage() {
             Tu boda en números
           </h2>
           <ul className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
+            <AccountStatCard
               href="/mi-cuenta/invitados"
               label="Invitados confirmados"
               value={guestsTotal > 0 ? `${guestsConfirmed}` : "—"}
@@ -485,7 +486,7 @@ export default async function MiCuentaPage() {
               empty={guestsTotal === 0}
               illustration={IllustrationGuests}
             />
-            <StatCard
+            <AccountStatCard
               href="/mi-cuenta/regalos"
               label="Regalos en tu lista"
               value={giftCount > 0 ? `${giftCount}` : "—"}
@@ -497,7 +498,7 @@ export default async function MiCuentaPage() {
               empty={giftCount === 0}
               illustration={IllustrationGift}
             />
-            <StatCard
+            <AccountStatCard
               href="/mi-cuenta/regalos-recibidos"
               label="Regalos pendientes"
               value={`${pendingGiftsCount}`}
@@ -758,53 +759,5 @@ export default async function MiCuentaPage() {
         />
       ) : null}
     </div>
-  );
-}
-
-function StatCard({
-  href,
-  label,
-  value,
-  detail,
-  empty = false,
-  highlight = false,
-  illustration: Illustration,
-}: {
-  href: string;
-  label: string;
-  value: string;
-  detail: string;
-  empty?: boolean;
-  highlight?: boolean;
-  illustration?: Illustration;
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className={cn(
-          "focus-ring flex h-full items-start justify-between gap-3 rounded-md p-4 shadow-elevation-1 transition-shadow hover:shadow-elevation-2 sm:p-5",
-          highlight
-            ? "border border-status-warning-border bg-status-warning-bg"
-            : "bg-surface-default",
-        )}
-      >
-        <span className="min-w-0">
-          <span className="flex items-center gap-2 type-caption font-semibold text-text-tertiary">
-            <AccountNavIcon href={href} className="h-4 w-4 text-text-accent" />
-            {label}
-          </span>
-          <span className="mt-1 block type-h2 tabular-nums text-text-primary">
-            {value}
-          </span>
-          <span className="mt-1 block type-caption text-text-secondary">
-            {detail}
-          </span>
-        </span>
-        {empty && Illustration ? (
-          <Illustration className="h-12 w-14 shrink-0" />
-        ) : null}
-      </Link>
-    </li>
   );
 }

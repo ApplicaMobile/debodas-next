@@ -198,3 +198,36 @@ export function IllustrationBell(props: IllustrationProps) {
     </Base>
   );
 }
+
+/** Tarjeta con estrellas: calificaciones (panel admin). */
+export function IllustrationStars(props: IllustrationProps) {
+  return (
+    <Base {...props}>
+      <circle cx="80" cy="62" r="50" fill={c.crema100} />
+      <rect x="36" y="40" width="88" height="48" rx="6" fill={c.white} stroke={c.crema400} strokeWidth="2" />
+      <path d="m56 56 3 6 6.5 1-4.7 4.5 1.1 6.5L56 71l-5.9 3 1.1-6.5-4.7-4.5 6.5-1z" fill={c.oro} />
+      <path d="m80 56 3 6 6.5 1-4.7 4.5 1.1 6.5L80 71l-5.9 3 1.1-6.5-4.7-4.5 6.5-1z" fill={c.oro} />
+      <path d="m104 56 3 6 6.5 1-4.7 4.5 1.1 6.5L104 71l-5.9 3 1.1-6.5-4.7-4.5 6.5-1z" fill={c.oroSoft} stroke={c.oro} strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="128" cy="32" r="2.5" fill={c.oro} />
+      <circle cx="32" cy="36" r="2" fill={c.crema700} />
+    </Base>
+  );
+}
+
+/** Documento con lista y lupa: registros, auditoría y búsquedas sin resultados. */
+export function IllustrationLedger(props: IllustrationProps) {
+  return (
+    <Base {...props}>
+      <circle cx="80" cy="62" r="50" fill={c.crema100} />
+      <rect x="46" y="28" width="58" height="72" rx="5" fill={c.white} stroke={c.crema400} strokeWidth="2" />
+      <rect x="56" y="40" width="38" height="5" rx="2.5" fill={c.crema300} />
+      <rect x="56" y="52" width="30" height="4" rx="2" fill={c.crema200} />
+      <rect x="56" y="62" width="34" height="4" rx="2" fill={c.crema200} />
+      <rect x="56" y="72" width="24" height="4" rx="2" fill={c.crema200} />
+      <circle cx="106" cy="80" r="13" fill={c.crema50} stroke={c.crema700} strokeWidth="3" />
+      <path d="m115 89 10 10" stroke={c.crema700} strokeWidth="4" strokeLinecap="round" />
+      <circle cx="106" cy="80" r="4" fill={c.oro} />
+      <circle cx="36" cy="40" r="2" fill={c.crema700} />
+    </Base>
+  );
+}

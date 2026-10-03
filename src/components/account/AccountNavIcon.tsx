@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Íconos de las secciones de /mi-cuenta. Mismo estilo que `@/components/ui/icons`
+ * Íconos de las secciones de /mi-cuenta y /admin. Mismo estilo que `@/components/ui/icons`
  * (24×24, trazo redondeado, currentColor). Siempre decorativos: van con texto visible.
  */
 const ICONS: Record<string, ReactNode> = {
@@ -121,6 +121,84 @@ const ICONS: Record<string, ReactNode> = {
     <>
       <path d="M2.5 7.5 7 11l5-7 5 7 4.5-3.5L19 18H5Z" />
       <path d="M5 21h14" />
+    </>
+  ),
+
+  // ——— Panel admin ———
+  // Resumen: tablero
+  "/admin": (
+    <>
+      <rect x="3" y="3" width="7" height="9" rx="1" />
+      <rect x="14" y="3" width="7" height="5" rx="1" />
+      <rect x="14" y="12" width="7" height="9" rx="1" />
+      <rect x="3" y="16" width="7" height="5" rx="1" />
+    </>
+  ),
+  // Estado del sistema: pulso
+  "/admin/estado": <path d="M22 12h-4l-3 9L9 3l-3 9H2" />,
+  // Estadísticas: barras
+  "/admin/estadisticas": (
+    <>
+      <path d="M3 3v18h18" />
+      <path d="M8 17v-5M13 17V8M18 17v-9" />
+    </>
+  ),
+  // Bodas: anillos
+  "/admin/bodas": (
+    <>
+      <circle cx="9" cy="14.5" r="5.5" />
+      <circle cx="15" cy="14.5" r="5.5" />
+      <path d="m10 4 2-2 2 2-2 2.5z" />
+    </>
+  ),
+  // Calificaciones: estrella
+  "/admin/calificaciones": (
+    <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9Z" />
+  ),
+  // Usuarios: personas
+  "/admin/usuarios": (
+    <>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </>
+  ),
+  // Pagos: billetera
+  "/admin/pagos": (
+    <>
+      <path d="M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2" />
+      <path d="M3 6v13a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-3" />
+    </>
+  ),
+  // MercadoPago: tarjeta
+  "/admin/mercadopago": (
+    <>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20M6 15h4" />
+    </>
+  ),
+  // Emails: sobre
+  "/admin/emails": (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </>
+  ),
+  // Auditoría: portapapeles con lista
+  "/admin/auditoria": (
+    <>
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3" />
+    </>
+  ),
+  // Migración WP: base de datos con flecha
+  "/admin/migracion": (
+    <>
+      <ellipse cx="10" cy="5" rx="7" ry="2.5" />
+      <path d="M3 5v12c0 1.4 3.1 2.5 7 2.5M17 5v5" />
+      <path d="M3 11c0 1.4 3.1 2.5 7 2.5" />
+      <path d="M15 17h7M19 14l3 3-3 3" />
     </>
   ),
 };
