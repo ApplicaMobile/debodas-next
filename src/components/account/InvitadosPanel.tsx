@@ -24,10 +24,7 @@ import {
   accountTableThClass,
   AccountPlanUsage,
 } from "@/components/account/AccountPage";
-import {
-  FormFieldLabel,
-  formControlClassName,
-} from "@/components/account/FormField";
+import { formControlClassName } from "@/components/account/FormField";
 import {
   Badge,
   Button,
@@ -212,33 +209,29 @@ function AddGuestTableFields({
   const showOther = selectValue === OTHER_TABLE;
 
   return (
-    <div className="space-y-2 sm:col-span-2">
-      <FormFieldLabel htmlFor="add-guest-table">Mesa</FormFieldLabel>
-      <select
+    <div className="space-y-3 sm:col-span-2">
+      <Select
         id="add-guest-table"
+        label="Mesa"
+        hint="Elegí una mesa existente o creá una nueva."
         value={selectValue}
         disabled={disabled}
-        aria-label="Mesa"
-        className={`${formControlClassName} min-h-12`}
         onChange={(event) => setSelectValue(event.target.value)}
-      >
-        <option value="">Sin mesa</option>
-        {knownTables.map((name) => (
-          <option key={name} value={name}>
-            {name}
-          </option>
-        ))}
-        <option value={OTHER_TABLE}>Otra mesa…</option>
-      </select>
+        options={[
+          { value: "", label: "Sin mesa" },
+          ...knownTables.map((name) => ({ value: name, label: name })),
+          { value: OTHER_TABLE, label: "Otra mesa…" },
+        ]}
+      />
       {showOther ? (
-        <input
+        <Input
+          id="add-guest-new-table"
+          label="Nombre de la nueva mesa"
           name="table_name"
           required
           maxLength={60}
           disabled={disabled}
-          aria-label="Nombre de la nueva mesa"
-          className={`${formControlClassName} min-h-12`}
-          placeholder="Nombre de la nueva mesa — ej. Mesa 1"
+          placeholder="Ej. Mesa 1"
         />
       ) : (
         <input type="hidden" name="table_name" value={selectValue} />
