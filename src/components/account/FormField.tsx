@@ -1,8 +1,9 @@
 import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
 const LABEL_CLASS = "mb-1.5 block text-sm font-medium text-stone-700";
+// Sin outline-none: el foco visible lo da el anillo del sistema de diseño (focus-ring).
 const INPUT_CLASS =
-  "w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-[#e6dac7] focus:outline-none focus:ring-2 focus:ring-[#e6dac7]/25";
+  "focus-ring w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-border-strong";
 const HINT_CLASS = "mt-1 text-xs text-stone-500";
 const ERROR_CLASS = "mt-1 text-xs font-medium text-red-700";
 
