@@ -1,0 +1,428 @@
+/*
+ * debodas — Design tokens (Tailwind CSS v4)
+ * ARCHIVO GENERADO por scripts/build-tokens.mjs desde src/tokens/tokens.json. No editar a mano.
+ * Fuente de verdad: variables de Figma (Primitivos, Color, Espaciado y radios) + estilos de texto/elevación.
+ *
+ * Uso: en globals.css, después de `@import "tailwindcss";` agregar `@import "../styles/tokens.css";`
+ * Clases resultantes: bg-surface-default, text-text-primary, border-border-strong, bg-action-primary-bg,
+ * text-h1, type-h1, p-6, rounded-md, shadow-elevation-1, etc.
+ */
+
+@theme static {
+  /* ---------- Color · Primitivos (colección Figma "Primitivos") ---------- */
+  --color-crema-50: #FBF9F5;
+  --color-crema-100: #F5F1E8;
+  --color-crema-200: #EDE5D8;
+  --color-crema-300: #E6DAC7;
+  --color-crema-400: #D4C4A8;
+  --color-crema-500: #C4B08E;
+  --color-crema-600: #A08B68;
+  --color-crema-700: #6F5F47;
+  --color-crema-800: #54483A;
+  --color-crema-900: #3F3A32;
+
+  --color-oro-200: #EADDBF;
+  --color-oro-300: #D9C49A;
+  --color-oro-400: #C9AE74;
+  --color-oro-500: #B8995A;
+  --color-oro-600: #9E7F42;
+  --color-oro-700: #8A6C31;
+
+  --color-navy-50: #EEF3F6;
+  --color-navy-100: #D5E1E9;
+  --color-navy-200: #A9C0CF;
+  --color-navy-300: #6E8EA3;
+  --color-navy-400: #3D6580;
+  --color-navy-500: #1E4A6B;
+  --color-navy-600: #0A3550;
+  --color-navy-700: #06263A;
+  --color-navy-800: #041B2A;
+  --color-navy-900: #02111B;
+
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-50: #FAFAF9;
+  --color-neutral-100: #F5F5F4;
+  --color-neutral-200: #E7E5E4;
+  --color-neutral-300: #D6D3D1;
+  --color-neutral-400: #A8A29E;
+  --color-neutral-500: #716A64;
+  --color-neutral-600: #57534E;
+  --color-neutral-700: #44403C;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1C1917;
+
+  --color-verde-50: #ECF7F1;
+  --color-verde-100: #D3EEDF;
+  --color-verde-500: #6CC39E;
+  --color-verde-600: #2E9468;
+  --color-verde-700: #1F7A53;
+
+  --color-ambar-50: #FDF6E7;
+  --color-ambar-100: #FAE8BF;
+  --color-ambar-500: #D99A1E;
+  --color-ambar-600: #B8801A;
+  --color-ambar-700: #8A5A00;
+
+  --color-rojo-50: #FCEEEC;
+  --color-rojo-100: #F8D5D0;
+  --color-rojo-500: #D9493A;
+  --color-rojo-600: #B42318;
+  --color-rojo-700: #912018;
+  --color-rojo-800: #7A1A14;
+
+  --color-azul-50: #EAF3FA;
+  --color-azul-100: #CFE3F2;
+  --color-azul-500: #7EB8DA;
+  --color-azul-600: #2A6FB0;
+  --color-azul-700: #1F5F8B;
+
+  --color-whatsapp-500: #25D366;
+  --color-whatsapp-600: #1EBE57;
+  --color-whatsapp-700: #075E54;
+
+  /* ---------- Color · Semánticos (colección Figma "Color", modo Light) ---------- */
+  --color-bg-canvas: var(--color-crema-50);
+  --color-bg-subtle: var(--color-crema-100);
+  --color-bg-brand: var(--color-crema-300);
+  --color-bg-inverse: var(--color-navy-700);
+  --color-surface-default: var(--color-neutral-0);
+  --color-surface-muted: var(--color-crema-100);
+  --color-surface-brand: var(--color-crema-300);
+  --color-surface-inverse: var(--color-navy-700);
+  --color-surface-disabled: var(--color-neutral-200);
+  --color-text-primary: var(--color-navy-700);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-tertiary: var(--color-neutral-500);
+  --color-text-accent: var(--color-crema-700);
+  --color-text-on-brand: var(--color-crema-900);
+  --color-text-inverse: var(--color-neutral-0);
+  --color-text-inverse-muted: var(--color-crema-300);
+  --color-text-accent-on-inverse: var(--color-oro-500);
+  --color-text-link: var(--color-navy-500);
+  --color-text-disabled: var(--color-neutral-400);
+  --color-border-subtle: var(--color-crema-200);
+  --color-border-default: var(--color-crema-400);
+  --color-border-strong: var(--color-neutral-500);
+  --color-border-accent: var(--color-oro-500);
+  --color-border-inverse: var(--color-navy-500);
+  --color-accent-default: var(--color-oro-500);
+  --color-accent-strong: var(--color-oro-700);
+  --color-accent-subtle: var(--color-oro-200);
+  --color-focus-ring: var(--color-azul-600);
+  --color-focus-offset: var(--color-neutral-0);
+  --color-action-primary-bg: var(--color-navy-700);
+  --color-action-primary-bg-hover: var(--color-navy-600);
+  --color-action-primary-bg-pressed: var(--color-navy-800);
+  --color-action-primary-fg: var(--color-neutral-0);
+  --color-action-secondary-bg: var(--color-crema-300);
+  --color-action-secondary-bg-hover: var(--color-crema-400);
+  --color-action-secondary-bg-pressed: var(--color-crema-500);
+  --color-action-secondary-fg: var(--color-crema-900);
+  --color-action-ghost-bg-hover: var(--color-crema-100);
+  --color-action-ghost-bg-pressed: var(--color-crema-200);
+  --color-action-ghost-fg: var(--color-navy-700);
+  --color-action-danger-bg: var(--color-rojo-600);
+  --color-action-danger-bg-hover: var(--color-rojo-700);
+  --color-action-danger-bg-pressed: var(--color-rojo-800);
+  --color-action-danger-fg: var(--color-neutral-0);
+  --color-action-disabled-bg: var(--color-neutral-200);
+  --color-action-disabled-fg: var(--color-neutral-500);
+  --color-status-success-bg: var(--color-verde-50);
+  --color-status-success-fg: var(--color-verde-700);
+  --color-status-success-border: var(--color-verde-600);
+  --color-status-warning-bg: var(--color-ambar-50);
+  --color-status-warning-fg: var(--color-ambar-700);
+  --color-status-warning-border: var(--color-ambar-600);
+  --color-status-error-bg: var(--color-rojo-50);
+  --color-status-error-fg: var(--color-rojo-700);
+  --color-status-error-border: var(--color-rojo-600);
+  --color-status-info-bg: var(--color-azul-50);
+  --color-status-info-fg: var(--color-azul-700);
+  --color-status-info-border: var(--color-azul-600);
+  --color-plan-free-bg: var(--color-neutral-100);
+  --color-plan-free-fg: var(--color-neutral-700);
+  --color-plan-basico-bg: var(--color-crema-300);
+  --color-plan-basico-fg: var(--color-crema-900);
+  --color-plan-premium-bg: var(--color-navy-700);
+  --color-plan-premium-fg: var(--color-oro-300);
+  --color-plan-recomendado-bg: var(--color-oro-300);
+  --color-plan-recomendado-fg: var(--color-navy-700);
+  --color-brand-whatsapp-bg: var(--color-whatsapp-500);
+  --color-brand-whatsapp-bg-hover: var(--color-whatsapp-600);
+  --color-brand-whatsapp-fg: var(--color-neutral-900);
+  --color-brand-whatsapp-text: var(--color-whatsapp-700);
+  --color-chart-1: var(--color-navy-700);
+  --color-chart-2: var(--color-azul-500);
+  --color-chart-3: var(--color-oro-500);
+  --color-chart-4: var(--color-crema-500);
+  --color-chart-5: var(--color-rojo-500);
+  --color-chart-6: var(--color-verde-600);
+  --color-chart-7: var(--color-ambar-600);
+  --color-chart-8: var(--color-navy-400);
+  --color-chart-grid: var(--color-neutral-200);
+  --color-chart-axis: var(--color-neutral-500);
+
+  /* Compatibilidad con las utilidades existentes de la app (bg-background / text-foreground) */
+  --color-background: var(--color-bg-canvas);
+  --color-foreground: var(--color-text-primary);
+
+  /* ---------- Espaciado (base 4px; Tailwind multiplica --spacing) ---------- */
+  --spacing: 0.25rem;
+  --spacing-0: 0px; /* 0px */
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.25rem; /* 20px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-10: 2.5rem; /* 40px */
+  --spacing-12: 3rem; /* 48px */
+  --spacing-16: 4rem; /* 64px */
+  --spacing-20: 5rem; /* 80px */
+
+  /* ---------- Radios: sm (chicos), md (contenedores e inputs), full (pill) ---------- */
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-full: 9999px; /* 9999px */
+
+  /* ---------- Elevación: sombras tintadas con navy/700 (nunca negro puro) ---------- */
+  --shadow-elevation-1: 0px 1px 2px 0px color-mix(in srgb, var(--color-navy-700) 6%, transparent), 0px 2px 6px 0px color-mix(in srgb, var(--color-navy-700) 6%, transparent); /* Cards en reposo */
+  --shadow-elevation-2: 0px 4px 8px 0px color-mix(in srgb, var(--color-navy-700) 6%, transparent), 0px 12px 24px 0px color-mix(in srgb, var(--color-navy-700) 8%, transparent); /* Hover, dropdowns, plan recomendado */
+  --shadow-elevation-3: 0px 8px 16px 0px color-mix(in srgb, var(--color-navy-700) 8%, transparent), 0px 24px 48px 0px color-mix(in srgb, var(--color-navy-700) 14%, transparent); /* Modales y popovers */
+
+  /* ---------- Escala tipográfica (13 estilos de texto de Figma) ---------- */
+  /* text-<token> aplica tamaño + interlineado + tracking + peso. type-<token> suma familia y mayúsculas. */
+  --text-display-xl: 3.5rem; /* Display/XL · 56/64 */
+  --text-display-xl--line-height: 4rem;
+  --text-display-xl--letter-spacing: -0.01em;
+  --text-display-xl--font-weight: 400;
+  --text-h1: 2.75rem; /* Título/H1 · 44/52 */
+  --text-h1--line-height: 3.25rem;
+  --text-h1--letter-spacing: -0.01em;
+  --text-h1--font-weight: 400;
+  --text-h2: 2.25rem; /* Título/H2 · 36/44 */
+  --text-h2--line-height: 2.75rem;
+  --text-h2--letter-spacing: -0.005em;
+  --text-h2--font-weight: 400;
+  --text-h3: 1.75rem; /* Título/H3 · 28/36 */
+  --text-h3--line-height: 2.25rem;
+  --text-h3--font-weight: 500;
+  --text-h4: 1.375rem; /* Título/H4 · 22/30 */
+  --text-h4--line-height: 1.875rem;
+  --text-h4--font-weight: 500;
+  --text-body-lg: 1.125rem; /* Cuerpo/LG · 18/30 */
+  --text-body-lg--line-height: 1.875rem;
+  --text-body-lg--font-weight: 400;
+  --text-body: 1rem; /* Cuerpo/Base · 16/26 */
+  --text-body--line-height: 1.625rem;
+  --text-body--font-weight: 400;
+  --text-body-sm: 0.875rem; /* Cuerpo/SM · 14/22 */
+  --text-body-sm--line-height: 1.375rem;
+  --text-body-sm--font-weight: 400;
+  --text-caption: 0.75rem; /* Cuerpo/Caption · 12/16 */
+  --text-caption--line-height: 1rem;
+  --text-caption--letter-spacing: 0.005em;
+  --text-caption--font-weight: 500;
+  --text-label: 0.875rem; /* UI/Label · 14/20 */
+  --text-label--line-height: 1.25rem;
+  --text-label--font-weight: 600;
+  --text-button: 1rem; /* UI/Botón · 16/24 */
+  --text-button--line-height: 1.5rem;
+  --text-button--letter-spacing: 0.002em;
+  --text-button--font-weight: 600;
+  --text-button-sm: 0.875rem; /* UI/Botón SM · 14/20 */
+  --text-button-sm--line-height: 1.25rem;
+  --text-button-sm--letter-spacing: 0.002em;
+  --text-button-sm--font-weight: 600;
+  --text-overline: 0.75rem; /* UI/Overline · 12/16 */
+  --text-overline--line-height: 1rem;
+  --text-overline--letter-spacing: 0.12em;
+  --text-overline--font-weight: 600;
+}
+
+/* Familias: next/font define --font-montserrat y --font-playfair en <html>. */
+@theme inline {
+  --font-sans: var(--font-montserrat), "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), "Playfair Display", Georgia, serif;
+}
+
+/* Estilos de texto completos (equivalen 1:1 a los estilos de Figma) */
+@utility type-display-xl {
+  font-family: var(--font-serif);
+  font-size: var(--text-display-xl);
+  line-height: var(--text-display-xl--line-height);
+  font-weight: var(--text-display-xl--font-weight);
+  letter-spacing: var(--text-display-xl--letter-spacing);
+}
+@utility type-h1 {
+  font-family: var(--font-serif);
+  font-size: var(--text-h1);
+  line-height: var(--text-h1--line-height);
+  font-weight: var(--text-h1--font-weight);
+  letter-spacing: var(--text-h1--letter-spacing);
+}
+@utility type-h2 {
+  font-family: var(--font-serif);
+  font-size: var(--text-h2);
+  line-height: var(--text-h2--line-height);
+  font-weight: var(--text-h2--font-weight);
+  letter-spacing: var(--text-h2--letter-spacing);
+}
+@utility type-h3 {
+  font-family: var(--font-serif);
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
+  font-weight: var(--text-h3--font-weight);
+}
+@utility type-h4 {
+  font-family: var(--font-serif);
+  font-size: var(--text-h4);
+  line-height: var(--text-h4--line-height);
+  font-weight: var(--text-h4--font-weight);
+}
+@utility type-body-lg {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+  font-weight: var(--text-body-lg--font-weight);
+}
+@utility type-body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  font-weight: var(--text-body--font-weight);
+}
+@utility type-body-sm {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  font-weight: var(--text-body-sm--font-weight);
+}
+@utility type-caption {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: var(--text-caption--font-weight);
+  letter-spacing: var(--text-caption--letter-spacing);
+}
+@utility type-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
+}
+@utility type-button {
+  font-family: var(--font-sans);
+  font-size: var(--text-button);
+  line-height: var(--text-button--line-height);
+  font-weight: var(--text-button--font-weight);
+  letter-spacing: var(--text-button--letter-spacing);
+}
+@utility type-button-sm {
+  font-family: var(--font-sans);
+  font-size: var(--text-button-sm);
+  line-height: var(--text-button-sm--line-height);
+  font-weight: var(--text-button-sm--font-weight);
+  letter-spacing: var(--text-button-sm--letter-spacing);
+}
+@utility type-overline {
+  font-family: var(--font-sans);
+  font-size: var(--text-overline);
+  line-height: var(--text-overline--line-height);
+  font-weight: var(--text-overline--font-weight);
+  letter-spacing: var(--text-overline--letter-spacing);
+  text-transform: uppercase;
+}
+
+/* Anillo de foco de Figma: 2px offset blanco + 2px azul (focus/ring). El outline mantiene el foco visible
+   en modo de alto contraste de Windows. data-demo-focus solo se usa en la guía de estilos. */
+@utility focus-ring {
+  &:focus-visible, &[data-demo-focus] {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--color-focus-offset);
+  }
+}
+
+/* Alias de compatibilidad: nombres viejos de globals.css y codeSyntax de los primitivos en Figma */
+:root {
+  --background: var(--color-bg-canvas); /* antes #ebebeb */
+  --foreground: var(--color-text-primary); /* antes #2d2d2d */
+  --debodas-accent: var(--color-crema-300); /* #e6dac7 · SOLO fondo */
+  --debodas-accent-hover: var(--color-crema-400); /* #d4c4a8 */
+  --debodas-accent-fg: var(--color-crema-900); /* #3f3a32 */
+  --debodas-accent-text: var(--color-crema-700); /* #6f5f47 */
+  --debodas-green: var(--color-verde-500); /* #6cc39e · decorativo, no para texto */
+  --debodas-cream: var(--color-crema-300); /* antes #ded4c5 (sin uso) */
+  --debodas-dark: var(--color-navy-700); /* #06263a */
+  --debodas-crema-50: var(--color-crema-50);
+  --debodas-crema-100: var(--color-crema-100);
+  --debodas-crema-200: var(--color-crema-200);
+  --debodas-crema-300: var(--color-crema-300);
+  --debodas-crema-400: var(--color-crema-400);
+  --debodas-crema-500: var(--color-crema-500);
+  --debodas-crema-600: var(--color-crema-600);
+  --debodas-crema-700: var(--color-crema-700);
+  --debodas-crema-800: var(--color-crema-800);
+  --debodas-crema-900: var(--color-crema-900);
+  --debodas-oro-200: var(--color-oro-200);
+  --debodas-oro-300: var(--color-oro-300);
+  --debodas-oro-400: var(--color-oro-400);
+  --debodas-oro-500: var(--color-oro-500);
+  --debodas-oro-600: var(--color-oro-600);
+  --debodas-oro-700: var(--color-oro-700);
+  --debodas-navy-50: var(--color-navy-50);
+  --debodas-navy-100: var(--color-navy-100);
+  --debodas-navy-200: var(--color-navy-200);
+  --debodas-navy-300: var(--color-navy-300);
+  --debodas-navy-400: var(--color-navy-400);
+  --debodas-navy-500: var(--color-navy-500);
+  --debodas-navy-600: var(--color-navy-600);
+  --debodas-navy-700: var(--color-navy-700);
+  --debodas-navy-800: var(--color-navy-800);
+  --debodas-navy-900: var(--color-navy-900);
+  --debodas-neutral-0: var(--color-neutral-0);
+  --debodas-neutral-50: var(--color-neutral-50);
+  --debodas-neutral-100: var(--color-neutral-100);
+  --debodas-neutral-200: var(--color-neutral-200);
+  --debodas-neutral-300: var(--color-neutral-300);
+  --debodas-neutral-400: var(--color-neutral-400);
+  --debodas-neutral-500: var(--color-neutral-500);
+  --debodas-neutral-600: var(--color-neutral-600);
+  --debodas-neutral-700: var(--color-neutral-700);
+  --debodas-neutral-800: var(--color-neutral-800);
+  --debodas-neutral-900: var(--color-neutral-900);
+  --debodas-verde-50: var(--color-verde-50);
+  --debodas-verde-100: var(--color-verde-100);
+  --debodas-verde-500: var(--color-verde-500);
+  --debodas-verde-600: var(--color-verde-600);
+  --debodas-verde-700: var(--color-verde-700);
+  --debodas-ambar-50: var(--color-ambar-50);
+  --debodas-ambar-100: var(--color-ambar-100);
+  --debodas-ambar-500: var(--color-ambar-500);
+  --debodas-ambar-600: var(--color-ambar-600);
+  --debodas-ambar-700: var(--color-ambar-700);
+  --debodas-rojo-50: var(--color-rojo-50);
+  --debodas-rojo-100: var(--color-rojo-100);
+  --debodas-rojo-500: var(--color-rojo-500);
+  --debodas-rojo-600: var(--color-rojo-600);
+  --debodas-rojo-700: var(--color-rojo-700);
+  --debodas-rojo-800: var(--color-rojo-800);
+  --debodas-azul-50: var(--color-azul-50);
+  --debodas-azul-100: var(--color-azul-100);
+  --debodas-azul-500: var(--color-azul-500);
+  --debodas-azul-600: var(--color-azul-600);
+  --debodas-azul-700: var(--color-azul-700);
+  --debodas-whatsapp-500: var(--color-whatsapp-500);
+  --debodas-whatsapp-600: var(--color-whatsapp-600);
+  --debodas-whatsapp-700: var(--color-whatsapp-700);
+}
+
+/* Foco global (reemplaza el outline navy de 3px de la app; nadie debería usar outline-none sin reemplazo) */
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
