@@ -1,4 +1,32 @@
-import Link from "next/link";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import {
+  IllustrationRings,
+  IllustrationStars,
+} from "@/components/account/AccountIllustrations";
+import {
+  AccountDetailList,
+  AccountFieldGroup,
+  AccountItemList,
+  AccountListItem,
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+  AccountStatCard,
+} from "@/components/account/AccountPage";
+import {
+  AdminPlanBadge,
+  AdminStatusBadge,
+} from "@/components/admin/AdminStatusBadge";
+import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  IconExternalLink,
+  Select,
+  buttonClasses,
+  planLabels,
+} from "@/components/ui";
 import {
   resetRatingEmailFlagAction,
   sendRatingRequestAction,
@@ -15,25 +43,6 @@ import { prisma } from "@/lib/db/prisma";
 import { getAppUrl } from "@/lib/email/client";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
-import { AdminAccountStatusForm } from "@/components/admin/AdminAccountStatusForm";
-import {
-  ACCOUNT_STATUS_LABELS,
-  normalizeAccountStatus,
-} from "@/lib/account/status";
-
-const STATUS_FLASH: Record<string, string> = {
-  "estado:suspend": "Cuenta suspendida. El micrositio quedó offline.",
-  "estado:reactivate": "Cuenta reactivada.",
-  "estado:delete": "Cuenta eliminada (baja lógica).",
-  "estado:restore": "Cuenta restaurada.",
-  "estado:self": "No podés suspender ni eliminar tu propia cuenta.",
-  "estado:last_admin": "No podés suspender ni eliminar al último administrador activo.",
-  "estado:confirm_email": "Para eliminar, escribí exactamente el email de la cuenta.",
-  "estado:invalid_transition": "La cuenta ya no está en un estado que permita esa acción.",
-  "estado:erased": "Esa cuenta fue borrada definitivamente por la pareja.",
-  "estado:not_found": "No encontramos la cuenta.",
-  "estado:datos": "Datos inválidos.",
-};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -44,25 +53,14 @@ export default async function AdminBodaDetailPage({
   params,
   searchParams,
 }: PageProps) {
-  const admin = await requireAdmin();
+  await requireAdmin();
   const { id } = await params;
   const flash = await searchParams;
 
   const boda = await prisma.boda.findUnique({
     where: { id },
     include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          status: true,
-          statusReason: true,
-          statusChangedAt: true,
-          erasedAt: true,
-        },
-      },
+      user: { select: { id: true, email: true, name: true, role: true } },
       ratings: { orderBy: { createdAt: "desc" } },
       _count: {
         select: {
@@ -79,236 +77,219 @@ export default async function AdminBodaDetailPage({
 
   if (!boda) {
     return (
-      <div className="rounded-3xl bg-white p-8 text-center shadow-sm">
-        <p className="text-stone-600">No encontramos esta boda.</p>
-        <Link href="/admin/bodas" className="mt-4 inline-block text-[#6f5f47] underline">
-          ← Volver
-        </Link>
-      </div>
+      <AccountEmptyState
+        illustration={IllustrationRings}
+        title="No encontramos esta boda."
+        description="Puede que se haya eliminado o que el enlace sea incorrecto."
+        actions={[{ label: "← Volver", href: "/admin/bodas", primary: true }]}
+      />
     );
   }
 
   const rateUrl = `${getAppUrl()}/calificar?bodaId=${boda.id}`;
+  const name = coupleLabel(boda.couple, boda.title);
 
   return (
-    <div className="space-y-6">
-      {flash.ok ? (
-        <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {STATUS_FLASH[flash.ok] ?? flash.ok}
-        </p>
-      ) : null}
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/admin/bodas"
+        area="Panel admin"
+        section="Bodas y clientes"
+        back={{ href: "/admin/bodas", label: "Bodas" }}
+        title={name}
+        description={`/${boda.slug} · tema ${boda.micrositeTheme}`}
+        meta={
+          <>
+            <AdminPlanBadge plan={boda.plan} />
+            <Badge tone={boda.isOnline ? "aprobado" : "neutro"}>
+              <span className="sr-only">Micrositio: </span>
+              {boda.isOnline ? "Online" : "Offline"}
+            </Badge>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              href={`/bodas/${boda.slug}`}
+              target="_blank"
+              variant="secundario"
+              size="sm"
+              icon={<IconExternalLink size={16} />}
+              iconPosition="end"
+            >
+              Ver micrositio
+              <span className="sr-only"> (se abre en otra pestaña)</span>
+            </Button>
+            <a
+              href={rateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonClasses({ variant: "fantasma", size: "sm" })}
+            >
+              Link calificar
+              <IconExternalLink size={16} />
+              <span className="sr-only"> (se abre en otra pestaña)</span>
+            </a>
+          </>
+        }
+      />
+
+      {flash.ok ? <Alert tone="exito" title={flash.ok} /> : null}
       {flash.error ? (
-        <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {flash.error === "sin-email"
-            ? "La pareja no tiene email."
-            : flash.error === "ya-calificada"
-              ? "Esta boda ya tiene una calificación."
-              : (STATUS_FLASH[flash.error] ?? flash.error)}
-        </p>
+        <Alert
+          tone="error"
+          title={
+            flash.error === "sin-email"
+              ? "La pareja no tiene email."
+              : flash.error === "ya-calificada"
+                ? "Esta boda ya tiene una calificación."
+                : flash.error
+          }
+        />
       ) : null}
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <Link
-          href="/admin/bodas"
-          className="text-sm text-stone-500 hover:text-stone-800"
+      <section aria-label="Actividad de la boda">
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: "RSVP", value: boda._count.rsvpGuests, icon: "/mi-cuenta/invitados" },
+            { label: "Regalos lista", value: boda._count.gifts, icon: "/mi-cuenta/regalos" },
+            {
+              label: "Regalos recibidos",
+              value: boda._count.confirmedGifts,
+              icon: "/mi-cuenta/regalos-recibidos",
+            },
+            { label: "Pagos", value: boda._count.payments, icon: "/admin/pagos" },
+          ].map((item) => (
+            <AccountStatCard
+              key={item.label}
+              iconHref={item.icon}
+              label={item.label}
+              value={item.value}
+            />
+          ))}
+        </ul>
+      </section>
+
+      <div className="grid gap-6 sm:gap-8 xl:grid-cols-2">
+        <AccountSection
+          id="admin-boda-datos"
+          title="Datos"
+          description="Información de la boda y de la cuenta dueña."
         >
-          ← Bodas
-        </Link>
-        <h2 className="mt-3 font-serif text-2xl font-semibold text-stone-800">
-          {coupleLabel(boda.couple, boda.title)}
-        </h2>
-        <p className="mt-1 text-stone-600">
-          /{boda.slug} · tema {boda.micrositeTheme}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href={`/bodas/${boda.slug}`}
-            target="_blank"
-            className="rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800"
-          >
-            Ver micrositio ↗
-          </Link>
-          <a
-            href={rateUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700"
-          >
-            Link calificar
-          </a>
-        </div>
-      </section>
-
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: "RSVP", value: boda._count.rsvpGuests },
-          { label: "Regalos lista", value: boda._count.gifts },
-          { label: "Regalos recibidos", value: boda._count.confirmedGifts },
-          { label: "Pagos", value: boda._count.payments },
-        ].map((item) => (
-          <div key={item.label} className="rounded-3xl bg-white p-5 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-stone-500">
-              {item.label}
-            </p>
-            <p className="mt-2 text-2xl font-semibold text-stone-800">
-              {item.value}
-            </p>
-          </div>
-        ))}
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-stone-800">Datos</h3>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div>
-              <dt className="text-stone-500">Fecha evento</dt>
-              <dd className="font-medium text-stone-800">
-                {eventDateFromJson(boda.event)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-stone-500">Teléfono</dt>
-              <dd className="font-medium text-stone-800">
-                {phoneFromCouple(boda.couple)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-stone-500">Dueño</dt>
-              <dd className="font-medium text-stone-800">
-                {boda.user.name || "—"}
-                <br />
-                <span className="text-stone-500">{boda.user.email}</span>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-stone-500">Micrositio</dt>
-              <dd className="font-medium text-stone-800">
-                {boda.isOnline ? "Online" : "Offline"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-stone-500">Alta</dt>
-              <dd className="font-medium text-stone-800">
-                {boda.createdAt.toLocaleString("es-AR")}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-stone-500">Mail calificación</dt>
-              <dd className="font-medium text-stone-800">
-                {boda.ratingEmailSentAt
+          <AccountDetailList
+            items={[
+              { label: "Fecha evento", value: eventDateFromJson(boda.event) },
+              { label: "Teléfono", value: phoneFromCouple(boda.couple) },
+              {
+                label: "Dueño",
+                value: (
+                  <>
+                    {boda.user.name || "—"}
+                    <span className="block break-all text-text-secondary">
+                      {boda.user.email}
+                    </span>
+                  </>
+                ),
+              },
+              { label: "Micrositio", value: boda.isOnline ? "Online" : "Offline" },
+              { label: "Alta", value: boda.createdAt.toLocaleString("es-AR") },
+              {
+                label: "Mail calificación",
+                value: boda.ratingEmailSentAt
                   ? `Enviado ${boda.ratingEmailSentAt.toLocaleString("es-AR")}`
-                  : "No enviado"}
-              </dd>
-            </div>
-          </dl>
+                  : "No enviado",
+              },
+            ]}
+          />
+        </AccountSection>
 
+        <AccountSection
+          id="admin-boda-plan"
+          title="Plan y publicación"
+          description="Cada cambio pide confirmación antes de guardarse."
+        >
           <AdminActionForm
             action={updateBodaPlanAction}
-            className="mt-6 flex gap-2"
             confirmMessage="¿Confirmás el cambio de plan de esta boda?"
           >
-            <input type="hidden" name="boda_id" value={boda.id} />
-            <select
-              name="plan"
-              defaultValue={boda.plan}
-              className="rounded-lg border border-stone-200 px-3 py-2 text-sm"
-            >
-              <option value="free">free</option>
-              <option value="basico">basico</option>
-              <option value="premium">premium</option>
-            </select>
-            <AdminSubmitButton
-              idleLabel="Guardar plan"
-              pendingLabel="Guardando…"
-              className="rounded-lg bg-stone-800 px-3 py-2 text-xs font-semibold text-white"
-            />
+            <AccountFieldGroup title="Plan">
+              <input type="hidden" name="boda_id" value={boda.id} />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <Select
+                  id="admin-boda-plan-select"
+                  name="plan"
+                  label="Plan de la boda"
+                  defaultValue={boda.plan}
+                  className="sm:flex-1"
+                  options={(["free", "basico", "premium"] as const).map(
+                    (value) => ({ value, label: planLabels[value] }),
+                  )}
+                />
+                <AdminSubmitButton
+                  idleLabel="Guardar plan"
+                  pendingLabel="Guardando…"
+                  variant="primario"
+                  size="md"
+                />
+              </div>
+            </AccountFieldGroup>
           </AdminActionForm>
 
           <AdminActionForm
             action={updateBodaOnlineAction}
-            className="mt-3 flex items-center gap-3"
+            className="mt-6 border-t border-border-subtle pt-6"
             confirmMessage={
               boda.isOnline
                 ? "¿Confirmás que querés despublicar este micrositio?"
                 : "¿Confirmás que querés publicar este micrositio?"
             }
           >
-            <input type="hidden" name="boda_id" value={boda.id} />
-            <label className="flex items-center gap-2 text-sm text-stone-700">
-              <input
-                type="checkbox"
-                name="is_online"
-                defaultChecked={boda.isOnline}
-                className="h-4 w-4 rounded border-stone-300"
-              />
-              Micrositio online
-            </label>
-            <AdminSubmitButton
-              idleLabel="Guardar"
-              pendingLabel="Guardando…"
-              className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700"
-            />
+            <AccountFieldGroup title="Publicación">
+              <input type="hidden" name="boda_id" value={boda.id} />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Checkbox
+                  id="admin-boda-online"
+                  name="is_online"
+                  defaultChecked={boda.isOnline}
+                  label="Micrositio online"
+                  description="Desmarcalo para que el micrositio deje de estar visible."
+                />
+                <AdminSubmitButton
+                  idleLabel="Guardar"
+                  pendingLabel="Guardando…"
+                  variant="secundario"
+                  size="md"
+                />
+              </div>
+            </AccountFieldGroup>
           </AdminActionForm>
+        </AccountSection>
+      </div>
 
-          <div className="mt-6 rounded-2xl border border-stone-200 p-4">
-            <h4 className="text-sm font-semibold text-stone-800">Estado de la cuenta</h4>
-            <p className="mt-1 text-sm text-stone-600">
-              {ACCOUNT_STATUS_LABELS[normalizeAccountStatus(boda.user.status)]}
-              {boda.user.statusChangedAt && boda.user.status !== "active"
-                ? ` desde ${boda.user.statusChangedAt.toLocaleString("es-AR")}`
-                : ""}
-              {boda.user.statusReason && boda.user.status !== "active"
-                ? ` · Motivo: ${boda.user.statusReason}`
-                : ""}
-            </p>
-            <p className="mt-1 text-xs text-stone-500">
-              Suspender o eliminar deja el micrositio offline y cierra la sesión de la pareja. Eliminar es una
-              baja lógica: no se borran datos ni archivos y se puede restaurar.
-            </p>
-            <div className="mt-3">
-              <AdminAccountStatusForm
-                userId={boda.user.id}
-                email={boda.user.email}
-                status={normalizeAccountStatus(boda.user.status)}
-                erased={Boolean(boda.user.erasedAt)}
-                isSelf={boda.user.id === admin.id}
-                returnTo={`/admin/bodas/${boda.id}`}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-stone-800">
-            Calificación
-          </h3>
-          <p className="mt-2 text-sm text-stone-600">
-            Cronograma FAQ: {boda._count.scheduleItems} ítems ·{" "}
-            {boda._count.faqItems} FAQs
-          </p>
-
-          {boda.ratings.length > 0 ? (
-            <ul className="mt-4 space-y-3">
-              {boda.ratings.map((rating) => (
-                <li
-                  key={rating.id}
-                  className="rounded-2xl bg-stone-50 p-4 text-sm"
-                >
-                  <p className="font-medium text-stone-800">
-                    {rating.name} · {rating.score}/5 · {rating.status}
-                  </p>
-                  {rating.comment ? (
-                    <p className="mt-1 text-stone-600">{rating.comment}</p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="mt-4 space-y-3">
-              <p className="text-sm text-stone-600">
-                Todavía no hay calificación. Podés enviar el pedido por email.
-              </p>
+      <AccountSection
+        id="admin-boda-calificacion"
+        title="Calificación"
+        description={`Cronograma FAQ: ${boda._count.scheduleItems} ítems · ${boda._count.faqItems} FAQs`}
+      >
+        {boda.ratings.length > 0 ? (
+          <AccountItemList label="Calificaciones de la boda">
+            {boda.ratings.map((rating) => (
+              <AccountListItem
+                key={rating.id}
+                title={`${rating.name} · ${rating.score}/5`}
+                meta={<AdminStatusBadge kind="rating" status={rating.status} />}
+              >
+                {rating.comment ? rating.comment : null}
+              </AccountListItem>
+            ))}
+          </AccountItemList>
+        ) : (
+          <AccountEmptyState
+            illustration={IllustrationStars}
+            title="Todavía no hay calificación."
+            description="Podés enviar el pedido por email."
+          >
+            <div className="flex flex-col items-center gap-3">
               <AdminActionForm
                 action={sendRatingRequestAction}
                 confirmMessage={`¿Enviar el pedido de calificación a ${boda.user.email}?`}
@@ -317,7 +298,8 @@ export default async function AdminBodaDetailPage({
                 <AdminSubmitButton
                   idleLabel="Enviar pedido de calificación"
                   pendingLabel="Enviando…"
-                  className="rounded-full bg-[#e6dac7] px-4 py-2 text-sm font-semibold text-stone-800"
+                  variant="primario"
+                  size="md"
                 />
               </AdminActionForm>
               {boda.ratingEmailSentAt ? (
@@ -329,14 +311,14 @@ export default async function AdminBodaDetailPage({
                   <AdminSubmitButton
                     idleLabel="Resetear flag de email enviado (para cron)"
                     pendingLabel="Reseteando…"
-                    className="text-xs font-medium text-stone-500 underline"
+                    variant="fantasma"
                   />
                 </AdminActionForm>
               ) : null}
             </div>
-          )}
-        </div>
-      </section>
-    </div>
+          </AccountEmptyState>
+        )}
+      </AccountSection>
+    </AccountPageBody>
   );
 }
