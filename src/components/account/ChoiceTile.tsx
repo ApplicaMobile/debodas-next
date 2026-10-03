@@ -45,7 +45,7 @@ export function ChoiceTile({
     >
       {media}
       <span className="flex w-full flex-1 flex-col gap-1 p-4">
-        <span className="flex items-start justify-between gap-2">
+        <span className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
           <span className="min-w-0 type-label text-text-primary">{title}</span>
           {status ? <span className="shrink-0">{status}</span> : null}
         </span>
