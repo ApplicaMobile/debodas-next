@@ -129,6 +129,7 @@ function GiftEditor({
         label="Cambiar imagen"
         hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
         variant="dropzone"
+        subject="la imagen"
       />
       <Checkbox
         name="clear_image"
@@ -331,6 +332,7 @@ export function GiftsPanel({
             label="O subir imagen"
             hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
             variant="dropzone"
+            subject="la imagen"
           />
           <AccountFormActions
             alert={<FormAlert error={addState.error} success={addState.success} />}

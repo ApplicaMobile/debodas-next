@@ -11,6 +11,8 @@ interface ImageFileInputProps {
   accept?: string;
   /** `dropzone`: zona táctil grande (ideal para móvil / comprobantes) */
   variant?: "default" | "dropzone";
+  /** Qué se sube (texto de la zona y alt de la vista previa). Por defecto, un comprobante. */
+  subject?: string;
 }
 
 function isImageFile(file: File) {
@@ -23,6 +25,7 @@ export function ImageFileInput({
   hint,
   accept = "image/jpeg,image/png,image/webp,image/gif",
   variant = "default",
+  subject = "el comprobante",
 }: ImageFileInputProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -143,7 +146,7 @@ export function ImageFileInput({
                 Elegir archivo
               </span>
               <span className="text-sm text-stone-600">
-                O tocá acá para subir el comprobante
+                O tocá acá para subir {subject}
               </span>
             </>
           )}
@@ -168,7 +171,7 @@ export function ImageFileInput({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={previewUrl}
-            alt="Vista previa del comprobante"
+            alt={`Vista previa ${subject.startsWith("el ") ? `del ${subject.slice(3)}` : `de ${subject}`}`}
             className="h-36 w-full rounded-xl object-cover"
           />
         ) : null}
