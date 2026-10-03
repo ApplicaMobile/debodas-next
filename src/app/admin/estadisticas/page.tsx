@@ -1,4 +1,11 @@
-import Link from "next/link";
+import {
+  AccountFieldGroup,
+  AccountFormActions,
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+} from "@/components/account/AccountPage";
+import { Button, Input, Select } from "@/components/ui";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import {
   BARS_FILTER_OPTIONS,
@@ -71,136 +78,111 @@ export default async function AdminEstadisticasPage({ searchParams }: PageProps)
     PIES_FILTER_OPTIONS.find((o) => o.value === piesFilter)?.label ?? "Total";
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
-          Estadísticas de bodas
-        </h2>
-        <p className="mt-2 text-stone-600">
-          Altas, micrositios activos, fuentes de registro y distribución de
-          planes.
-        </p>
-        <p className="mt-3 text-sm text-stone-500">
-          Micrositios online creados este mes:{" "}
-          <span className="font-semibold text-stone-800">
-            {stats.onlineThisMonth}
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/admin/estadisticas"
+        area="Panel admin"
+        section="Sistema"
+        title="Estadísticas de bodas"
+        description="Altas, micrositios activos, fuentes de registro y distribución de planes."
+        meta={
+          <span className="type-body-sm text-text-secondary">
+            Micrositios online creados este mes:{" "}
+            <strong className="font-semibold tabular-nums text-text-primary">
+              {stats.onlineThisMonth}
+            </strong>
           </span>
-        </p>
-      </section>
+        }
+      />
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <form method="get" className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-3">
-            <label className="block text-sm font-semibold text-stone-800">
-              Gráficos de barras
-            </label>
-            <p className="text-xs text-stone-500">
-              Controla Altas vs Activos, fuentes y planes del período.
-            </p>
-            <select
-              name="barras"
-              defaultValue={barsFilter}
-              className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm"
+      <AccountSection
+        id="estadisticas-filtros"
+        title="Períodos"
+        description="Elegí un período predefinido o un rango personalizado para cada tipo de gráfico."
+      >
+        <form method="get">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+            <AccountFieldGroup
+              title="Gráficos de barras"
+              description="Controla Altas vs Activos, fuentes y planes del período."
             >
-              {BARS_FILTER_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-xs text-stone-500">
-                  Desde (personalizado)
-                </label>
-                <input
+              <Select
+                id="barras"
+                name="barras"
+                label="Período"
+                defaultValue={barsFilter}
+                options={BARS_FILTER_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  id="fecha_inicio_barras"
                   type="date"
                   name="fecha_inicio_barras"
+                  label="Desde (personalizado)"
                   defaultValue={barsStart ?? ""}
-                  className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm"
                 />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs text-stone-500">
-                  Hasta (personalizado)
-                </label>
-                <input
+                <Input
+                  id="fecha_fin_barras"
                   type="date"
                   name="fecha_fin_barras"
+                  label="Hasta (personalizado)"
                   defaultValue={barsEnd ?? ""}
-                  className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm"
                 />
               </div>
-            </div>
-          </div>
+            </AccountFieldGroup>
 
-          <div className="space-y-3">
-            <label className="block text-sm font-semibold text-stone-800">
-              Gráficos de torta
-            </label>
-            <p className="text-xs text-stone-500">
-              Distribuciones acumuladas (fuentes, planes, online/offline).
-            </p>
-            <select
-              name="tortas"
-              defaultValue={piesFilter}
-              className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm"
+            <AccountFieldGroup
+              title="Gráficos de torta"
+              description="Distribuciones acumuladas (fuentes, planes, online/offline)."
+              className="lg:border-t-0 lg:pt-0"
             >
-              {PIES_FILTER_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-xs text-stone-500">
-                  Desde (personalizado)
-                </label>
-                <input
+              <Select
+                id="tortas"
+                name="tortas"
+                label="Período"
+                defaultValue={piesFilter}
+                options={PIES_FILTER_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  id="fecha_inicio_tortas"
                   type="date"
                   name="fecha_inicio_tortas"
+                  label="Desde (personalizado)"
                   defaultValue={piesStart ?? ""}
-                  className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm"
                 />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs text-stone-500">
-                  Hasta (personalizado)
-                </label>
-                <input
+                <Input
+                  id="fecha_fin_tortas"
                   type="date"
                   name="fecha_fin_tortas"
+                  label="Hasta (personalizado)"
                   defaultValue={piesEnd ?? ""}
-                  className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm"
                 />
               </div>
-            </div>
+            </AccountFieldGroup>
           </div>
 
-          <div className="flex flex-wrap gap-2 lg:col-span-2">
-            <button
-              type="submit"
-              className="rounded-full bg-[#06263a] px-5 py-2.5 text-sm font-semibold text-white"
-            >
-              Aplicar filtros
-            </button>
-            <Link
-              href="/admin/estadisticas"
-              className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-medium text-stone-700"
-            >
+          <AccountFormActions>
+            <Button href="/admin/estadisticas" variant="fantasma">
               Restablecer
-            </Link>
-          </div>
+            </Button>
+            <Button type="submit">Aplicar filtros</Button>
+          </AccountFormActions>
         </form>
-      </section>
+      </AccountSection>
 
       <AltasActivosChart
         data={stats.series}
         title={barsTitle(barsFilter, stats.barsRange.granularity)}
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
         <NamedBarChart
           data={stats.sourceBars}
           title="¿Cómo nos conocieron? — período de barras"
@@ -211,7 +193,7 @@ export default async function AdminEstadisticasPage({ searchParams }: PageProps)
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 2xl:grid-cols-3">
         <NamedPieChart
           data={stats.sourcePies}
           title={`¿Cómo nos conocieron? — ${piesPeriod}`}
@@ -225,6 +207,6 @@ export default async function AdminEstadisticasPage({ searchParams }: PageProps)
           title={`Estado del micrositio — ${piesPeriod}`}
         />
       </div>
-    </div>
+    </AccountPageBody>
   );
 }

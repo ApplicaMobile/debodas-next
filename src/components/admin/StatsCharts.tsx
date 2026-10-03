@@ -13,25 +13,34 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { ReactNode } from "react";
+import { Card } from "@/components/ui";
 import type { NamedCount, SeriesPoint } from "@/lib/admin/stats";
 
-const ALTAS_COLOR = "#1e3a5f";
-const ACTIVOS_COLOR = "#7eb8da";
-const BAR_COLORS = [
-  "#e91e8c",
-  "#06263a",
-  "#e6dac7",
-  "#c4a484",
-  "#4a5568",
-  "#dd6b20",
-  "#2b6cb0",
-  "#805ad5",
-];
-const PIE_COLORS = ["#06263a", "#e91e8c", "#e6dac7", "#c4a484", "#7eb8da", "#dd6b20"];
+// Paleta de gráficos del sistema de diseño (tokens --color-chart-*).
+const CHART_COLORS = Array.from(
+  { length: 8 },
+  (_, index) => `var(--color-chart-${index + 1})`,
+);
+const ALTAS_COLOR = CHART_COLORS[0];
+const ACTIVOS_COLOR = CHART_COLORS[1];
+const BAR_COLORS = CHART_COLORS;
+const PIE_COLORS = CHART_COLORS;
+const GRID_COLOR = "var(--color-chart-grid)";
+const AXIS_TICK = { fontSize: 12, fill: "var(--color-chart-axis)" };
+
+function ChartCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Card as="section" padding="md">
+      <h3 className="type-h4 text-text-primary">{title}</h3>
+      {children}
+    </Card>
+  );
+}
 
 function EmptyChart({ message }: { message: string }) {
   return (
-    <div className="flex h-64 items-center justify-center text-sm text-stone-500">
+    <div className="mt-4 flex h-64 items-center justify-center rounded-md border border-dashed border-border-default bg-surface-muted type-body-sm text-text-secondary">
       {message}
     </div>
   );
@@ -47,26 +56,25 @@ export function AltasActivosChart({
   const hasData = data.some((d) => d.altas > 0 || d.activos > 0);
 
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
-      <h3 className="text-lg font-semibold text-stone-800">{title}</h3>
+    <ChartCard title={title}>
       {!hasData ? (
         <EmptyChart message="Sin altas en este período." />
       ) : (
         <div className="mt-4 h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: "#78716c" }}
+                tick={AXIS_TICK}
                 interval="preserveStartEnd"
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 11, fill: "#78716c" }}
+                tick={AXIS_TICK}
               />
-              <Tooltip />
-              <Legend />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="altas" name="Altas" fill={ALTAS_COLOR} radius={[4, 4, 0, 0]} />
               <Bar
                 dataKey="activos"
@@ -78,7 +86,7 @@ export function AltasActivosChart({
           </ResponsiveContainer>
         </div>
       )}
-    </section>
+    </ChartCard>
   );
 }
 
@@ -94,8 +102,7 @@ export function NamedBarChart({
   const chartData = data.map((d) => ({ name: d.label, value: d.count }));
 
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
-      <h3 className="text-lg font-semibold text-stone-800">{title}</h3>
+    <ChartCard title={title}>
       {chartData.length === 0 ? (
         <EmptyChart message="Sin datos en este período." />
       ) : (
@@ -106,15 +113,15 @@ export function NamedBarChart({
               layout="vertical"
               margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
+              <XAxis type="number" allowDecimals={false} tick={AXIS_TICK} />
               <YAxis
                 type="category"
                 dataKey="name"
                 width={140}
-                tick={{ fontSize: 11, fill: "#57534e" }}
+                tick={AXIS_TICK}
               />
-              <Tooltip />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Bar dataKey="value" name="Cantidad" radius={[0, 4, 4, 0]}>
                 {chartData.map((_, index) => (
                   <Cell
@@ -127,7 +134,7 @@ export function NamedBarChart({
           </ResponsiveContainer>
         </div>
       )}
-    </section>
+    </ChartCard>
   );
 }
 
@@ -143,8 +150,7 @@ export function NamedPieChart({
     .map((d) => ({ name: d.label, value: d.count }));
 
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
-      <h3 className="text-lg font-semibold text-stone-800">{title}</h3>
+    <ChartCard title={title}>
       {chartData.length === 0 ? (
         <EmptyChart message="Sin datos." />
       ) : (
@@ -169,12 +175,12 @@ export function NamedPieChart({
                   />
                 ))}
               </Pie>
-              <Tooltip />
-              <Legend />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       )}
-    </section>
+    </ChartCard>
   );
 }
