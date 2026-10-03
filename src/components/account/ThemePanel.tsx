@@ -12,8 +12,11 @@ import {
   getThemePreviewAssets,
   type MicrositeFontSlug,
 } from "@/lib/themes/fonts";
-import { canUseTheme, planLabels } from "@/lib/plans/features";
+import { canUseTheme, normalizePlan } from "@/lib/plans/features";
+import { AccountSection } from "@/components/account/AccountPage";
+import { ChoiceTile } from "@/components/account/ChoiceTile";
 import { FormAlert } from "@/components/account/FormAlert";
+import { Badge, Button, IconExternalLink, PlanBadge } from "@/components/ui";
 
 interface ThemePanelProps {
   currentTheme: string;
@@ -61,162 +64,182 @@ export function ThemePanel({
     });
   }
 
+  const someThemeLocked = themeList.some(
+    (theme) => !canUseTheme(userPlan, theme.plan),
+  );
+  const someFontLocked = fontList.some((font) => !canUseFont(userPlan, font.plan));
+
+  function statusBadge(applied: boolean, savingThis: boolean, appliedLabel: string) {
+    if (applied) {
+      return <Badge tone="aprobado">{appliedLabel}</Badge>;
+    }
+    if (savingThis) {
+      return (
+        <Badge tone="pendiente" icon={false}>
+          Guardando…
+        </Badge>
+      );
+    }
+    return null;
+  }
+
   return (
-    <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-      <p className="text-sm text-stone-600">
-        Tocá un diseño o tipografía para aplicarlo al momento. Después podés
-        verlo en tu micrositio público.
-      </p>
+    <>
+      <AccountSection
+        id="tema-diseno"
+        title="Diseño"
+        description="Tocá un diseño para aplicarlo al momento. Después podés verlo en tu micrositio público."
+        actions={
+          <Button
+            href={micrositeHref}
+            target="_blank"
+            variant="secundario"
+            icon={<IconExternalLink />}
+            iconPosition="end"
+          >
+            Ver en el micrositio
+            <span className="sr-only"> (se abre en otra pestaña)</span>
+          </Button>
+        }
+      >
+        <ul role="list" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {themeList.map((theme) => {
+            const allowed = canUseTheme(userPlan, theme.plan);
+            const selected = selectedTheme === theme.slug;
+            const applied = savedTheme === theme.slug;
+            const assets = getThemePreviewAssets(theme.slug);
 
-      <div className="mt-6 space-y-8">
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
-            Diseño
-          </h3>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {themeList.map((theme) => {
-              const allowed = canUseTheme(userPlan, theme.plan);
-              const selected = selectedTheme === theme.slug;
-              const applied = savedTheme === theme.slug;
-              const assets = getThemePreviewAssets(theme.slug);
-
-              return (
-                <button
-                  key={theme.slug}
-                  type="button"
+            return (
+              <li key={theme.slug}>
+                <ChoiceTile
+                  selected={selected}
                   disabled={!allowed || isPending}
-                  onClick={() => {
+                  onSelect={() => {
                     if (!allowed || isPending) return;
                     setSelectedTheme(theme.slug);
                     applySelection(theme.slug, selectedFont);
                   }}
-                  className={`group overflow-hidden rounded-2xl border text-left transition ${
-                    selected
-                      ? "border-[#e6dac7] ring-2 ring-[#e6dac7]/60"
-                      : "border-stone-200 hover:border-stone-300"
-                  } ${!allowed || isPending ? "cursor-not-allowed opacity-50" : ""}`}
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
-                    <div
-                      className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
-                      style={{
-                        backgroundImage: `url('${assets.bannerImage}')`,
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/10" />
-                    <div className="absolute inset-x-3 bottom-3 top-3 overflow-hidden rounded-xl border border-white/40 bg-white/90 shadow-md">
-                      <Image
-                        src={assets.previewImage}
-                        alt={`Tema ${theme.label}`}
-                        fill
-                        className="object-cover object-top"
-                        sizes="(max-width: 640px) 100vw, 33vw"
+                  media={
+                    <span className="relative block aspect-[4/3] w-full overflow-hidden bg-surface-muted">
+                      <span
+                        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
+                        style={{
+                          backgroundImage: `url('${assets.bannerImage}')`,
+                        }}
                       />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 px-3 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-stone-800">
-                        {theme.label}
-                      </p>
-                      <p className="text-xs capitalize text-stone-500">
-                        Plan {planLabels[theme.plan] ?? theme.plan}
-                        {!allowed ? " · Requiere upgrade" : ""}
-                      </p>
-                    </div>
-                    {applied ? (
-                      <span className="shrink-0 rounded-full bg-[#e6dac7] px-2.5 py-1 text-[11px] font-semibold text-stone-800">
-                        Aplicado
+                      <span className="absolute inset-0 bg-surface-inverse/10" />
+                      <span className="absolute inset-3 overflow-hidden rounded-sm border border-surface-default/40 bg-surface-default/90 shadow-elevation-2">
+                        <Image
+                          src={assets.previewImage}
+                          alt={`Tema ${theme.label}`}
+                          fill
+                          className="object-cover object-top"
+                          sizes="(max-width: 640px) 100vw, 33vw"
+                        />
                       </span>
-                    ) : selected && isPending ? (
-                      <span className="shrink-0 rounded-full bg-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
-                        Guardando…
-                      </span>
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
-            Tipografía
-          </h3>
-          <p className="mt-1 text-sm text-stone-600">
-            También se guarda al tocar (según tu plan).
+                    </span>
+                  }
+                  title={theme.label}
+                  status={statusBadge(applied, selected && isPending, "Aplicado")}
+                  subtitle={
+                    <span className="flex flex-wrap items-center gap-2">
+                      <PlanBadge plan={normalizePlan(theme.plan)} />
+                      {!allowed ? (
+                        <span className="font-semibold text-status-warning-fg">
+                          Requiere upgrade
+                        </span>
+                      ) : null}
+                    </span>
+                  }
+                />
+              </li>
+            );
+          })}
+        </ul>
+        {someThemeLocked ? (
+          <p className="mt-4 type-body-sm text-text-secondary">
+            Algunos diseños son de otros planes.{" "}
+            <Link
+              href="/mi-cuenta/plan"
+              className="focus-ring rounded-sm font-semibold text-text-link underline underline-offset-2"
+            >
+              Ver planes
+            </Link>
           </p>
-          {fontList
-            .filter((font) => font.googleFontsHref)
-            .map((font) => (
-              <link
-                key={font.slug}
-                rel="stylesheet"
-                href={font.googleFontsHref}
-              />
-            ))}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {fontList.map((font) => {
-              const allowed = canUseFont(userPlan, font.plan);
-              const selected = selectedFont === font.slug;
-              const applied = savedFont === font.slug;
-              const sampleStyle =
-                font.inherit || !font.family
-                  ? undefined
-                  : {
-                      fontFamily: `'${font.family}', ${font.fallback ?? "serif"}`,
-                    };
+        ) : null}
+      </AccountSection>
 
-              return (
-                <button
-                  key={font.slug}
-                  type="button"
+      <AccountSection
+        id="tema-tipografia"
+        title="Tipografía"
+        description="La letra de los títulos del micrositio. También se guarda al tocar (según tu plan)."
+      >
+        {fontList
+          .filter((font) => font.googleFontsHref)
+          .map((font) => (
+            <link key={font.slug} rel="stylesheet" href={font.googleFontsHref} />
+          ))}
+        <ul role="list" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {fontList.map((font) => {
+            const allowed = canUseFont(userPlan, font.plan);
+            const selected = selectedFont === font.slug;
+            const applied = savedFont === font.slug;
+            const sampleStyle =
+              font.inherit || !font.family
+                ? undefined
+                : {
+                    fontFamily: `'${font.family}', ${font.fallback ?? "serif"}`,
+                  };
+
+            return (
+              <li key={font.slug}>
+                <ChoiceTile
+                  selected={selected}
                   disabled={!allowed || isPending}
-                  onClick={() => {
+                  onSelect={() => {
                     if (!allowed || isPending) return;
                     setSelectedFont(font.slug);
                     applySelection(selectedTheme, font.slug);
                   }}
-                  className={`rounded-2xl border px-4 py-3 text-left transition ${
-                    selected
-                      ? "border-[#e6dac7] bg-[#e6dac7]/10"
-                      : "border-stone-200 hover:border-stone-300"
-                  } ${!allowed || isPending ? "cursor-not-allowed opacity-50" : ""}`}
+                  title={font.label}
+                  status={statusBadge(applied, selected && isPending, "Aplicada")}
+                  subtitle={
+                    <span className="flex flex-wrap items-center gap-2">
+                      <PlanBadge plan={normalizePlan(font.plan)} />
+                      {!allowed ? (
+                        <span className="font-semibold text-status-warning-fg">
+                          Requiere upgrade
+                        </span>
+                      ) : null}
+                    </span>
+                  }
                 >
-                  <p className="text-sm font-medium text-stone-800">
-                    {font.label}
-                    {applied ? (
-                      <span className="ml-2 text-[11px] font-semibold text-[#6f5f47]">
-                        · Aplicada
-                      </span>
-                    ) : null}
-                  </p>
-                  <p
-                    className="mt-1 text-lg text-stone-700"
+                  <span
+                    className="my-1 block text-2xl leading-snug text-text-primary"
                     style={sampleStyle}
                   >
                     {font.previewText ?? font.label}
-                  </p>
-                  <p className="mt-1 text-xs capitalize text-stone-500">
-                    Plan {planLabels[font.plan] ?? font.plan}
-                    {!allowed ? " · Requiere upgrade" : ""}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
+                  </span>
+                </ChoiceTile>
+              </li>
+            );
+          })}
+        </ul>
+        {someFontLocked && !someThemeLocked ? (
+          <p className="mt-4 type-body-sm text-text-secondary">
+            Algunas tipografías son de otros planes.{" "}
+            <Link
+              href="/mi-cuenta/plan"
+              className="focus-ring rounded-sm font-semibold text-text-link underline underline-offset-2"
+            >
+              Ver planes
+            </Link>
+          </p>
+        ) : null}
+        <div className="mt-6 empty:hidden">
+          <FormAlert error={state.error} success={state.success} />
         </div>
-
-        <FormAlert error={state.error} success={state.success} />
-        <Link
-          href={micrositeHref}
-          target="_blank"
-          className="inline-flex rounded-full bg-[#06263a] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0a3550]"
-        >
-          Ver en el micrositio ↗
-        </Link>
-      </div>
-    </section>
+      </AccountSection>
+    </>
   );
 }
