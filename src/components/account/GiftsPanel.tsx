@@ -13,7 +13,19 @@ import type { FormState } from "@/lib/account/form-state";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
-import { PlanUsageMeter } from "@/components/account/PlanUsageMeter";
+import { IllustrationGift } from "@/components/account/AccountIllustrations";
+import {
+  AccountDeleteButton,
+  AccountFormActions,
+  AccountSection,
+} from "@/components/account/AccountPage";
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Input,
+  UsageMeter,
+} from "@/components/ui";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
 import { resolveGiftImageUrl } from "@/lib/gifts/image";
 import {
@@ -64,35 +76,44 @@ function GiftEditor({
   return (
     <form
       action={formAction}
-      className="mt-3 space-y-3 rounded-2xl border border-stone-200 bg-stone-50 p-4"
+      className="mt-4 space-y-5 rounded-md border border-border-subtle bg-surface-muted p-4"
     >
       <input type="hidden" name="gift_id" value={gift.id} />
-      <div className="grid gap-3 sm:grid-cols-4">
-        <input
+      <p className="type-overline text-text-accent">Editar regalo</p>
+      <div className="grid gap-5 sm:grid-cols-4">
+        <Input
+          id={`gift-${gift.id}-title`}
+          label="Nombre del regalo"
+          className="sm:col-span-2"
           name="title"
           required
           defaultValue={gift.title}
-          className="rounded-xl border border-stone-200 bg-white px-4 py-3 sm:col-span-2"
           placeholder="Nombre del regalo"
         />
-        <input
+        <Input
+          id={`gift-${gift.id}-price`}
+          label="Precio"
           name="price"
           type="number"
           min="0"
           required
           defaultValue={gift.price}
-          className="rounded-xl border border-stone-200 bg-white px-4 py-3"
           placeholder="Precio"
         />
-        <input
+        <Input
+          id={`gift-${gift.id}-quantity`}
+          label="Cantidad"
           name="quantity"
           type="number"
           min="1"
           defaultValue={gift.quantity}
-          className="rounded-xl border border-stone-200 bg-white px-4 py-3"
           placeholder="Cant."
         />
-        <input
+        <Input
+          id={`gift-${gift.id}-image-url`}
+          label="URL de imagen"
+          optional
+          className="sm:col-span-4"
           name="image_url"
           type="url"
           defaultValue={
@@ -100,7 +121,6 @@ function GiftEditor({
               ? gift.imageUrl
               : ""
           }
-          className="rounded-xl border border-stone-200 bg-white px-4 py-3 sm:col-span-4"
           placeholder="URL de imagen (opcional)"
         />
       </div>
@@ -110,26 +130,19 @@ function GiftEditor({
         hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
         variant="dropzone"
       />
-      <label className="flex items-center gap-2 text-sm text-stone-600">
-        <input type="checkbox" name="clear_image" value="1" />
-        Quitar imagen (usar placeholder)
-      </label>
+      <Checkbox
+        name="clear_image"
+        value="1"
+        label="Quitar imagen (usar placeholder)"
+      />
       <FormAlert error={state.error} success={state.success} />
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
-        >
-          {isPending ? "Guardando…" : "Guardar cambios"}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700"
-        >
+      <div className="flex flex-col-reverse gap-3 border-t border-border-subtle pt-4 sm:flex-row sm:justify-end">
+        <Button type="button" variant="secundario" onClick={onCancel}>
           Cancelar
-        </button>
+        </Button>
+        <Button type="submit" loading={isPending} loadingLabel="Guardando…">
+          Guardar cambios
+        </Button>
       </div>
     </form>
   );
@@ -161,85 +174,44 @@ export function GiftsPanel({
   );
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <form action={titleAction} className="space-y-4">
-          <label className="block text-sm font-medium text-stone-700">
-            Título de la sección
-          </label>
-          <input
-            name="gifts_list_title"
-            defaultValue={listTitle}
-            className="w-full rounded-xl border border-stone-200 px-4 py-3"
-            placeholder="Lista de regalos"
+    <>
+      <AccountSection
+        id="regalos-lista"
+        title="Regalos"
+        description="Lo que tus invitados pueden elegir para regalarles, con su precio y cantidad."
+        badge={
+          <Badge tone="neutro" icon={false}>
+            {gifts.length} {gifts.length === 1 ? "regalo" : "regalos"}
+          </Badge>
+        }
+        actions={
+          gifts.length > 0 && !atGiftLimit ? (
+            <Button href="#agregar-regalo" size="sm">
+              Agregar regalo
+            </Button>
+          ) : null
+        }
+      >
+        <div className="max-w-md">
+          <UsageMeter
+            label="Regalos"
+            value={gifts.length}
+            max={limits.maxGifts}
+            unit="regalos"
+            upgradeHref="/mi-cuenta/plan"
           />
-          <FormAlert error={titleState.error} success={titleState.success} />
-          <button
-            type="submit"
-            disabled={titlePending}
-            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700"
-          >
-            Guardar título
-          </button>
-        </form>
-      </section>
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <h3 className="text-lg font-semibold text-stone-800">
-          Cómo se muestra la lista
-        </h3>
-        <form action={optionsAction} className="mt-4 space-y-4">
-          {isPremium ? (
-            <label className="flex items-center gap-3 text-sm text-stone-700">
-              <input
-                type="checkbox"
-                name="free_mount"
-                defaultChecked={freeMount}
-                className="h-4 w-4 rounded border-stone-300"
-              />
-              Permitir un monto libre (sin elegir un regalo de la lista)
-            </label>
-          ) : freeMount ? (
-            <input type="hidden" name="free_mount" value="on" />
+          {limits.maxGifts !== null ? (
+            <p className="mt-1 type-caption text-text-secondary">
+              {giftLimitMessage(plan)}
+            </p>
           ) : null}
-          <label className="flex items-center gap-3 text-sm text-stone-700">
-            <input
-              type="checkbox"
-              name="hide_gifts_list"
-              defaultChecked={hideGiftsList}
-              className="h-4 w-4 rounded border-stone-300"
-            />
-            Ocultar la lista de regalos en el micrositio
-          </label>
-          <FormAlert error={optionsState.error} success={optionsState.success} />
-          <button
-            type="submit"
-            disabled={optionsPending}
-            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700"
-          >
-            {optionsPending ? "Guardando…" : "Guardar visibilidad"}
-          </button>
-        </form>
-      </section>
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="text-lg font-semibold text-stone-800">Regalos</h3>
         </div>
-        <PlanUsageMeter
-          label="regalos"
-          current={gifts.length}
-          max={limits.maxGifts}
-        />
-        {limits.maxGifts !== null ? (
-          <p className="mt-1 text-xs text-stone-500">{giftLimitMessage(plan)}</p>
-        ) : null}
         {gifts.length === 0 ? (
           <div className="mt-6">
             <AccountEmptyState
+              illustration={IllustrationGift}
               title="Todavía no hay regalos en la lista"
               description="Agregá el primero con el formulario de abajo. Después configurá los métodos de pago y compartí el link."
-              icon="★"
               actions={[
                 {
                   label: "Agregar primer regalo",
@@ -252,49 +224,49 @@ export function GiftsPanel({
             />
           </div>
         ) : (
-          <ul className="mt-4 divide-y divide-stone-100">
+          <ul role="list" aria-label="Regalos de la lista" className="mt-6 space-y-3">
             {gifts.map((gift) => (
-              <li key={gift.id} className="py-4">
-                <div className="flex items-center justify-between gap-4">
+              <li
+                key={gift.id}
+                className="rounded-md border border-border-subtle bg-surface-default p-4"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <div className="flex min-w-0 items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={resolveGiftImageUrl(gift.imageUrl)}
                       alt=""
-                      className="h-12 w-12 shrink-0 rounded-full object-cover"
+                      className="h-14 w-14 shrink-0 rounded-md object-cover"
                     />
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-stone-800">
+                      <p className="truncate type-label text-text-primary">
                         {gift.title}
                       </p>
-                      <p className="text-sm text-stone-500">
+                      <p className="type-body-sm tabular-nums text-text-secondary">
                         {formatPrice(gift.price)} · Cant: {gift.quantity}
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <button
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button
                       type="button"
+                      variant="secundario"
+                      size="sm"
+                      aria-expanded={editingId === gift.id}
                       onClick={() =>
                         setEditingId((current) =>
                           current === gift.id ? null : gift.id,
                         )
                       }
-                      className="text-sm font-medium text-[#e6dac7] hover:underline"
                     >
                       {editingId === gift.id ? "Cerrar" : "Editar"}
-                    </button>
+                    </Button>
                     <ConfirmDeleteForm
                       action={deleteGiftAction}
                       message="¿Eliminar este regalo?"
                     >
                       <input type="hidden" name="gift_id" value={gift.id} />
-                      <button
-                        type="submit"
-                        className="text-sm text-red-600 hover:underline"
-                      >
-                        Eliminar
-                      </button>
+                      <AccountDeleteButton />
                     </ConfirmDeleteForm>
                   </div>
                 </div>
@@ -308,68 +280,141 @@ export function GiftsPanel({
             ))}
           </ul>
         )}
+      </AccountSection>
 
+      <AccountSection
+        id="regalos-agregar"
+        title="Agregar un regalo"
+        description="Nombre, precio y cantidad disponible. La imagen es opcional: podés pegar una URL o subir un archivo."
+      >
         <form
           id="agregar-regalo"
           action={addAction}
-          className="mt-6 scroll-mt-24 grid gap-3 sm:grid-cols-4"
+          className="scroll-mt-24 space-y-5"
         >
-          <input
-            name="title"
-            className="rounded-xl border border-stone-200 px-4 py-3 sm:col-span-2"
-            placeholder="Nombre del regalo"
-            required
-            disabled={atGiftLimit}
-          />
-          <input
-            name="price"
-            type="number"
-            min="0"
-            className="rounded-xl border border-stone-200 px-4 py-3"
-            placeholder="Precio"
-            required
-            disabled={atGiftLimit}
-          />
-          <input
-            name="quantity"
-            type="number"
-            min="1"
-            defaultValue="1"
-            className="rounded-xl border border-stone-200 px-4 py-3"
-            placeholder="Cant."
-            disabled={atGiftLimit}
-          />
-          <input
-            name="image_url"
-            type="url"
-            className="rounded-xl border border-stone-200 px-4 py-3 sm:col-span-4"
-            placeholder="URL de imagen (opcional)"
-            disabled={atGiftLimit}
-          />
-          <div className="sm:col-span-4">
-            <ImageFileInput
-              name="image_file"
-              label="O subir imagen"
-              hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
-              variant="dropzone"
+          <div className="grid gap-5 sm:grid-cols-4">
+            <Input
+              id="add-gift-title"
+              label="Nombre del regalo"
+              className="sm:col-span-2"
+              name="title"
+              placeholder="Nombre del regalo"
+              required
+              disabled={atGiftLimit}
+            />
+            <Input
+              id="add-gift-price"
+              label="Precio"
+              name="price"
+              type="number"
+              min="0"
+              placeholder="Precio"
+              required
+              disabled={atGiftLimit}
+            />
+            <Input
+              id="add-gift-quantity"
+              label="Cantidad"
+              name="quantity"
+              type="number"
+              min="1"
+              defaultValue="1"
+              placeholder="Cant."
+              disabled={atGiftLimit}
+            />
+            <Input
+              id="add-gift-image-url"
+              label="URL de imagen"
+              optional
+              className="sm:col-span-4"
+              name="image_url"
+              type="url"
+              placeholder="URL de imagen (opcional)"
+              disabled={atGiftLimit}
             />
           </div>
-          <div className="sm:col-span-4">
-            <FormAlert error={addState.error} success={addState.success} />
-            <button
+          <ImageFileInput
+            name="image_file"
+            label="O subir imagen"
+            hint="JPG, PNG, WebP o GIF. Máximo 5 MB."
+            variant="dropzone"
+          />
+          <AccountFormActions
+            alert={<FormAlert error={addState.error} success={addState.success} />}
+          >
+            <Button
               type="submit"
-              disabled={addPending || atGiftLimit}
-              className="mt-2 w-full rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
+              disabled={atGiftLimit}
+              loading={addPending}
+              loadingLabel="Agregando…"
             >
-              {atGiftLimit
-                ? "Límite de regalos alcanzado"
-                : addPending
-                  ? "Agregando…"
-                  : "Agregar regalo"}
-            </button>
-          </div>
+              {atGiftLimit ? "Límite de regalos alcanzado" : "Agregar regalo"}
+            </Button>
+          </AccountFormActions>
         </form>
-      </section>
-    </div>
+      </AccountSection>
+
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 lg:items-start">
+        <AccountSection
+          id="regalos-titulo"
+          title="Título de la sección"
+          description="El encabezado que ven tus invitados arriba de la lista."
+        >
+          <form action={titleAction}>
+            <Input
+              id="gifts_list_title"
+              label="Título de la sección"
+              name="gifts_list_title"
+              defaultValue={listTitle}
+              placeholder="Lista de regalos"
+            />
+            <AccountFormActions
+              alert={<FormAlert error={titleState.error} success={titleState.success} />}
+            >
+              <Button type="submit" variant="secundario" disabled={titlePending}>
+                Guardar título
+              </Button>
+            </AccountFormActions>
+          </form>
+        </AccountSection>
+
+        <AccountSection
+          id="regalos-visibilidad"
+          title="Cómo se muestra la lista"
+          description="Elegí qué ven tus invitados en la sección de regalos del micrositio."
+        >
+          <form action={optionsAction} className="space-y-1">
+            {isPremium ? (
+              <Checkbox
+                name="free_mount"
+                defaultChecked={freeMount}
+                label="Permitir un monto libre (sin elegir un regalo de la lista)"
+              />
+            ) : freeMount ? (
+              <input type="hidden" name="free_mount" value="on" />
+            ) : null}
+            <Checkbox
+              name="hide_gifts_list"
+              defaultChecked={hideGiftsList}
+              label="Ocultar la lista de regalos en el micrositio"
+            />
+            <AccountFormActions
+              alert={
+                <FormAlert error={optionsState.error} success={optionsState.success} />
+              }
+            >
+              <Button
+                type="submit"
+                variant="secundario"
+                loading={optionsPending}
+                loadingLabel="Guardando…"
+              >
+                Guardar visibilidad
+              </Button>
+            </AccountFormActions>
+          </form>
+        </AccountSection>
+      </div>
+    </>
   );
 }

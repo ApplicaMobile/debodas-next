@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+} from "@/components/account/AccountPage";
 import { GiftsPanel } from "@/components/account/GiftsPanel";
 import { LocalUploadsNotice } from "@/components/account/LocalUploadsNotice";
 import { getOwnedBoda } from "@/lib/account/require-boda";
@@ -11,15 +15,13 @@ export default async function MiCuentaRegalosPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
-          Lista de regalos
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Administrá los regalos que ven tus invitados.
-        </p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/regalos"
+        section="Regalos"
+        title="Lista de regalos"
+        description="Administrá los regalos que ven tus invitados y cómo se muestra la lista en el micrositio."
+      />
       <LocalUploadsNotice />
       <GiftsPanel
         plan={boda.plan}
@@ -36,6 +38,6 @@ export default async function MiCuentaRegalosPage() {
             imageUrl: gift.imageUrl,
           }))}
       />
-    </div>
+    </AccountPageBody>
   );
 }
