@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonClasses } from "@/components/ui";
 
 interface AdminPaginationProps {
   pathname: string;
@@ -30,30 +31,26 @@ export function AdminPagination({
     return suffix ? `${pathname}?${suffix}` : pathname;
   }
 
+  const linkClass = buttonClasses({ variant: "secundario", size: "sm" });
+
   return (
     <nav
       aria-label="Paginación"
-      className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 px-5 py-4"
+      className="mt-4 flex flex-wrap items-center justify-between gap-3"
     >
       {currentPage > 1 ? (
-        <Link
-          href={href(currentPage - 1)}
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-        >
-          ← Anterior
+        <Link href={href(currentPage - 1)} className={linkClass}>
+          <span aria-hidden="true">←</span> Anterior
         </Link>
       ) : (
         <span />
       )}
-      <span className="text-sm text-stone-500">
+      <span className="type-body-sm tabular-nums text-text-secondary">
         Página {currentPage} de {totalPages}
       </span>
       {currentPage < totalPages ? (
-        <Link
-          href={href(currentPage + 1)}
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-        >
-          Siguiente →
+        <Link href={href(currentPage + 1)} className={linkClass}>
+          Siguiente <span aria-hidden="true">→</span>
         </Link>
       ) : (
         <span />
