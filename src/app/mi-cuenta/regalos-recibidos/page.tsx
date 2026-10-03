@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+} from "@/components/account/AccountPage";
 import { ConfirmedGiftsPanel } from "@/components/account/ConfirmedGiftsPanel";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 import { prisma } from "@/lib/db/prisma";
@@ -15,16 +19,13 @@ export default async function MiCuentaRegalosRecibidosPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold text-stone-800 sm:text-2xl">
-          Regalos recibidos
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Regalos de invitados por Mercado Pago o transferencia. Revisá los
-          pendientes y acreditalos cuando confirmes el pago.
-        </p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/regalos-recibidos"
+        section="Regalos recibidos"
+        title="Regalos recibidos"
+        description="Regalos de invitados por Mercado Pago o transferencia. Revisá los pendientes y acreditalos cuando confirmes el pago."
+      />
       <ConfirmedGiftsPanel
         gifts={gifts.map((gift) => ({
           id: gift.id,
@@ -47,6 +48,6 @@ export default async function MiCuentaRegalosRecibidosPage() {
             : [],
         }))}
       />
-    </div>
+    </AccountPageBody>
   );
 }

@@ -4,7 +4,10 @@ import { useActionState } from "react";
 import { formatPrice } from "@/data/bodas";
 import { confirmReceivedGiftAction } from "@/lib/microsite/actions/gift-checkout";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationGift } from "@/components/account/AccountIllustrations";
+import { AccountSection } from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
+import { Badge, Button, Card } from "@/components/ui";
 
 interface ConfirmedGiftRow {
   id: string;
@@ -50,7 +53,7 @@ function VoucherPreview({ url }: { url: string }) {
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="mt-3 block overflow-hidden rounded-xl border border-stone-200 bg-stone-50"
+        className="focus-ring mt-4 block overflow-hidden rounded-md border border-border-subtle bg-surface-muted"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -58,7 +61,7 @@ function VoucherPreview({ url }: { url: string }) {
           alt="Comprobante de transferencia"
           className="max-h-48 w-full object-contain"
         />
-        <p className="px-3 py-2 text-center text-xs font-medium text-[#6f5f47]">
+        <p className="px-3 py-2 text-center type-caption font-semibold text-text-link">
           Ver comprobante en tamaño completo ↗
         </p>
       </a>
@@ -66,12 +69,12 @@ function VoucherPreview({ url }: { url: string }) {
   }
 
   return (
-    <p className="mt-3 text-sm">
+    <p className="mt-4 type-body-sm">
       <a
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-1 font-medium text-[#6f5f47] underline"
+        className="focus-ring inline-flex items-center gap-1 rounded-sm font-semibold text-text-link underline underline-offset-2"
       >
         Ver comprobante (PDF) ↗
       </a>
@@ -86,16 +89,19 @@ function ConfirmGiftButton({ giftId }: { giftId: string }) {
   );
 
   return (
-    <form action={formAction} className="mt-4">
+    <form action={formAction} className="mt-4 space-y-3">
       <input type="hidden" name="gift_id" value={giftId} />
       <FormAlert error={state.error} success={state.success} />
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full rounded-full bg-[#06263a] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
-      >
-        {isPending ? "Confirmando…" : "Acreditar regalo"}
-      </button>
+      <div className="flex sm:justify-end">
+        <Button
+          type="submit"
+          loading={isPending}
+          loadingLabel="Confirmando…"
+          className="w-full sm:w-auto"
+        >
+          Acreditar regalo
+        </Button>
+      </div>
     </form>
   );
 }
@@ -104,37 +110,33 @@ function GiftCard({ gift }: { gift: ConfirmedGiftRow }) {
   const pending = !gift.confirmed;
 
   return (
-    <article
-      className={`rounded-2xl border p-4 sm:rounded-3xl sm:p-6 ${
-        pending
-          ? "border-amber-200 bg-amber-50/40 shadow-sm"
-          : "border-stone-100 bg-white shadow-sm"
-      }`}
+    <Card
+      as="article"
+      padding="md"
+      elevation={0}
+      bordered
+      className={pending ? "border-l-4 border-l-status-warning-border" : undefined}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-semibold text-stone-800">{gift.participants}</p>
-          <p className="mt-0.5 text-sm text-stone-600">
+          <p className="type-label text-text-primary">{gift.participants}</p>
+          <p className="mt-0.5 type-body-sm tabular-nums text-text-secondary">
             {METHOD_LABELS[gift.method] ?? gift.method} ·{" "}
             {formatPrice(gift.amount)} {gift.currency}
           </p>
-          <p className="text-xs text-stone-400">
+          <p className="type-caption text-text-tertiary">
             {new Date(gift.createdAt).toLocaleString("es-AR")}
           </p>
         </div>
-        <span
-          className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-            gift.confirmed
-              ? "bg-emerald-100 text-emerald-800"
-              : "bg-amber-200 text-amber-950"
-          }`}
-        >
-          {gift.confirmed ? "Acreditado" : "Revisar"}
-        </span>
+        {gift.confirmed ? (
+          <Badge tone="aprobado">Acreditado</Badge>
+        ) : (
+          <Badge tone="pendiente">Revisar</Badge>
+        )}
       </div>
 
       {gift.items.length > 0 ? (
-        <ul className="mt-4 space-y-1 rounded-xl bg-white/80 px-3 py-2 text-sm text-stone-600">
+        <ul className="mt-4 space-y-1 rounded-md bg-surface-muted px-3 py-2 type-body-sm text-text-secondary">
           {gift.items.map((item, index) => (
             <li key={`${gift.id}-${index}`}>
               {item.quantity ?? 1} × {item.title ?? "Regalo"} —{" "}
@@ -145,13 +147,13 @@ function GiftCard({ gift }: { gift: ConfirmedGiftRow }) {
       ) : null}
 
       {gift.dedication ? (
-        <p className="mt-3 text-sm italic text-stone-600">
+        <p className="mt-3 type-body-sm italic text-text-secondary">
           “{gift.dedication}”
         </p>
       ) : null}
 
       {(gift.email || gift.phone) && (
-        <p className="mt-2 text-xs text-stone-500">
+        <p className="mt-2 type-caption text-text-secondary">
           {[gift.email, gift.phone].filter(Boolean).join(" · ")}
         </p>
       )}
@@ -159,14 +161,14 @@ function GiftCard({ gift }: { gift: ConfirmedGiftRow }) {
       {gift.voucherUrl ? <VoucherPreview url={gift.voucherUrl} /> : null}
 
       {pending ? (
-        <div className="mt-4 rounded-xl border border-amber-200/80 bg-white/70 px-3 py-2 text-xs text-amber-950">
+        <p className="mt-4 type-body-sm text-status-warning-fg">
           Revisá el comprobante (si hay) y acreditá el regalo para que quede
           registrado en tu lista.
-        </div>
+        </p>
       ) : null}
 
       {pending ? <ConfirmGiftButton giftId={gift.id} /> : null}
-    </article>
+    </Card>
   );
 }
 
@@ -176,58 +178,52 @@ export function ConfirmedGiftsPanel({ gifts }: ConfirmedGiftsPanelProps) {
 
   if (gifts.length === 0) {
     return (
-      <AccountEmptyState
-        title="Todavía no recibiste regalos"
-        description="Cuando un invitado complete un regalo desde el micrositio, va a aparecer acá para que lo confirms."
-        icon="★"
-        actions={[
-          {
-            label: "Armar lista de regalos",
-            href: "/mi-cuenta/regalos",
-            primary: true,
-          },
-          { label: "Métodos de pago", href: "/mi-cuenta/pagos" },
-          { label: "Compartir / invitar", href: "/mi-cuenta/invitar" },
-        ]}
-      />
+      <AccountSection id="regalos-recibidos-vacio" title="Regalos recibidos">
+        <AccountEmptyState
+          illustration={IllustrationGift}
+          title="Todavía no recibiste regalos"
+          description="Cuando un invitado complete un regalo desde el micrositio, va a aparecer acá para que lo confirms."
+          actions={[
+            {
+              label: "Armar lista de regalos",
+              href: "/mi-cuenta/regalos",
+              primary: true,
+            },
+            { label: "Métodos de pago", href: "/mi-cuenta/pagos" },
+            { label: "Compartir / invitar", href: "/mi-cuenta/invitar" },
+          ]}
+        />
+      </AccountSection>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <>
       {pending.length > 0 ? (
-        <section>
-          <div className="flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h3 className="text-lg font-semibold text-stone-800">
-                Pendientes de revisión
-              </h3>
-              <p className="mt-1 text-sm text-stone-600">
-                {pending.length} regalo{pending.length === 1 ? "" : "s"} esperan
-                tu confirmación.
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 space-y-4">
+        <AccountSection
+          id="regalos-pendientes"
+          title="Pendientes de revisión"
+          badge={<Badge tone="pendiente">{pending.length}</Badge>}
+          description={`${pending.length} regalo${pending.length === 1 ? "" : "s"} esperan tu confirmación.`}
+        >
+          <div className="space-y-4">
             {pending.map((gift) => <GiftCard key={gift.id} gift={gift} />)}
           </div>
-        </section>
+        </AccountSection>
       ) : null}
 
       {confirmed.length > 0 ? (
-        <section>
-          <h3 className="text-lg font-semibold text-stone-800">
-            {pending.length > 0 ? "Ya acreditados" : "Todos los regalos"}
-          </h3>
-          <p className="mt-1 text-sm text-stone-600">
-            {confirmed.length} regalo{confirmed.length === 1 ? "" : "s"}{" "}
-            confirmado{confirmed.length === 1 ? "" : "s"}.
-          </p>
-          <div className="mt-4 space-y-4">
+        <AccountSection
+          id="regalos-acreditados"
+          title={pending.length > 0 ? "Ya acreditados" : "Todos los regalos"}
+          badge={<Badge tone="aprobado">{confirmed.length}</Badge>}
+          description={`${confirmed.length} regalo${confirmed.length === 1 ? "" : "s"} confirmado${confirmed.length === 1 ? "" : "s"}.`}
+        >
+          <div className="space-y-4">
             {confirmed.map((gift) => <GiftCard key={gift.id} gift={gift} />)}
           </div>
-        </section>
+        </AccountSection>
       ) : null}
-    </div>
+    </>
   );
 }
