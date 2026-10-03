@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountNotificationsBell } from "@/components/account/AccountNotificationsBell";
-import { AccountSidebar } from "@/components/account/AccountSidebar";
+import {
+  AccountBreadcrumb,
+  AccountSidebar,
+} from "@/components/account/AccountSidebar";
 import { LogoutButton } from "@/components/auth/LogoutButton";
-import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { IconExternalLink, PlanBadge, type PlanId } from "@/components/ui";
 import { VERIFY_EMAIL_PATH } from "@/lib/auth/register-account";
 import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { getBodaNotifications } from "@/lib/notifications/queries";
+import { normalizePlan } from "@/lib/plans/features";
 
 export default async function MiCuentaLayout({
   children,
@@ -22,7 +26,9 @@ export default async function MiCuentaLayout({
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { boda: { select: { id: true, slug: true, title: true } } },
+    include: {
+      boda: { select: { id: true, slug: true, title: true, plan: true } },
+    },
   });
 
   if (user && isAdminRole(user.role) && !user.boda) {
@@ -53,77 +59,116 @@ export default async function MiCuentaLayout({
       : {}),
   };
 
+  const sidebarBoda = user?.boda
+    ? {
+        title: user.boda.title,
+        slug: user.boda.slug,
+        plan: normalizePlan(user.boda.plan) as PlanId,
+      }
+    : null;
+
   return (
-    <div className="min-h-screen bg-[#EBEBEB]">
-      <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur-sm supports-[backdrop-filter]:bg-white/90">
-        <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-          <div className="min-w-0">
+    <div className="min-h-screen bg-bg-canvas text-text-primary">
+      <a
+        href="#contenido"
+        className="focus-ring sr-only z-[60] rounded-full bg-action-primary-bg px-4 py-2 type-button-sm text-action-primary-fg focus:not-sr-only focus:fixed focus:left-4 focus:top-3"
+      >
+        Saltar al contenido
+      </a>
+
+      <header className="sticky top-0 z-30 border-b border-border-subtle bg-surface-default/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 w-full max-w-[1320px] items-center justify-between gap-3 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
             <Link
               href="/"
-              className="text-xs font-medium text-stone-500 hover:text-stone-800 sm:text-sm"
+              className="focus-ring shrink-0 rounded-sm font-serif text-xl font-semibold text-text-primary"
             >
-              ← DeBodas
+              DeBodas
+              <span className="sr-only"> (ir al sitio principal)</span>
             </Link>
-            <h1 className="mt-0.5 truncate font-serif text-xl font-semibold text-stone-800 sm:text-2xl">
-              Mi cuenta
-            </h1>
-            {user?.email ? (
-              <p className="truncate text-xs text-stone-500 sm:text-sm">
-                {user.email}
-              </p>
-            ) : null}
+            <span
+              aria-hidden="true"
+              className="hidden h-6 w-px bg-border-default sm:block"
+            />
+            <div className="sr-only min-w-0 sm:not-sr-only sm:block">
+              <h1 className="type-label text-text-primary">Mi cuenta</h1>
+              {user?.email ? (
+                <p className="truncate type-caption text-text-tertiary">
+                  {user.email}
+                </p>
+              ) : null}
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <LanguageSwitcher compact variant="onLight" />
+            {user?.boda ? (
+              <a
+                href={`/bodas/${user.boda.slug}`}
+                target="_blank"
+                rel="noopener"
+                className="focus-ring hidden min-h-10 items-center gap-1.5 rounded-full bg-action-secondary-bg px-4 type-button-sm text-action-secondary-fg hover:bg-action-secondary-bg-hover lg:inline-flex"
+              >
+                Ver mi sitio
+                <IconExternalLink size={16} />
+                <span className="sr-only"> (se abre en otra pestaña)</span>
+              </a>
+            ) : null}
             {user?.boda ? (
               <AccountNotificationsBell
                 items={notifications.items}
                 unreadCount={notifications.unreadCount}
               />
             ) : null}
-            <LogoutButton />
+            <LogoutButton className="focus-ring inline-flex min-h-10 items-center rounded-full border border-border-default px-3 type-button-sm text-text-secondary transition-colors hover:bg-surface-muted hover:text-text-primary disabled:cursor-wait disabled:opacity-60 sm:px-4" />
           </div>
         </div>
       </header>
 
       {user?.boda ? (
-        <div className="border-b border-stone-200 bg-white/80">
-          <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-6 sm:py-3">
-            <span className="min-w-0 truncate text-stone-600">
-              <span className="hidden sm:inline">Micrositio: </span>
-              <strong className="text-stone-800">{user.boda.title}</strong>
+        <div className="border-b border-border-subtle bg-surface-default lg:hidden">
+          <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-3 px-4 py-2 sm:px-6">
+            <span className="flex min-w-0 items-center gap-2 type-body-sm text-text-secondary">
+              <span className="sr-only">Micrositio: </span>
+              <strong className="truncate font-semibold text-text-primary">
+                {user.boda.title}
+              </strong>
+              {sidebarBoda ? <PlanBadge plan={sidebarBoda.plan} /> : null}
             </span>
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex shrink-0 items-center gap-4 type-body-sm font-semibold">
               <Link
                 href="/mi-cuenta/invitar"
-                className="font-medium text-[#25D366] hover:underline"
+                className="focus-ring rounded-sm text-text-accent hover:underline"
               >
-                <span className="sm:hidden">Invitar</span>
-                <span className="hidden sm:inline">Compartir / invitar</span>
+                Invitar
               </Link>
-              <Link
+              <a
                 href={`/bodas/${user.boda.slug}`}
-                className="font-medium text-[#6f5f47] hover:underline"
                 target="_blank"
+                rel="noopener"
+                className="focus-ring rounded-sm text-text-link hover:underline"
               >
-                <span className="sm:hidden">Ver sitio ↗</span>
-                <span className="hidden sm:inline">Ver sitio público ↗</span>
-              </Link>
+                Ver sitio <span aria-hidden="true">↗</span>
+                <span className="sr-only"> (se abre en otra pestaña)</span>
+              </a>
             </div>
           </div>
         </div>
       ) : null}
 
-      <main className="mx-auto w-full max-w-[1800px] px-4 py-4 sm:px-6 sm:py-10">
-        <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
+      <div className="mx-auto w-full max-w-[1320px] px-4 py-4 sm:px-6 lg:py-8">
+        <div className="grid gap-0 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-8">
           <AccountSidebar
             badges={
               Object.keys(sidebarBadges).length > 0 ? sidebarBadges : undefined
             }
+            boda={sidebarBoda}
+            email={user?.email}
           />
-          <div className="min-w-0">{children}</div>
+          <main id="contenido" tabIndex={-1} className="min-w-0 outline-none">
+            <AccountBreadcrumb />
+            {children}
+          </main>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

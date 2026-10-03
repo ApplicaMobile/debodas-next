@@ -39,13 +39,25 @@ export function AccountNotificationsBell({
   const primedRef = useRef(false);
   const titleId = useId();
 
-  useEffect(() => {
+  // Si el servidor manda notificaciones nuevas (navegación/refresh), sincronizar el estado.
+  const [syncedProps, setSyncedProps] = useState({
+    initialItems,
+    initialUnreadCount,
+  });
+  if (
+    syncedProps.initialItems !== initialItems ||
+    syncedProps.initialUnreadCount !== initialUnreadCount
+  ) {
+    setSyncedProps({ initialItems, initialUnreadCount });
     setItems(initialItems);
     setUnreadCount(initialUnreadCount);
+  }
+
+  useEffect(() => {
     for (const item of initialItems) {
       knownIdsRef.current.add(item.id);
     }
-  }, [initialItems, initialUnreadCount]);
+  }, [initialItems]);
 
   useEffect(() => {
     let cancelled = false;
@@ -184,7 +196,7 @@ export function AccountNotificationsBell({
       <button
         type="button"
         onClick={toggleOpen}
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 hover:bg-stone-50"
+        className="focus-ring relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border-default bg-surface-default text-text-secondary transition-colors hover:bg-surface-muted hover:text-text-primary"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={
@@ -208,7 +220,7 @@ export function AccountNotificationsBell({
           />
         </svg>
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-status-error-fg px-1 text-[10px] font-bold text-text-inverse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         ) : null}
@@ -218,17 +230,17 @@ export function AccountNotificationsBell({
         <div
           role="dialog"
           aria-labelledby={titleId}
-          className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl"
+          className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-md border border-border-subtle bg-surface-default shadow-elevation-3"
         >
-          <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
             <div>
               <p
                 id={titleId}
-                className="text-sm font-semibold text-stone-800"
+                className="type-label text-text-primary"
               >
                 Notificaciones
               </p>
-              <p className="text-xs text-stone-500">
+              <p className="type-caption text-text-tertiary">
                 {unreadCount > 0
                   ? `${unreadCount} sin leer`
                   : "Estás al día"}
@@ -239,7 +251,7 @@ export function AccountNotificationsBell({
                 type="button"
                 disabled={pending}
                 onClick={markAll}
-                className="text-xs font-semibold text-[#6f5f47] hover:underline disabled:opacity-60"
+                className="focus-ring rounded-sm type-caption font-semibold text-text-accent hover:underline disabled:opacity-60"
               >
                 Marcar leídas
               </button>
@@ -247,7 +259,7 @@ export function AccountNotificationsBell({
           </div>
 
           {items.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-stone-500">
+            <p className="px-4 py-8 text-center type-body-sm text-text-secondary">
               Todavía no hay novedades. Cuando alguien confirme o regale, vas a
               verlo acá.
             </p>
@@ -258,13 +270,13 @@ export function AccountNotificationsBell({
                 return (
                   <li
                     key={item.id}
-                    className="border-b border-stone-50 last:border-0"
+                    className="border-b border-border-subtle last:border-0"
                   >
                     <button
                       type="button"
                       onClick={() => openItem(item)}
-                      className={`flex w-full flex-col gap-1 px-4 py-3 text-left transition hover:bg-stone-50 ${
-                        unread ? "bg-[#e6dac7]/15" : ""
+                      className={`focus-ring flex w-full flex-col gap-1 px-4 py-3 text-left transition-colors hover:bg-surface-muted ${
+                        unread ? "bg-surface-brand/25" : ""
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -273,21 +285,21 @@ export function AccountNotificationsBell({
                         >
                           {notificationTypeLabel(item.type)}
                         </span>
-                        <span className="text-[11px] text-stone-400">
+                        <span className="text-[11px] text-text-tertiary">
                           {formatNotificationRelative(item.createdAt)}
                         </span>
                       </div>
                       <p
                         className={`text-sm ${
                           unread
-                            ? "font-semibold text-stone-900"
-                            : "font-medium text-stone-800"
+                            ? "font-semibold text-text-primary"
+                            : "font-medium text-text-secondary"
                         }`}
                       >
                         {item.title}
                       </p>
                       {item.body ? (
-                        <p className="line-clamp-2 text-xs text-stone-500">
+                        <p className="line-clamp-2 type-caption text-text-tertiary">
                           {item.body}
                         </p>
                       ) : null}
@@ -298,11 +310,11 @@ export function AccountNotificationsBell({
             </ul>
           )}
 
-          <div className="border-t border-stone-100 px-4 py-2.5">
+          <div className="border-t border-border-subtle px-4 py-2.5">
             <Link
               href="/mi-cuenta/notificaciones"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium text-stone-600 hover:text-stone-900"
+              className="focus-ring rounded-sm type-caption font-semibold text-text-accent hover:underline"
             >
               Ver historial →
             </Link>
