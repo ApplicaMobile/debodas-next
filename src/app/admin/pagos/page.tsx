@@ -2,9 +2,23 @@ import Link from "next/link";
 import { confirmGiftAdminAction } from "@/lib/admin/actions";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { prisma } from "@/lib/db/prisma";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationGift } from "@/components/account/AccountIllustrations";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+  AccountTable,
+  accountTableHeadClass,
+  accountTableRowClass,
+  accountTableTdClass,
+  accountTableThClass,
+} from "@/components/account/AccountPage";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import { Badge, Button, IconExternalLink } from "@/components/ui";
 
 const PAGE_SIZE = 25;
 
@@ -65,145 +79,156 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
-          Pagos y regalos
-        </h2>
-        <p className="mt-2 text-stone-600">
-          Últimos registros de MercadoPago / transferencias.
-        </p>
-        <p className="mt-4">
-          <Link
-            href="/admin/mercadopago"
-            className="text-sm font-medium text-[#6f5f47] hover:underline"
-          >
-            Configurar MercadoPago →
-          </Link>
-        </p>
-      </section>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/admin/pagos"
+        area="Panel admin"
+        section="Pagos"
+        title="Pagos y regalos"
+        description="Últimos registros de MercadoPago / transferencias."
+        actions={
+          <Button href="/admin/mercadopago" variant="secundario" size="sm">
+            Configurar MercadoPago
+          </Button>
+        }
+      />
 
-      <section className="space-y-3">
-        <h3 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">
-          Payments ({paymentsTotal})
-        </h3>
-        <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
-                <tr>
-                  <th className="px-4 py-3">Tipo</th>
-                  <th className="px-4 py-3">Boda</th>
-                  <th className="px-4 py-3">Monto</th>
-                  <th className="px-4 py-3">Estado</th>
-                  <th className="px-4 py-3">Fecha</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td className="px-4 py-3 capitalize text-stone-800">
-                      {payment.type}
-                      {payment.planTarget ? ` → ${payment.planTarget}` : ""}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/bodas/${payment.boda.id}`}
-                        className="text-[#06263a] hover:underline"
-                      >
-                        {payment.boda.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      {money(payment.amount, payment.currency)}
-                    </td>
-                    <td className="px-4 py-3">{payment.status}</td>
-                    <td className="px-4 py-3 text-stone-500">
-                      {payment.createdAt.toLocaleString("es-AR")}
-                    </td>
-                  </tr>
-                ))}
-                {payments.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-stone-500"
-                    >
-                      Sin pagos todavía.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-          <AdminPagination
-            pathname="/admin/pagos"
-            currentPage={paymentsPage}
-            totalPages={paymentsTotalPages}
-            pageParam="paymentsPage"
-            query={giftsPage > 1 ? { giftsPage: String(giftsPage) } : {}}
+      <AccountSection
+        id="admin-pagos-payments"
+        title="Pagos registrados"
+        badge={
+          <Badge tone="neutro" icon={false}>
+            {paymentsTotal}
+          </Badge>
+        }
+        description="Cobros de planes y otros pagos procesados por la plataforma."
+      >
+        {payments.length === 0 ? (
+          <AccountEmptyState
+            illustration={IllustrationGift}
+            title="Sin pagos todavía."
+            description="Cuando una pareja pague un plan, el registro va a aparecer acá."
           />
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <h3 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">
-          Regalos confirmados / pendientes ({giftsTotal})
-        </h3>
-        <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
-                <tr>
-                  <th className="px-4 py-3">De</th>
-                  <th className="px-4 py-3">Boda</th>
-                  <th className="px-4 py-3">Monto</th>
-                  <th className="px-4 py-3">Método</th>
-                  <th className="px-4 py-3">Comprobante</th>
-                  <th className="px-4 py-3">Estado</th>
+        ) : (
+          <AccountTable caption="Pagos registrados" tableClassName="min-w-[680px]">
+            <thead className={accountTableHeadClass}>
+              <tr>
+                <th scope="col" className={accountTableThClass}>Tipo</th>
+                <th scope="col" className={accountTableThClass}>Boda</th>
+                <th scope="col" className={`${accountTableThClass} text-right`}>Monto</th>
+                <th scope="col" className={accountTableThClass}>Estado</th>
+                <th scope="col" className={accountTableThClass}>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((payment) => (
+                <tr key={payment.id} className={accountTableRowClass}>
+                  <td className={`${accountTableTdClass} capitalize`}>
+                    {payment.type}
+                    {payment.planTarget ? ` → ${payment.planTarget}` : ""}
+                  </td>
+                  <td className={accountTableTdClass}>
+                    <Link
+                      href={`/admin/bodas/${payment.boda.id}`}
+                      className="focus-ring rounded-sm font-semibold text-text-link hover:underline"
+                    >
+                      {payment.boda.title}
+                    </Link>
+                  </td>
+                  <td className={`${accountTableTdClass} whitespace-nowrap text-right tabular-nums`}>
+                    {money(payment.amount, payment.currency)}
+                  </td>
+                  <td className={accountTableTdClass}>
+                    <AdminStatusBadge kind="payment" status={payment.status} />
+                  </td>
+                  <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                    {payment.createdAt.toLocaleString("es-AR")}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {gifts.map((gift) => (
-                  <tr key={gift.id}>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-stone-800">
-                        {gift.participants}
-                      </p>
-                      <p className="text-xs text-stone-500">
-                        {gift.email || "—"}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/bodas/${gift.boda.id}`}
-                        className="text-[#06263a] hover:underline"
+              ))}
+            </tbody>
+          </AccountTable>
+        )}
+        <AdminPagination
+          pathname="/admin/pagos"
+          currentPage={paymentsPage}
+          totalPages={paymentsTotalPages}
+          pageParam="paymentsPage"
+          query={giftsPage > 1 ? { giftsPage: String(giftsPage) } : {}}
+        />
+      </AccountSection>
+
+      <AccountSection
+        id="admin-pagos-regalos"
+        title="Regalos confirmados / pendientes"
+        badge={
+          <Badge tone="neutro" icon={false}>
+            {giftsTotal}
+          </Badge>
+        }
+        description="Regalos informados por los invitados. Confirmá los que ya fueron recibidos (pide confirmación)."
+      >
+        {gifts.length === 0 ? (
+          <AccountEmptyState
+            illustration={IllustrationGift}
+            title="Sin regalos todavía."
+            description="Cuando un invitado informe un regalo, va a aparecer acá."
+          />
+        ) : (
+          <AccountTable caption="Regalos confirmados y pendientes" tableClassName="min-w-[760px]">
+            <thead className={accountTableHeadClass}>
+              <tr>
+                <th scope="col" className={accountTableThClass}>De</th>
+                <th scope="col" className={accountTableThClass}>Boda</th>
+                <th scope="col" className={`${accountTableThClass} text-right`}>Monto</th>
+                <th scope="col" className={accountTableThClass}>Método</th>
+                <th scope="col" className={accountTableThClass}>Comprobante</th>
+                <th scope="col" className={accountTableThClass}>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gifts.map((gift) => (
+                <tr key={gift.id} className={accountTableRowClass}>
+                  <td className={accountTableTdClass}>
+                    <p className="font-semibold">{gift.participants}</p>
+                    <p className="break-all type-caption text-text-secondary">
+                      {gift.email || "—"}
+                    </p>
+                  </td>
+                  <td className={accountTableTdClass}>
+                    <Link
+                      href={`/admin/bodas/${gift.boda.id}`}
+                      className="focus-ring rounded-sm font-semibold text-text-link hover:underline"
+                    >
+                      {gift.boda.title}
+                    </Link>
+                  </td>
+                  <td className={`${accountTableTdClass} whitespace-nowrap text-right tabular-nums`}>
+                    {money(gift.amount, gift.currency)}
+                  </td>
+                  <td className={accountTableTdClass}>{gift.method}</td>
+                  <td className={accountTableTdClass}>
+                    {gift.voucherUrl ? (
+                      <a
+                        href={gift.voucherUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="focus-ring inline-flex items-center gap-1 rounded-sm font-semibold text-text-link hover:underline"
                       >
-                        {gift.boda.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      {money(gift.amount, gift.currency)}
-                    </td>
-                    <td className="px-4 py-3">{gift.method}</td>
-                    <td className="px-4 py-3">
-                      {gift.voucherUrl ? (
-                        <a
-                          href={gift.voucherUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-sm font-medium text-[#e6dac7] underline"
-                        >
-                          Ver voucher
-                        </a>
-                      ) : (
-                        <span className="text-stone-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {gift.confirmed ? (
-                        <span className="text-emerald-700">Confirmado</span>
-                      ) : (
+                        Ver voucher
+                        <IconExternalLink size={14} />
+                        <span className="sr-only"> (se abre en otra pestaña)</span>
+                      </a>
+                    ) : (
+                      <span className="text-text-tertiary">—</span>
+                    )}
+                  </td>
+                  <td className={accountTableTdClass}>
+                    {gift.confirmed ? (
+                      <Badge tone="aprobado">Confirmado</Badge>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge tone="pendiente">Pendiente</Badge>
                         <AdminActionForm
                           action={confirmGiftAdminAction}
                           confirmMessage={`¿Confirmás que el regalo de ${gift.participants} fue recibido?`}
@@ -212,39 +237,29 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
                           <AdminSubmitButton
                             idleLabel="Confirmar"
                             pendingLabel="Confirmando…"
-                            className="rounded-full bg-[#e6dac7] px-3 py-1.5 text-xs font-semibold text-stone-800"
+                            variant="primario"
                           />
                         </AdminActionForm>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {gifts.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-4 py-8 text-center text-stone-500"
-                    >
-                      Sin regalos todavía.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-          <AdminPagination
-            pathname="/admin/pagos"
-            currentPage={giftsPage}
-            totalPages={giftsTotalPages}
-            pageParam="giftsPage"
-            query={
-              paymentsPage > 1
-                ? { paymentsPage: String(paymentsPage) }
-                : {}
-            }
-          />
-        </div>
-      </section>
-    </div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AccountTable>
+        )}
+        <AdminPagination
+          pathname="/admin/pagos"
+          currentPage={giftsPage}
+          totalPages={giftsTotalPages}
+          pageParam="giftsPage"
+          query={
+            paymentsPage > 1
+              ? { paymentsPage: String(paymentsPage) }
+              : {}
+          }
+        />
+      </AccountSection>
+    </AccountPageBody>
   );
 }
