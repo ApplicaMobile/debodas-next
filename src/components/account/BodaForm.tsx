@@ -5,9 +5,13 @@ import {
   updateBodaAction,
   type BodaFormState,
 } from "@/lib/account/actions/boda";
+import {
+  AccountFieldGroup,
+  AccountFormActions,
+  AccountSection,
+} from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
-import { FormInput, FormTextarea } from "@/components/account/FormField";
-import { StickyFormActions } from "@/components/account/StickyFormActions";
+import { Badge, Button, Checkbox, Input, Textarea } from "@/components/ui";
 
 export interface BodaFormValues {
   title: string;
@@ -38,138 +42,175 @@ export function BodaForm({ initialValues }: BodaFormProps) {
   const isPremium = initialValues.plan === "premium";
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-6">
-      <div className="rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        URL pública:{" "}
-        <span className="font-medium text-stone-800">
-          /bodas/{initialValues.slug}
-        </span>
-      </div>
-
-      <FormInput
-        name="title"
-        label="Título del micrositio"
-        defaultValue={initialValues.title}
-        placeholder="María & Juan"
-        required
-        minLength={2}
-        maxLength={120}
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormInput
-          name="bride_name"
-          label="Nombre novia/o 1"
-          defaultValue={initialValues.brideName}
-          required
-          minLength={2}
-          maxLength={100}
-        />
-        <FormInput
-          name="groom_name"
-          label="Nombre novia/o 2"
-          defaultValue={initialValues.groomName}
-          required
-          minLength={2}
-          maxLength={100}
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <FormInput
-          name="event_date"
-          label="Fecha"
-          defaultValue={initialValues.eventDate}
-          placeholder="15/11/2026"
-          required
-          hint="Formato DD/MM/AAAA"
-        />
-        <FormInput
-          name="event_time"
-          label="Hora"
-          defaultValue={initialValues.eventTime}
-          placeholder="19:30"
-          maxLength={40}
-        />
-        <FormInput
-          name="event_place"
-          label="Lugar"
-          defaultValue={initialValues.eventPlace}
-          placeholder="Estancia La Paz, Pilar"
-          maxLength={200}
-        />
-      </div>
-
-      <FormTextarea
-        name="our_story"
-        label="Nuestra historia"
-        defaultValue={initialValues.ourStory}
-        rows={5}
-        maxLength={3000}
-        placeholder="Contá brevemente su historia..."
-        hint="Máximo 3000 caracteres."
-      />
-
-      <FormInput
-        name="spotify_url"
-        label={
-          isPremium
-            ? "Playlist de Spotify"
-            : "Playlist de Spotify (Premium)"
-        }
-        type="text"
-        defaultValue={initialValues.spotifyUrl}
-        disabled={!isPremium}
-        placeholder="ID o URL de la playlist (ej: open.spotify.com/playlist/...)"
-        autoComplete="off"
-        hint={
-          isPremium
-            ? "Pegá el link o el ID de una playlist pública. Se muestra al final del micrositio."
-            : "Disponible en el plan Premium. Podés upgradear desde Plan."
-        }
-      />
-
-      <div>
-        <FormInput
-          name="password"
-          label="Contraseña del micrositio"
-          type="text"
-          defaultValue=""
-          placeholder={
-            initialValues.hasPassword
-              ? "Dejá vacío para mantener la actual"
-              : "Opcional — acceso público si está vacío"
+    <AccountSection
+      id="boda-datos"
+      title="Información del micrositio"
+      description="Completá los datos y guardá: los cambios se ven al instante en tu sitio público."
+    >
+      <form ref={formRef} action={formAction} className="space-y-6">
+        <AccountFieldGroup
+          title="La pareja"
+          description={
+            <>
+              Dirección pública de tu sitio:{" "}
+              <span className="font-semibold text-text-primary">
+                /bodas/{initialValues.slug}
+              </span>
+            </>
           }
-          autoComplete="off"
-          maxLength={72}
-          hint={
-            initialValues.hasPassword
-              ? "Hay una contraseña activa (guardada de forma segura). Escribí una nueva para cambiarla."
-              : "Si la completás, los invitados deberán ingresarla antes de ver el micrositio."
-          }
-        />
-        {initialValues.hasPassword ? (
-          <label className="mt-3 flex items-center gap-2 text-sm text-stone-600">
-            <input
-              type="checkbox"
+        >
+          <Input
+            id="title"
+            name="title"
+            label="Título del micrositio"
+            hint="Es lo primero que ven tus invitados, por ejemplo sus nombres."
+            defaultValue={initialValues.title}
+            placeholder="María & Juan"
+            required
+            minLength={2}
+            maxLength={120}
+          />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Input
+              id="bride_name"
+              name="bride_name"
+              label="Nombre novia/o 1"
+              defaultValue={initialValues.brideName}
+              required
+              minLength={2}
+              maxLength={100}
+            />
+            <Input
+              id="groom_name"
+              name="groom_name"
+              label="Nombre novia/o 2"
+              defaultValue={initialValues.groomName}
+              required
+              minLength={2}
+              maxLength={100}
+            />
+          </div>
+        </AccountFieldGroup>
+
+        <AccountFieldGroup
+          title="Fecha y lugar"
+          description="Se usan en la portada, la cuenta regresiva y las invitaciones."
+        >
+          <div className="grid gap-5 sm:grid-cols-3">
+            <Input
+              id="event_date"
+              name="event_date"
+              label="Fecha"
+              hint="Formato DD/MM/AAAA"
+              defaultValue={initialValues.eventDate}
+              placeholder="15/11/2026"
+              required
+            />
+            <Input
+              id="event_time"
+              name="event_time"
+              label="Hora"
+              optional
+              defaultValue={initialValues.eventTime}
+              placeholder="19:30"
+              maxLength={40}
+            />
+            <Input
+              id="event_place"
+              name="event_place"
+              label="Lugar"
+              optional
+              defaultValue={initialValues.eventPlace}
+              placeholder="Estancia La Paz, Pilar"
+              maxLength={200}
+            />
+          </div>
+        </AccountFieldGroup>
+
+        <AccountFieldGroup
+          title="Contenido"
+          description="Textos y música que acompañan tu micrositio."
+        >
+          <Textarea
+            id="our_story"
+            name="our_story"
+            label="Nuestra historia"
+            hint="Máximo 3000 caracteres."
+            optional
+            defaultValue={initialValues.ourStory}
+            rows={5}
+            maxLength={3000}
+            placeholder="Contá brevemente su historia..."
+          />
+          <Input
+            id="spotify_url"
+            name="spotify_url"
+            label={
+              isPremium ? (
+                "Playlist de Spotify"
+              ) : (
+                <span className="inline-flex flex-wrap items-center gap-2">
+                  Playlist de Spotify
+                  <Badge tone="premium">
+                    <span className="sr-only">Requiere plan </span>Premium
+                  </Badge>
+                </span>
+              )
+            }
+            type="text"
+            defaultValue={initialValues.spotifyUrl}
+            disabled={!isPremium}
+            placeholder="ID o URL de la playlist (ej: open.spotify.com/playlist/...)"
+            autoComplete="off"
+            hint={
+              isPremium
+                ? "Pegá el link o el ID de una playlist pública. Se muestra al final del micrositio."
+                : "Disponible en el plan Premium. Podés upgradear desde Plan."
+            }
+          />
+        </AccountFieldGroup>
+
+        <AccountFieldGroup
+          title="Acceso al micrositio"
+          description="Por defecto cualquiera con el link puede ver tu sitio. Podés protegerlo con una contraseña."
+        >
+          <Input
+            id="password"
+            name="password"
+            label="Contraseña del micrositio"
+            optional
+            type="text"
+            defaultValue=""
+            placeholder={
+              initialValues.hasPassword
+                ? "Dejá vacío para mantener la actual"
+                : "Opcional — acceso público si está vacío"
+            }
+            autoComplete="off"
+            maxLength={72}
+            hint={
+              initialValues.hasPassword
+                ? "Hay una contraseña activa (guardada de forma segura). Escribí una nueva para cambiarla."
+                : "Si la completás, los invitados deberán ingresarla antes de ver el micrositio."
+            }
+          />
+          {initialValues.hasPassword ? (
+            <Checkbox
               name="clear_password"
               value="1"
-              className="rounded border-stone-300"
+              label="Quitar contraseña (acceso público)"
             />
-            Quitar contraseña (acceso público)
-          </label>
-        ) : null}
-      </div>
+          ) : null}
+        </AccountFieldGroup>
 
-      <StickyFormActions alert={<FormAlert error={state.error} success={state.success} />}>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-full bg-[#e6dac7] px-6 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
+        <AccountFormActions
+          alert={<FormAlert error={state.error} success={state.success} />}
         >
-          {isPending ? "Guardando…" : "Guardar cambios"}
-        </button>
-      </StickyFormActions>
-    </form>
+          <Button type="submit" loading={isPending} loadingLabel="Guardando…">
+            Guardar cambios
+          </Button>
+        </AccountFormActions>
+      </form>
+    </AccountSection>
   );
 }

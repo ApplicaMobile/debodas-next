@@ -4,7 +4,17 @@ import { useActionState } from "react";
 import { updateAbonarTarjetaAction } from "@/lib/account/actions/abonar";
 import type { FormState } from "@/lib/account/form-state";
 import type { AbonarTarjetaConfig, TarjetaPago } from "@/lib/bodas/abonar-tarjeta";
+import {
+  AccountFormActions,
+  AccountSection,
+  AccountTable,
+  accountTableHeadClass,
+  accountTableRowClass,
+  accountTableTdClass,
+  accountTableThClass,
+} from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
+import { Button, Input, Textarea } from "@/components/ui";
 
 const initialState: FormState = {};
 
@@ -21,80 +31,76 @@ export function AbonarTarjetaPanel({
   );
 
   return (
-    <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
-      <h3 className="text-lg font-semibold text-stone-800">Abonar tarjeta</h3>
-      <p className="mt-1 text-sm text-stone-500">
-        Si completás el título del botón, tus invitados pueden registrar un
-        abono (transferencia + comprobante) desde el micrositio.
-      </p>
-      <form action={action} className="mt-4 space-y-3">
-        <label className="block text-sm font-medium text-stone-700">
-          Título del botón
-          <input
+    <AccountSection
+      id="abonar-tarjeta"
+      title="Abonar tarjeta"
+      description="Si completás el título del botón, tus invitados pueden registrar un abono (transferencia + comprobante) desde el micrositio."
+    >
+      <form action={action} className="space-y-5">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            id="titulo_abonar_tarjeta"
             name="titulo_abonar_tarjeta"
+            label="Título del botón"
+            hint="Así se llama el botón en tu micrositio."
             defaultValue={config.titulo}
             maxLength={80}
-            className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
             placeholder="Abonar tarjeta"
           />
-        </label>
-        <label className="block text-sm font-medium text-stone-700">
-          Valor de referencia
-          <input
+          <Input
+            id="valor_referencia_tarjeta"
             name="valor_referencia_tarjeta"
+            label="Valor de referencia"
+            hint="Monto orientativo que ven los invitados."
             defaultValue={config.valorReferencia}
             maxLength={40}
-            className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
             placeholder="15000"
           />
-        </label>
-        <label className="block text-sm font-medium text-stone-700">
-          Texto del monto
-          <textarea
-            name="texto_monto_tarjeta"
-            defaultValue={config.textoMonto}
-            maxLength={300}
-            rows={3}
-            className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
-            placeholder="Monto sugerido por invitado"
-          />
-        </label>
-        <FormAlert error={state.error} success={state.success} />
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
+        </div>
+        <Textarea
+          id="texto_monto_tarjeta"
+          name="texto_monto_tarjeta"
+          label="Texto del monto"
+          defaultValue={config.textoMonto}
+          maxLength={300}
+          rows={3}
+          placeholder="Monto sugerido por invitado"
+        />
+        <AccountFormActions
+          alert={<FormAlert error={state.error} success={state.success} />}
         >
-          {pending ? "Guardando…" : "Guardar Abonar tarjeta"}
-        </button>
+          <Button type="submit" loading={pending} loadingLabel="Guardando…">
+            Guardar Abonar tarjeta
+          </Button>
+        </AccountFormActions>
       </form>
 
       {pagos.length > 0 ? (
-        <div className="mt-6 overflow-x-auto">
-          <p className="text-sm font-medium text-stone-700">
+        <div className="mt-8 border-t border-border-subtle pt-6">
+          <p className="type-label text-text-primary">
             Abonos recibidos ({pagos.length})
           </p>
-          <table className="mt-2 min-w-full text-left text-sm">
-            <thead className="text-xs uppercase text-stone-500">
+          <AccountTable caption="Abonos recibidos" className="mt-3">
+            <thead className={accountTableHeadClass}>
               <tr>
-                <th className="py-2 pr-3">Nombre</th>
-                <th className="py-2 pr-3">Monto</th>
-                <th className="py-2 pr-3">Comprobante</th>
-                <th className="py-2">Fecha</th>
+                <th className={accountTableThClass}>Nombre</th>
+                <th className={accountTableThClass}>Monto</th>
+                <th className={accountTableThClass}>Comprobante</th>
+                <th className={accountTableThClass}>Fecha</th>
               </tr>
             </thead>
             <tbody>
               {pagos.map((pago) => (
-                <tr key={pago.id} className="border-t border-stone-100">
-                  <td className="py-2 pr-3">{pago.nombre}</td>
-                  <td className="py-2 pr-3">${pago.monto}</td>
-                  <td className="py-2 pr-3">
+                <tr key={pago.id} className={accountTableRowClass}>
+                  <td className={accountTableTdClass}>{pago.nombre}</td>
+                  <td className={accountTableTdClass}>${pago.monto}</td>
+                  <td className={accountTableTdClass}>
                     {pago.comprobante_url ? (
                       <a
                         href={pago.comprobante_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-medium text-[#06263a] hover:underline"
+                        className="focus-ring rounded-sm font-semibold text-text-link underline-offset-2 hover:underline"
                       >
                         Ver
                       </a>
@@ -102,15 +108,15 @@ export function AbonarTarjetaPanel({
                       "—"
                     )}
                   </td>
-                  <td className="py-2 text-stone-500">
+                  <td className={`${accountTableTdClass} text-text-secondary`}>
                     {pago.fecha.slice(0, 16).replace("T", " ")}
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </AccountTable>
         </div>
       ) : null}
-    </section>
+    </AccountSection>
   );
 }
