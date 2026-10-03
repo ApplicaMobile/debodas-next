@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+} from "@/components/account/AccountPage";
 import { CanvaInvitePanel } from "@/components/account/CanvaInvitePanel";
 import { InvitationBuilder } from "@/components/account/InvitationBuilder";
 import { InviteSharePanel } from "@/components/account/InviteSharePanel";
@@ -40,16 +44,13 @@ export default async function MiCuentaInvitarPage() {
   const isPremium = normalizePlan(boda.plan) === "premium";
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="font-serif text-xl font-semibold text-stone-800 sm:text-2xl">
-          Compartir / invitar
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Compartí el link por WhatsApp, creá tarjetas digitales para descargar
-          y, si tenés Premium, sumá mapa o un diseño de Canva.
-        </p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/invitar"
+        section="Invitar"
+        title="Compartir / invitar"
+        description="Compartí el link por WhatsApp, creá tarjetas digitales para descargar y, si tenés Premium, sumá mapa o un diseño de Canva."
+      />
 
       <InviteSharePanel
         coupleName={coupleName}
@@ -73,6 +74,6 @@ export default async function MiCuentaInvitarPage() {
           />
         }
       />
-    </div>
+    </AccountPageBody>
   );
 }

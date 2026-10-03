@@ -16,7 +16,26 @@ import {
 } from "@/lib/account/actions/invitations";
 import type { FormState } from "@/lib/account/form-state";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationEnvelope } from "@/components/account/AccountIllustrations";
+import {
+  AccountDeleteButton,
+  AccountFieldGroup,
+  AccountFormActions,
+  AccountSection,
+} from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
+import { formControlClassName } from "@/components/account/FormField";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  Input,
+  Select,
+  Textarea,
+} from "@/components/ui";
 import { InvitationCardPreview } from "@/components/account/InvitationCardPreview";
 import {
   buildInvitationFilename,
@@ -40,7 +59,7 @@ const LocationMapPicker = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-64 animate-pulse rounded-2xl bg-stone-100" />
+      <div className="h-64 animate-pulse rounded-md bg-surface-muted" />
     ),
   },
 );
@@ -193,26 +212,37 @@ export function InvitationBuilder({
     }
   }
 
+  const atLimit = invitations.length >= MAX_INVITATIONS;
+
   return (
-    <div className="space-y-6">
-      <section
+    <>
+      <Card
+        as="section"
+        padding="lg"
         id="invitation-form"
-        className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8"
+        aria-labelledby="invitaciones-digitales"
+        className="scroll-mt-24"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold text-stone-800">
-              Invitaciones digitales
-            </h3>
-            <p className="mt-1 text-sm text-stone-600">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 id="invitaciones-digitales" className="type-h4 text-text-primary">
+                Invitaciones digitales
+              </h3>
+              <Badge tone="neutro" icon={false}>
+                {invitations.length} de {MAX_INVITATIONS}
+              </Badge>
+            </div>
+            <p className="mt-1 max-w-2xl type-body-sm text-text-secondary">
               Creá tarjetas con plantillas, descargalas en PNG y compartilas.
               {isPremium
                 ? " Con Premium podés marcar la ubicación en el mapa."
                 : " La ubicación con mapa está disponible en Premium."}
             </p>
           </div>
-          <button
+          <Button
             type="button"
+            variant={openForm && !isEditing ? "secundario" : "primario"}
             onClick={() => {
               if (openForm && !isEditing) {
                 setOpenForm(false);
@@ -223,34 +253,36 @@ export function InvitationBuilder({
               }
               openCreate();
             }}
-            disabled={invitations.length >= MAX_INVITATIONS && !openForm}
-            className="rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-50"
+            disabled={atLimit && !openForm}
+            className="shrink-0"
           >
             {openForm && !isEditing ? "Cerrar formulario" : "Nueva invitación"}
-          </button>
+          </Button>
         </div>
 
-        <FormAlert error={state.error} success={state.success} />
+        <div className="mt-4 empty:hidden">
+          <FormAlert error={state.error} success={state.success} />
+        </div>
 
         {openForm ? (
           <form
             action={formAction}
-            className="mt-6 space-y-5 border-t border-stone-100 pt-6"
+            className="mt-6 space-y-6 border-t border-border-subtle pt-6"
           >
             {isEditing ? (
               <input type="hidden" name="invitation_id" value={draft.id} />
             ) : null}
 
             {isEditing ? (
-              <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                Editando: <strong>{draft.name || "invitación"}</strong>
-              </p>
+              <Alert tone="info" title={`Editando: ${draft.name || "invitación"}`} />
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm text-stone-700">
-                Nombre del evento
-                <input
+            <AccountFieldGroup title="Evento">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Input
+                  id="invitation-name"
+                  label="Nombre del evento"
+                  hint="Distingue ceremonia, fiesta u otro encuentro. No es el nombre de los novios."
                   name="name"
                   required
                   value={draft.name}
@@ -258,16 +290,11 @@ export function InvitationBuilder({
                     setDraft((d) => ({ ...d, name: e.target.value }))
                   }
                   placeholder="Ceremonia, Fiesta, etc."
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
                 />
-                <span className="mt-1 block text-xs text-stone-500">
-                  Distingue ceremonia, fiesta u otro encuentro. No es el nombre
-                  de los novios.
-                </span>
-              </label>
-              <label className="block text-sm text-stone-700">
-                Título
-                <input
+                <Input
+                  id="invitation-title"
+                  label="Título"
+                  hint="El texto grande de la tarjeta."
                   name="title"
                   required
                   value={draft.title}
@@ -275,12 +302,12 @@ export function InvitationBuilder({
                     setDraft((d) => ({ ...d, title: e.target.value }))
                   }
                   placeholder="Nos vamos a casar"
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
                 />
-              </label>
-              <label className="block text-sm text-stone-700 sm:col-span-2">
-                Descripción
-                <textarea
+                <Textarea
+                  id="invitation-description"
+                  label="Descripción"
+                  optional
+                  className="sm:col-span-2"
                   name="description"
                   rows={3}
                   value={draft.description}
@@ -288,12 +315,15 @@ export function InvitationBuilder({
                     setDraft((d) => ({ ...d, description: e.target.value }))
                   }
                   placeholder="Texto opcional (no repitas el título)"
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
                 />
-              </label>
-              <label className="block text-sm text-stone-700">
-                Tema
-                <select
+              </div>
+            </AccountFieldGroup>
+
+            <AccountFieldGroup title="Diseño, fecha y lugar">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Select
+                  id="invitation-theme"
+                  label="Tema"
                   name="theme"
                   value={draft.theme}
                   onChange={(e) =>
@@ -302,60 +332,61 @@ export function InvitationBuilder({
                       theme: e.target.value as InvitationThemeSlug,
                     }))
                   }
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
-                >
-                  {themes.map((theme) => (
-                    <option key={theme.slug} value={theme.slug}>
-                      {theme.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="block text-sm text-stone-700">
-                <p>Fecha y hora</p>
-                <p className="mt-1 text-xs text-stone-500">
-                  La fecha sale de tu boda. Indicá a qué hora empieza y corregí
-                  el día si este evento es otro.
-                </p>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <input
-                    type="date"
-                    required
-                    aria-label="Fecha del evento"
-                    value={splitDatetimeLocal(draft.datetime).date}
-                    onChange={(e) =>
-                      setDraft((d) => ({
-                        ...d,
-                        datetime: joinDatetimeLocal(
-                          e.target.value,
-                          splitDatetimeLocal(d.datetime).time,
-                        ),
-                      }))
-                    }
-                    className="w-full rounded-xl border border-stone-200 px-3 py-2.5"
-                  />
-                  <input
-                    type="time"
-                    required
-                    aria-label="Hora del evento"
-                    value={splitDatetimeLocal(draft.datetime).time}
-                    onChange={(e) =>
-                      setDraft((d) => ({
-                        ...d,
-                        datetime: joinDatetimeLocal(
-                          splitDatetimeLocal(d.datetime).date,
-                          e.target.value,
-                        ),
-                      }))
-                    }
-                    className="w-full rounded-xl border border-stone-200 px-3 py-2.5"
-                  />
-                </div>
-                <input type="hidden" name="datetime" value={draft.datetime} />
-              </div>
-              <label className="block text-sm text-stone-700">
-                Vestimenta
-                <select
+                  options={themes.map((theme) => ({
+                    value: theme.slug,
+                    label: theme.label,
+                  }))}
+                />
+                <fieldset className="min-w-0">
+                  <legend className="type-label text-text-primary">
+                    Fecha y hora
+                    <span aria-hidden="true" className="ml-1 text-status-error-fg">
+                      *
+                    </span>
+                  </legend>
+                  <p className="mt-1 type-body-sm text-text-secondary">
+                    La fecha sale de tu boda. Indicá a qué hora empieza y
+                    corregí el día si este evento es otro.
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <input
+                      type="date"
+                      required
+                      aria-label="Fecha del evento"
+                      value={splitDatetimeLocal(draft.datetime).date}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          datetime: joinDatetimeLocal(
+                            e.target.value,
+                            splitDatetimeLocal(d.datetime).time,
+                          ),
+                        }))
+                      }
+                      className={`${formControlClassName} min-h-12`}
+                    />
+                    <input
+                      type="time"
+                      required
+                      aria-label="Hora del evento"
+                      value={splitDatetimeLocal(draft.datetime).time}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          datetime: joinDatetimeLocal(
+                            splitDatetimeLocal(d.datetime).date,
+                            e.target.value,
+                          ),
+                        }))
+                      }
+                      className={`${formControlClassName} min-h-12`}
+                    />
+                  </div>
+                  <input type="hidden" name="datetime" value={draft.datetime} />
+                </fieldset>
+                <Select
+                  id="invitation-outfit"
+                  label="Vestimenta"
                   name="outfit"
                   value={draft.outfit}
                   onChange={(e) =>
@@ -364,62 +395,55 @@ export function InvitationBuilder({
                       outfit: e.target.value as InvitationOutfit,
                     }))
                   }
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
-                >
-                  {INVITATION_OUTFITS.map((outfit) => (
-                    <option key={outfit} value={outfit}>
-                      {OUTFIT_LABELS[outfit]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm text-stone-700">
-                Nombre del lugar
-                <input
+                  options={INVITATION_OUTFITS.map((outfit) => ({
+                    value: outfit,
+                    label: OUTFIT_LABELS[outfit],
+                  }))}
+                />
+                <Input
+                  id="invitation-location-name"
+                  label="Nombre del lugar"
+                  optional
                   name="location_name"
                   value={draft.locationName}
                   onChange={(e) =>
                     setDraft((d) => ({ ...d, locationName: e.target.value }))
                   }
                   placeholder="Salón, iglesia, etc."
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2.5"
                 />
-              </label>
-            </div>
-
-            {isPremium ? (
-              <LocationMapPicker
-                key={draft.id || "new"}
-                value={{
-                  address: draft.address,
-                  lat: draft.lat,
-                  lng: draft.lng,
-                }}
-                onChange={(location) =>
-                  setDraft((d) => ({
-                    ...d,
-                    address: location.address,
-                    lat: location.lat,
-                    lng: location.lng,
-                  }))
-                }
-              />
-            ) : (
-              <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-                El mapa y la dirección completa están en el plan Premium. Podés
-                cargar el nombre del lugar igual.{" "}
-                <Link
-                  href="/mi-cuenta/plan"
-                  className="font-semibold underline"
-                >
-                  Ver planes
-                </Link>
               </div>
-            )}
 
-            <label className="flex items-start gap-2 text-sm text-stone-700">
-              <input
-                type="checkbox"
+              {isPremium ? (
+                <LocationMapPicker
+                  key={draft.id || "new"}
+                  value={{
+                    address: draft.address,
+                    lat: draft.lat,
+                    lng: draft.lng,
+                  }}
+                  onChange={(location) =>
+                    setDraft((d) => ({
+                      ...d,
+                      address: location.address,
+                      lat: location.lat,
+                      lng: location.lng,
+                    }))
+                  }
+                />
+              ) : (
+                <Alert tone="info" title="Mapa disponible en Premium">
+                  El mapa y la dirección completa están en el plan Premium.
+                  Podés cargar el nombre del lugar igual.{" "}
+                  <Link
+                    href="/mi-cuenta/plan"
+                    className="focus-ring rounded-sm font-semibold text-text-link underline underline-offset-2"
+                  >
+                    Ver planes
+                  </Link>
+                </Alert>
+              )}
+
+              <Checkbox
                 name="is_visible_in_microsite"
                 checked={draft.isVisibleInMicrosite}
                 onChange={(e) =>
@@ -428,112 +452,101 @@ export function InvitationBuilder({
                     isVisibleInMicrosite: e.target.checked,
                   }))
                 }
-                className="mt-1"
+                label="Mostrar botones Agendar / Ir al lugar en el micrositio"
               />
-              <span>
-                Mostrar botones Agendar / Ir al lugar en el micrositio
-              </span>
-            </label>
+            </AccountFieldGroup>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
-              <div>
-                <p className="mb-2 text-sm font-medium text-stone-700">
-                  Vista previa del tema
-                </p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={selectedTheme.previewSrc}
-                  alt={`Vista previa ${selectedTheme.label}`}
-                  className="mx-auto max-h-64 w-auto rounded-xl border border-stone-100 object-contain"
-                />
+            <AccountFieldGroup title="Vista previa">
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+                <div>
+                  <p className="mb-2 type-label text-text-primary">
+                    Vista previa del tema
+                  </p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedTheme.previewSrc}
+                    alt={`Vista previa ${selectedTheme.label}`}
+                    className="mx-auto max-h-64 w-auto rounded-md border border-border-subtle object-contain"
+                  />
+                </div>
+                <div>
+                  <p className="mb-2 type-label text-text-primary">
+                    Vista previa en vivo
+                  </p>
+                  <InvitationCardPreview
+                    invitation={{
+                      theme: draft.theme,
+                      title: draft.title,
+                      description: draft.description,
+                      datetime: draft.datetime,
+                      outfit: draft.outfit,
+                      locationName: draft.locationName,
+                      location: {
+                        address: draft.address,
+                        lat: draft.lat,
+                        lng: draft.lng,
+                      },
+                    }}
+                    brideName={brideName || "Novia"}
+                    groomName={groomName || "Novio"}
+                    showAddress={isPremium}
+                  />
+                </div>
               </div>
-              <div>
-                <p className="mb-2 text-sm font-medium text-stone-700">
-                  Vista previa en vivo
-                </p>
-                <InvitationCardPreview
-                  invitation={{
-                    theme: draft.theme,
-                    title: draft.title,
-                    description: draft.description,
-                    datetime: draft.datetime,
-                    outfit: draft.outfit,
-                    locationName: draft.locationName,
-                    location: {
-                      address: draft.address,
-                      lat: draft.lat,
-                      lng: draft.lng,
-                    },
-                  }}
-                  brideName={brideName || "Novia"}
-                  groomName={groomName || "Novio"}
-                  showAddress={isPremium}
-                />
-              </div>
-            </div>
+            </AccountFieldGroup>
 
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="submit"
-                disabled={pending}
-                className="rounded-full bg-[#06263a] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-              >
-                {pending
-                  ? "Guardando…"
-                  : isEditing
-                    ? "Guardar cambios"
-                    : "Guardar invitación"}
-              </button>
+            <AccountFormActions>
               {isEditing ? (
-                <button
+                <Button
                   type="button"
+                  variant="secundario"
                   onClick={() => {
                     setDraft(emptyDraft(eventDatetime));
                     setOpenForm(false);
                   }}
-                  className="rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-stone-700"
                 >
                   Cancelar
-                </button>
+                </Button>
               ) : null}
-            </div>
+              <Button type="submit" loading={pending} loadingLabel="Guardando…">
+                {isEditing ? "Guardar cambios" : "Guardar invitación"}
+              </Button>
+            </AccountFormActions>
           </form>
         ) : null}
-      </section>
+      </Card>
 
       <div
         className={
           aside
-            ? "grid gap-6 xl:grid-cols-2 xl:items-start"
+            ? "grid gap-6 sm:gap-8 xl:grid-cols-2 xl:items-start"
             : "space-y-4"
         }
       >
-        <section className="space-y-4">
+        <AccountSection
+          id="invitaciones-creadas"
+          title="Tus invitaciones"
+          description="Descargalas en PNG para enviarlas o editalas cuando quieras."
+        >
           {invitations.length === 0 ? (
-            <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-stone-500 shadow-sm">
-              Todavía no hay invitaciones digitales.
-            </p>
+            <AccountEmptyState
+              illustration={IllustrationEnvelope}
+              title="Todavía no hay invitaciones digitales."
+              description="Usá “Nueva invitación” para crear la primera tarjeta con una plantilla."
+            />
           ) : (
-            <div
-              className={
-                aside
-                  ? "grid gap-6"
-                  : "grid gap-6 sm:grid-cols-2"
-              }
-            >
+            <div className={aside ? "grid gap-6" : "grid gap-6 sm:grid-cols-2"}>
               {invitations.map((invitation) => (
                 <article
                   key={invitation.id}
-                  className="overflow-hidden rounded-2xl bg-white shadow-sm"
+                  className="overflow-hidden rounded-md border border-border-subtle bg-surface-default"
                 >
-                  <div className="border-b border-stone-100 px-4 py-3">
-                    <h4 className="font-semibold text-stone-800">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
+                    <h4 className="type-label text-text-primary">
                       {invitation.name}
                     </h4>
                     {invitation.isVisibleInMicrosite ? (
-                      <p className="mt-0.5 text-xs text-[#6f5f47]">
-                        Visible en micrositio
-                      </p>
+                      <Badge tone="aprobado">Visible en micrositio</Badge>
                     ) : null}
                   </div>
                   <div className="p-4">
@@ -545,49 +558,46 @@ export function InvitationBuilder({
                       showAddress={isPremium}
                     />
                   </div>
-                  <div className="space-y-2 border-t border-stone-100 p-4">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(invitation)}
-                      className="w-full rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
-                    >
-                      Editar
-                    </button>
-                    <button
+                  <div className="flex flex-col gap-2 border-t border-border-subtle p-4">
+                    <Button
                       type="button"
                       onClick={() => downloadPng(invitation)}
-                      disabled={downloadingId === invitation.id}
-                      className="w-full rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800 disabled:opacity-60"
+                      loading={downloadingId === invitation.id}
+                      loadingLabel="Generando PNG…"
+                      fullWidth
                     >
-                      {downloadingId === invitation.id
-                        ? "Generando PNG…"
-                        : "Descargar invitación"}
-                    </button>
-                    <ConfirmDeleteForm
-                      action={deleteInvitationAction}
-                      message="¿Eliminar esta invitación?"
-                    >
-                      <input
-                        type="hidden"
-                        name="invitation_id"
-                        value={invitation.id}
-                      />
-                      <button
-                        type="submit"
-                        className="w-full rounded-full border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                      Descargar invitación
+                    </Button>
+                    <div className="flex items-center justify-between gap-2">
+                      <Button
+                        type="button"
+                        variant="secundario"
+                        size="sm"
+                        onClick={() => openEdit(invitation)}
                       >
-                        Eliminar
-                      </button>
-                    </ConfirmDeleteForm>
+                        Editar
+                      </Button>
+                      <ConfirmDeleteForm
+                        action={deleteInvitationAction}
+                        message="¿Eliminar esta invitación?"
+                      >
+                        <input
+                          type="hidden"
+                          name="invitation_id"
+                          value={invitation.id}
+                        />
+                        <AccountDeleteButton />
+                      </ConfirmDeleteForm>
+                    </div>
                   </div>
                 </article>
               ))}
             </div>
           )}
-        </section>
+        </AccountSection>
 
         {aside ? <div className="min-w-0">{aside}</div> : null}
       </div>
-    </div>
+    </>
   );
 }

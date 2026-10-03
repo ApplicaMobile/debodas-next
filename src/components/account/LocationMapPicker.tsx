@@ -9,6 +9,8 @@ import {
 } from "react";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { formControlClassName } from "@/components/account/FormField";
+import { Button } from "@/components/ui";
 
 export interface LocationMapValue {
   address: string;
@@ -281,12 +283,12 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-4">
+    <div className="space-y-3 rounded-md border border-border-subtle bg-surface-muted p-4">
       <div>
-        <p className="text-sm font-medium text-stone-800">
+        <p className="type-label text-text-primary">
           Ubicación en el mapa
         </p>
-        <p className="mt-1 text-xs text-stone-500">
+        <p className="mt-1 type-body-sm text-text-secondary">
           Escribí calle, número y ciudad (ej: Maipú 1873, Santa Fe), tocá Buscar
           y elegí el resultado correcto. También podés marcar el punto con un
           clic en el mapa.
@@ -304,27 +306,29 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
             }}
             onKeyDown={onSearchKeyDown}
             placeholder="Ej: Maipú 1873, Santa Fe"
-            className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm"
+            aria-label="Dirección a buscar"
+            className={`${formControlClassName} min-h-12 min-w-0 flex-1`}
             autoComplete="off"
           />
-          <button
+          <Button
             type="button"
-            disabled={searching}
+            variant="secundario"
+            loading={searching}
+            loadingLabel="Buscando…"
             onClick={() => void runSearch()}
-            className="rounded-full bg-[#06263a] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {searching ? "Buscando…" : "Buscar"}
-          </button>
+            Buscar
+          </Button>
         </div>
 
         {results.length > 0 ? (
-          <ul className="max-h-56 overflow-auto rounded-xl border border-stone-200 bg-white shadow-sm">
+          <ul className="max-h-56 overflow-auto rounded-md border border-border-subtle bg-surface-default shadow-elevation-2">
             {results.map((item) => (
               <li key={`${item.lat}-${item.lon}-${item.display_name}`}>
                 <button
                   type="button"
                   onClick={() => void selectResult(item)}
-                  className="block w-full px-3 py-2.5 text-left text-sm text-stone-700 hover:bg-stone-50"
+                  className="focus-ring block w-full px-4 py-3 text-left type-body-sm text-text-primary hover:bg-surface-muted"
                 >
                   {item.display_name}
                 </button>
@@ -336,7 +340,7 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
 
       <div
         ref={mapNodeRef}
-        className="h-64 w-full overflow-hidden rounded-xl border border-stone-200 bg-stone-100"
+        className="h-64 w-full overflow-hidden rounded-md border border-border-subtle bg-surface-disabled"
       />
 
       <input type="hidden" name="address" value={value.address} />
@@ -345,31 +349,31 @@ export function LocationMapPicker({ value, onChange }: LocationMapPickerProps) {
 
       {value.address ? (
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <p className="text-sm text-stone-700">
-            <span className="font-medium">Dirección: </span>
+          <p className="type-body-sm text-text-primary">
+            <span className="font-semibold">Dirección: </span>
             {value.address}
           </p>
           <button
             type="button"
             onClick={clearLocation}
-            className="text-sm font-medium text-red-700 hover:underline"
+            className="focus-ring rounded-sm type-button-sm text-status-error-fg hover:underline"
           >
             Quitar ubicación
           </button>
         </div>
       ) : (
-        <p className="text-xs text-stone-500">
+        <p className="type-caption text-text-secondary">
           Todavía no hay un punto seleccionado.
         </p>
       )}
 
       {error ? (
-        <p className="text-xs text-red-700" role="alert">
+        <p className="type-body-sm font-medium text-status-error-fg" role="alert">
           {error}
         </p>
       ) : null}
       {status && !error ? (
-        <p className="text-xs text-green-800" role="status">
+        <p className="type-body-sm font-medium text-status-success-fg" role="status">
           {status}
         </p>
       ) : null}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
 import {
   deleteCanvaLinkAction,
   markInviteSharedAction,
@@ -10,7 +9,13 @@ import {
 import type { FormState } from "@/lib/account/form-state";
 import { buildWhatsAppShareUrl } from "@/lib/account/invite-message";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
+import {
+  AccountDeleteButton,
+  AccountSection,
+  AccountWhatsAppLink,
+} from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
+import { Badge, Button, Input } from "@/components/ui";
 import { toCanvaEmbedUrl } from "@/lib/invitations/parse";
 
 interface CanvaInvitePanelProps {
@@ -36,21 +41,20 @@ export function CanvaInvitePanel({
 
   if (!isPremium) {
     return (
-      <section className="rounded-2xl border border-dashed border-stone-300 bg-white p-4 sm:rounded-3xl sm:p-8">
-        <h3 className="text-lg font-semibold text-stone-800">
-          ¿Tenés un diseño en Canva?
-        </h3>
-        <p className="mt-1 text-sm text-stone-600">
-          En el plan Premium podés pegar el link de tu invitación de Canva para
-          mostrarla a tus invitados.
-        </p>
-        <Link
-          href="/mi-cuenta/plan"
-          className="mt-4 inline-flex rounded-full bg-[#e6dac7] px-4 py-2.5 text-sm font-semibold text-stone-800"
-        >
+      <AccountSection
+        id="invitar-canva"
+        title="¿Tenés un diseño en Canva?"
+        badge={
+          <Badge tone="premium">
+            <span className="sr-only">Plan </span>Premium
+          </Badge>
+        }
+        description="En el plan Premium podés pegar el link de tu invitación de Canva para mostrarla a tus invitados."
+      >
+        <Button href="/mi-cuenta/plan" variant="secundario">
           Ver plan Premium
-        </Link>
-      </section>
+        </Button>
+      </AccountSection>
     );
   }
 
@@ -90,87 +94,73 @@ export function CanvaInvitePanel({
   }
 
   return (
-    <section className="rounded-2xl border border-dashed border-stone-300 bg-white p-4 sm:rounded-3xl sm:p-8">
-      <h3 className="text-lg font-semibold text-stone-800">
-        ¿Tenés un diseño en Canva?
-      </h3>
-      <p className="mt-1 text-sm text-stone-600">
-        Pegá el link de “Ver” de Canva para embeber tu diseño. La descarga del
-        archivo (PNG/PDF) se hace desde Canva.
-      </p>
+    <AccountSection
+      id="invitar-canva"
+      title="¿Tenés un diseño en Canva?"
+      description="Pegá el link de “Ver” de Canva para embeber tu diseño. La descarga del archivo (PNG/PDF) se hace desde Canva."
+      badge={embedUrl ? <Badge tone="aprobado">Activo</Badge> : null}
+    >
+      <div className="empty:hidden">
+        <FormAlert error={state.error} success={state.success} />
+      </div>
 
-      <FormAlert error={state.error} success={state.success} />
-
-      <form action={formAction} className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <input
+      <form action={formAction} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <Input
+          id="canva_link"
+          label="Link de Canva"
+          className="min-w-0 flex-1"
           type="url"
           name="canva_link"
           required
           defaultValue={canvaLink}
           placeholder="https://www.canva.com/design/..."
-          className="min-w-0 flex-1 rounded-xl border border-stone-200 px-3 py-2.5 text-sm"
         />
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-full bg-[#06263a] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-        >
-          {pending ? "Guardando…" : canvaLink ? "Actualizar" : "Guardar"}
-        </button>
+        <Button type="submit" loading={pending} loadingLabel="Guardando…">
+          {canvaLink ? "Actualizar" : "Guardar"}
+        </Button>
       </form>
 
       {canvaLink ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
+        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-5">
+          <Button
             type="button"
+            variant="secundario"
+            size="sm"
             onClick={() => void copyCanvaLink()}
-            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
             {copied ? "¡Copiado!" : "Copiar link"}
-          </button>
+          </Button>
           <a
             href={canvaLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-full bg-action-secondary-bg px-4 py-2 type-button-sm text-action-secondary-fg hover:bg-action-secondary-bg-hover"
           >
             Abrir en Canva ↗
           </a>
           {whatsappUrl ? (
-            <a
+            <AccountWhatsAppLink
               href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              size="sm"
               onClick={() => void markInviteSharedAction()}
-              className="rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1ebe57]"
             >
               WhatsApp
-            </a>
+            </AccountWhatsAppLink>
           ) : null}
           <ConfirmDeleteForm
             action={deleteCanvaLinkAction}
             message="¿Eliminar el diseño de Canva?"
             className="inline"
           >
-            <button
-              type="submit"
-              className="rounded-full px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-            >
-              Eliminar
-            </button>
+            <AccountDeleteButton />
           </ConfirmDeleteForm>
         </div>
       ) : null}
 
       {embedUrl ? (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-stone-200">
-          <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
-            <p className="text-sm font-semibold text-stone-800">
-              Vista previa Canva
-            </p>
-            <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-800">
-              Activo
-            </span>
+        <div className="mt-6 overflow-hidden rounded-md border border-border-subtle">
+          <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
+            <p className="type-label text-text-primary">Vista previa Canva</p>
           </div>
           <iframe
             title="Invitación Canva"
@@ -182,6 +172,6 @@ export function CanvaInvitePanel({
           />
         </div>
       ) : null}
-    </section>
+    </AccountSection>
   );
 }
