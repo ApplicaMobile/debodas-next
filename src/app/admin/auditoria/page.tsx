@@ -1,5 +1,18 @@
-import Link from "next/link";
 import type { Prisma } from "@prisma/client";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationLedger } from "@/components/account/AccountIllustrations";
+import {
+  AccountFilterBar,
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+  AccountTable,
+  accountTableHeadClass,
+  accountTableRowClass,
+  accountTableTdClass,
+  accountTableThClass,
+} from "@/components/account/AccountPage";
+import { Input, Select } from "@/components/ui";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import {
   auditActionLabel,
@@ -63,146 +76,149 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
     take: PAGE_SIZE,
   });
 
-  return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
-          Auditoría administrativa
-        </h2>
-        <p className="mt-2 text-stone-600">
-          {total} acción{total === 1 ? "" : "es"} registrada
-          {total === 1 ? "" : "s"}.
-        </p>
-      </section>
+  const hasFilters = Boolean(query || action || entity);
 
-      <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <form className="flex flex-wrap gap-3" method="get">
-          <label htmlFor="audit-search" className="sr-only">
-            Buscar administrador o entidad
-          </label>
-          <input
+  return (
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/admin/auditoria"
+        area="Panel admin"
+        section="Operación"
+        title="Auditoría administrativa"
+        description="Registro de las acciones hechas desde el panel admin."
+        meta={
+          <span className="type-body-sm tabular-nums text-text-secondary">
+            {total} acción{total === 1 ? "" : "es"} registrada
+            {total === 1 ? "" : "s"}.
+          </span>
+        }
+      />
+
+      <AccountSection
+        id="admin-auditoria-registro"
+        title="Registro"
+        description="Filtrá por administrador, ID de entidad, acción o tipo de entidad."
+      >
+        <AccountFilterBar
+          label="Filtrar auditoría"
+          clearHref="/admin/auditoria"
+          showClear={hasFilters}
+        >
+          <Input
             id="audit-search"
             type="search"
             name="q"
+            label="Buscar administrador o entidad"
             defaultValue={query}
             placeholder="Administrador o ID de entidad…"
-            className="min-h-11 min-w-[220px] flex-1 rounded-xl border border-stone-300 px-4 text-sm"
+            className="lg:flex-[2]"
           />
-          <label htmlFor="audit-action" className="sr-only">
-            Acción
-          </label>
-          <select
+          <Select
             id="audit-action"
             name="action"
+            label="Acción"
             defaultValue={action}
-            className="min-h-11 max-w-xs rounded-xl border border-stone-300 px-3 text-sm"
-          >
-            <option value="">Todas las acciones</option>
-            {actionGroups.map((group) => (
-              <option key={group.action} value={group.action}>
-                {auditActionLabel(group.action)} ({group._count._all})
-              </option>
-            ))}
-          </select>
-          <label htmlFor="audit-entity" className="sr-only">
-            Entidad
-          </label>
-          <select
+            options={[
+              { value: "", label: "Todas las acciones" },
+              ...actionGroups.map((group) => ({
+                value: group.action,
+                label: `${auditActionLabel(group.action)} (${group._count._all})`,
+              })),
+            ]}
+          />
+          <Select
             id="audit-entity"
             name="entity"
+            label="Entidad"
             defaultValue={entity}
-            className="min-h-11 rounded-xl border border-stone-300 px-3 text-sm"
-          >
-            <option value="">Todas las entidades</option>
-            {entityGroups.map((group) => (
-              <option key={group.entity} value={group.entity}>
-                {auditEntityLabel(group.entity)} ({group._count._all})
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="min-h-11 rounded-full bg-stone-800 px-5 text-sm font-semibold text-white"
-          >
-            Filtrar
-          </button>
-          {query || action || entity ? (
-            <Link
-              href="/admin/auditoria"
-              className="inline-flex min-h-11 items-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700"
-            >
-              Limpiar
-            </Link>
-          ) : null}
-        </form>
-      </section>
+            options={[
+              { value: "", label: "Todas las entidades" },
+              ...entityGroups.map((group) => ({
+                value: group.entity,
+                label: `${auditEntityLabel(group.entity)} (${group._count._all})`,
+              })),
+            ]}
+          />
+        </AccountFilterBar>
 
-      <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
-              <tr>
-                <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3">Administrador</th>
-                <th className="px-4 py-3">Acción</th>
-                <th className="px-4 py-3">Entidad</th>
-                <th className="px-4 py-3">Detalle</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {logs.map((log) => (
-                <tr key={log.id} className="align-top">
-                  <td className="whitespace-nowrap px-4 py-3 text-stone-500">
-                    {log.createdAt.toLocaleString("es-AR")}
-                  </td>
-                  <td className="px-4 py-3 text-stone-700">
-                    {log.actorEmail}
-                  </td>
-                  <td className="px-4 py-3 font-medium text-stone-800">
-                    {auditActionLabel(log.action)}
-                    <span className="mt-1 block text-xs font-normal text-stone-400">
-                      {log.action}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-stone-600">
-                    {auditEntityLabel(log.entity)}
-                    {log.entityId ? (
-                      <span className="block max-w-48 truncate text-xs text-stone-400">
-                        {log.entityId}
-                      </span>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-3">
-                    <code className="block max-w-md whitespace-pre-wrap break-words text-xs text-stone-600">
-                      {JSON.stringify(log.metadata)}
-                    </code>
-                  </td>
-                </tr>
-              ))}
-              {logs.length === 0 ? (
+        <div className="mt-6">
+          {logs.length === 0 ? (
+            <AccountEmptyState
+              illustration={IllustrationLedger}
+              title={
+                hasFilters
+                  ? "No hay acciones con ese filtro."
+                  : "Todavía no hay acciones administrativas registradas."
+              }
+              description={
+                hasFilters
+                  ? "Probá con otra búsqueda o limpiá los filtros."
+                  : "Cada cambio hecho desde el panel admin va a quedar registrado acá."
+              }
+              actions={
+                hasFilters
+                  ? [{ label: "Limpiar filtros", href: "/admin/auditoria" }]
+                  : undefined
+              }
+            />
+          ) : (
+            <AccountTable caption="Acciones administrativas" tableClassName="min-w-[860px]">
+              <thead className={accountTableHeadClass}>
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-8 text-center text-stone-500"
-                  >
-                    Todavía no hay acciones administrativas registradas.
-                  </td>
+                  <th scope="col" className={accountTableThClass}>Fecha</th>
+                  <th scope="col" className={accountTableThClass}>Administrador</th>
+                  <th scope="col" className={accountTableThClass}>Acción</th>
+                  <th scope="col" className={accountTableThClass}>Entidad</th>
+                  <th scope="col" className={accountTableThClass}>Detalle</th>
                 </tr>
-              ) : null}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id} className={accountTableRowClass}>
+                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                      {log.createdAt.toLocaleString("es-AR")}
+                    </td>
+                    <td className={`${accountTableTdClass} break-all`}>
+                      {log.actorEmail}
+                    </td>
+                    <td className={accountTableTdClass}>
+                      <span className="font-semibold">
+                        {auditActionLabel(log.action)}
+                      </span>
+                      <span className="mt-1 block type-caption text-text-tertiary">
+                        {log.action}
+                      </span>
+                    </td>
+                    <td className={accountTableTdClass}>
+                      {auditEntityLabel(log.entity)}
+                      {log.entityId ? (
+                        <span className="block max-w-48 truncate type-caption text-text-tertiary">
+                          {log.entityId}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className={accountTableTdClass}>
+                      <code className="block max-w-md whitespace-pre-wrap break-words type-caption text-text-secondary">
+                        {JSON.stringify(log.metadata)}
+                      </code>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </AccountTable>
+          )}
+          <AdminPagination
+            pathname="/admin/auditoria"
+            currentPage={page}
+            totalPages={totalPages}
+            query={{
+              ...(query ? { q: query } : {}),
+              ...(action ? { action } : {}),
+              ...(entity ? { entity } : {}),
+            }}
+          />
         </div>
-        <AdminPagination
-          pathname="/admin/auditoria"
-          currentPage={page}
-          totalPages={totalPages}
-          query={{
-            ...(query ? { q: query } : {}),
-            ...(action ? { action } : {}),
-            ...(entity ? { entity } : {}),
-          }}
-        />
-      </section>
-    </div>
+      </AccountSection>
+    </AccountPageBody>
   );
 }
