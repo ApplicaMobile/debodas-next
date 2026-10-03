@@ -235,3 +235,39 @@ export function AccountDeleteButton({
     </button>
   );
 }
+
+/** Fila de una AccountItemList: dato destacado a la izquierda, contenido y acciones. */
+export function AccountListItem({
+  leading,
+  title,
+  meta,
+  children,
+  actions,
+  as: Component = "li",
+  className,
+}: {
+  leading?: ReactNode;
+  title: ReactNode;
+  meta?: ReactNode;
+  children?: ReactNode;
+  actions?: ReactNode;
+  as?: "li" | "article";
+  className?: string;
+}) {
+  return (
+    <Component
+      className={cn(
+        "flex flex-col gap-3 rounded-md border border-border-subtle bg-surface-default p-4 sm:flex-row sm:items-start sm:gap-4",
+        className,
+      )}
+    >
+      {leading ? <div className="shrink-0 sm:w-20">{leading}</div> : null}
+      <div className="min-w-0 flex-1">
+        <p className="type-label text-text-primary">{title}</p>
+        {meta ? <div className="mt-1 type-caption text-text-secondary">{meta}</div> : null}
+        {children ? <div className="mt-2 type-body-sm text-text-secondary">{children}</div> : null}
+      </div>
+      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2 sm:-mr-2 sm:-mt-1">{actions}</div> : null}
+    </Component>
+  );
+}

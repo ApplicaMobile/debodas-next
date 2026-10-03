@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+} from "@/components/account/AccountPage";
 import { CronogramaPanel } from "@/components/account/ContentPanels";
 import { getOwnedBoda } from "@/lib/account/require-boda";
 
@@ -9,15 +13,13 @@ export default async function MiCuentaCronogramaPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold sm:text-2xl text-stone-800">
-          Cronograma
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Horarios y momentos del día del evento.
-        </p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/cronograma"
+        section="Cronograma"
+        title="Cronograma"
+        description="Los horarios y momentos del día del evento, para que tus invitados sepan qué pasa y cuándo."
+      />
       <CronogramaPanel
         items={boda.scheduleItems
           .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -29,6 +31,6 @@ export default async function MiCuentaCronogramaPage() {
             icon: item.icon,
           }))}
       />
-    </div>
+    </AccountPageBody>
   );
 }

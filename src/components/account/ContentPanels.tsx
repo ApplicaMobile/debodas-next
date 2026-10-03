@@ -9,6 +9,15 @@ import {
 } from "@/lib/account/actions/content";
 import type { FormState } from "@/lib/account/form-state";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { IllustrationCalendar } from "@/components/account/AccountIllustrations";
+import {
+  AccountDeleteButton,
+  AccountFormActions,
+  AccountItemList,
+  AccountListItem,
+  AccountSection,
+} from "@/components/account/AccountPage";
+import { Badge, Button, Input, Select } from "@/components/ui";
 import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import {
@@ -41,13 +50,24 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
   );
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+    <>
+      <AccountSection
+        id="cronograma-momentos"
+        title="Momentos del día"
+        description="Así se ve el cronograma en tu micrositio, en este orden."
+        badge={
+          items.length > 0 ? (
+            <Badge tone="neutro" icon={false}>
+              {items.length} {items.length === 1 ? "momento" : "momentos"}
+            </Badge>
+          ) : null
+        }
+      >
         {items.length === 0 ? (
           <AccountEmptyState
+            illustration={IllustrationCalendar}
             title="Todavía no hay momentos en el cronograma"
             description="Agregá ceremonia, recepción u otros hitos del día. Tus invitados lo van a ver en el micrositio."
-            icon="◷"
             actions={[
               {
                 label: "Agregar primer momento",
@@ -59,90 +79,87 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
             ]}
           />
         ) : (
-          <ul className="divide-y divide-stone-100">
+          <AccountItemList label="Momentos del cronograma">
             {items.map((item) => (
-              <li
+              <AccountListItem
                 key={item.id}
-                className="flex items-start justify-between gap-4 py-4"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-[#e6dac7]">
+                leading={
+                  <span className="type-h4 tabular-nums text-text-accent">
                     {item.time}
-                  </p>
-                  <p className="font-medium text-stone-800">{item.title}</p>
-                  <p className="text-xs text-stone-400">
-                    {scheduleIconLabel(item.icon)}
-                  </p>
-                  {item.description ? (
-                    <p className="text-sm text-stone-500">{item.description}</p>
-                  ) : null}
-                </div>
-                <ConfirmDeleteForm
-                  action={deleteScheduleItemAction}
-                  message="¿Eliminar este ítem del cronograma?"
-                >
-                  <input type="hidden" name="item_id" value={item.id} />
-                  <button
-                    type="submit"
-                    className="text-sm text-red-600 hover:underline"
+                  </span>
+                }
+                title={item.title}
+                meta={scheduleIconLabel(item.icon)}
+                actions={
+                  <ConfirmDeleteForm
+                    action={deleteScheduleItemAction}
+                    message="¿Eliminar este ítem del cronograma?"
                   >
-                    Eliminar
-                  </button>
-                </ConfirmDeleteForm>
-              </li>
+                    <input type="hidden" name="item_id" value={item.id} />
+                    <AccountDeleteButton />
+                  </ConfirmDeleteForm>
+                }
+              >
+                {item.description ? item.description : null}
+              </AccountListItem>
             ))}
-          </ul>
+          </AccountItemList>
         )}
+      </AccountSection>
 
+      <AccountSection
+        id="cronograma-agregar"
+        title="Agregar un momento"
+        description="Completá el horario y el título; el ícono y el detalle ayudan a que se entienda de un vistazo."
+      >
         <form
           id="agregar-cronograma"
           action={addAction}
-          className="mt-6 scroll-mt-24 grid gap-4 sm:grid-cols-2"
+          className="scroll-mt-24"
         >
-          <FormInput
-            label="Horario"
-            name="time"
-            required
-            placeholder="18:00"
-          />
-          <FormInput
-            label="Título"
-            name="title"
-            required
-            placeholder="Ceremonia"
-          />
-          <FormField label="Ícono" htmlFor="schedule-icon">
-            <select
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Input
+              id="time"
+              label="Horario"
+              name="time"
+              required
+              placeholder="18:00"
+            />
+            <Input
+              id="title"
+              label="Título"
+              name="title"
+              required
+              placeholder="Ceremonia"
+            />
+            <Select
               id="schedule-icon"
+              label="Ícono"
               name="icon"
               defaultValue="anillos"
-              className={formControlClassName}
-            >
-              {SCHEDULE_ICON_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormInput
-            label="Detalle"
-            name="description"
-            placeholder="Lugar / detalle (opcional)"
-          />
-          <div className="sm:col-span-2">
-            <FormAlert error={addState.error} success={addState.success} />
-            <button
-              type="submit"
-              disabled={addPending}
-              className="mt-2 rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800"
-            >
-              Agregar al cronograma
-            </button>
+              options={SCHEDULE_ICON_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+            />
+            <Input
+              id="description"
+              label="Detalle"
+              optional
+              name="description"
+              placeholder="Lugar / detalle (opcional)"
+            />
           </div>
+          <AccountFormActions
+            alert={<FormAlert error={addState.error} success={addState.success} />}
+          >
+            <Button type="submit" disabled={addPending}>
+              Agregar al cronograma
+            </Button>
+          </AccountFormActions>
         </form>
-      </section>
-    </div>
+      </AccountSection>
+    </>
   );
 }
 
