@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   useActionState,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -161,12 +160,15 @@ export function InvitationBuilder({
   const selectedTheme = themes.find((t) => t.slug === draft.theme) ?? themes[0];
   const isEditing = Boolean(draft.id);
 
-  useEffect(() => {
-    if (state.success) {
-      setDraft(emptyDraft(eventDatetime));
-      setOpenForm(false);
-    }
-  }, [state.success, eventDatetime]);
+  // Reset del formulario cuando la action reporta éxito (ajuste durante render).
+  const [successSeen, setSuccessSeen] = useState(false);
+  if (state.success && !successSeen) {
+    setSuccessSeen(true);
+    setDraft(emptyDraft(eventDatetime));
+    setOpenForm(false);
+  } else if (!state.success && successSeen) {
+    setSuccessSeen(false);
+  }
 
   function openCreate() {
     setDraft(emptyDraft(eventDatetime));
