@@ -8,12 +8,18 @@ import {
   AccountFilterChipLink,
   AccountPageBody,
   AccountPageHeader,
+  AccountRowActions,
   AccountSection,
 } from "@/components/account/AccountPage";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
-import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
-import { Badge } from "@/components/ui";
+import {
+  Badge,
+  IconCheck,
+  IconClock,
+  IconSubmitButton,
+  IconX,
+} from "@/components/ui";
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>;
@@ -130,15 +136,16 @@ export default async function AdminCalificacionesPage({
                       </blockquote>
                     ) : null}
 
-                    <div className="mt-4 flex flex-wrap gap-2 border-t border-border-subtle pt-4">
+                    <AccountRowActions className="mt-4 border-t border-border-subtle pt-4">
                       {rating.status !== "approved" ? (
                         <AdminActionForm action={updateRatingStatusAction}>
                           <input type="hidden" name="rating_id" value={rating.id} />
                           <input type="hidden" name="status" value="approved" />
-                          <AdminSubmitButton
-                            idleLabel="Aprobar"
+                          <IconSubmitButton
+                            label="Aprobar"
                             pendingLabel="Aprobando…"
-                            variant="primario"
+                            icon={<IconCheck />}
+                            variant="primary"
                           />
                         </AdminActionForm>
                       ) : null}
@@ -149,10 +156,10 @@ export default async function AdminCalificacionesPage({
                         >
                           <input type="hidden" name="rating_id" value={rating.id} />
                           <input type="hidden" name="status" value="rejected" />
-                          <AdminSubmitButton
-                            idleLabel="Rechazar"
+                          <IconSubmitButton
+                            label="Rechazar"
                             pendingLabel="Rechazando…"
-                            variant="secundario"
+                            icon={<IconX />}
                           />
                         </AdminActionForm>
                       ) : null}
@@ -163,14 +170,14 @@ export default async function AdminCalificacionesPage({
                         >
                           <input type="hidden" name="rating_id" value={rating.id} />
                           <input type="hidden" name="status" value="pending" />
-                          <AdminSubmitButton
-                            idleLabel="Marcar pendiente"
+                          <IconSubmitButton
+                            label="Marcar pendiente"
                             pendingLabel="Actualizando…"
-                            variant="fantasma"
+                            icon={<IconClock />}
                           />
                         </AdminActionForm>
                       ) : null}
-                    </div>
+                    </AccountRowActions>
                   </article>
                 </li>
               ))}

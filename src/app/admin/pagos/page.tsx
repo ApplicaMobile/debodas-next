@@ -7,6 +7,7 @@ import { IllustrationGift } from "@/components/account/AccountIllustrations";
 import {
   AccountPageBody,
   AccountPageHeader,
+  AccountRowActions,
   AccountSection,
   AccountTable,
   accountTableHeadClass,
@@ -17,8 +18,14 @@ import {
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
-import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
-import { Badge, Button, IconExternalLink } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  IconCheck,
+  IconEye,
+  IconLink,
+  IconSubmitButton,
+} from "@/components/ui";
 
 const PAGE_SIZE = 25;
 
@@ -209,16 +216,13 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
                   <td className={accountTableTdClass} data-label="Método">{gift.method}</td>
                   <td className={accountTableTdClass} data-label="Comprobante">
                     {gift.voucherUrl ? (
-                      <a
+                      <IconLink
                         href={gift.voucherUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="focus-ring inline-flex items-center gap-1 rounded-sm font-semibold text-text-link hover:underline"
-                      >
-                        Ver voucher
-                        <IconExternalLink size={14} />
-                        <span className="sr-only"> (se abre en otra pestaña)</span>
-                      </a>
+                        newTab
+                        label="Ver voucher (se abre en otra pestaña)"
+                        tooltip="Ver voucher"
+                        icon={<IconEye />}
+                      />
                     ) : (
                       <span className="text-text-tertiary">—</span>
                     )}
@@ -227,20 +231,21 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
                     {gift.confirmed ? (
                       <Badge tone="aprobado">Confirmado</Badge>
                     ) : (
-                      <div className="flex flex-wrap items-center gap-2">
+                      <AccountRowActions>
                         <Badge tone="pendiente">Pendiente</Badge>
                         <AdminActionForm
                           action={confirmGiftAdminAction}
                           confirmMessage={`¿Confirmás que el regalo de ${gift.participants} fue recibido?`}
                         >
                           <input type="hidden" name="gift_id" value={gift.id} />
-                          <AdminSubmitButton
-                            idleLabel="Confirmar"
+                          <IconSubmitButton
+                            label="Confirmar"
                             pendingLabel="Confirmando…"
-                            variant="primario"
+                            icon={<IconCheck />}
+                            variant="primary"
                           />
                         </AdminActionForm>
-                      </div>
+                      </AccountRowActions>
                     )}
                   </td>
                 </tr>

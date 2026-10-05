@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { IllustrationEnvelope } from "@/components/account/AccountIllustrations";
 import {
   AccountFilterBar,
   AccountPageBody,
   AccountPageHeader,
+  AccountRowActions,
   AccountSection,
   AccountStatCard,
   AccountTable,
@@ -14,7 +14,17 @@ import {
   accountTableThClass,
 } from "@/components/account/AccountPage";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
-import { Alert, Badge, Input, Select } from "@/components/ui";
+import {
+  Alert,
+  Badge,
+  IconEye,
+  IconLink,
+  IconMailResend,
+  IconSubmitButton,
+  IconTrash,
+  Input,
+  Select,
+} from "@/components/ui";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { isEmailConfigured } from "@/lib/email/client";
 import { prisma } from "@/lib/db/prisma";
@@ -294,14 +304,13 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                       <AdminStatusBadge kind="email" status={log.status} />
                     </td>
                     <td className={accountTableTdClass} data-label="Acción" data-actions="">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Link
+                      <AccountRowActions>
+                        <IconLink
                           href={`/admin/emails/${log.id}`}
-                          className="focus-ring inline-flex min-h-9 items-center rounded-sm px-1 font-semibold text-text-link hover:underline"
-                        >
-                          Ver
-                          <span className="sr-only"> el email a {log.toAddress}</span>
-                        </Link>
+                          label={`Ver el email a ${log.toAddress}`}
+                          tooltip="Ver"
+                          icon={<IconEye />}
+                        />
                         {["failed", "blocked"].includes(log.status) &&
                         log.contentEncrypted ? (
                           <AdminActionForm
@@ -309,10 +318,10 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                             confirmMessage="¿Agregar nuevamente este email a la cola?"
                           >
                             <input type="hidden" name="email_id" value={log.id} />
-                            <AdminSubmitButton
-                              idleLabel="Reintentar"
+                            <IconSubmitButton
+                              label="Reintentar"
                               pendingLabel="Agregando…"
-                              variant="secundario"
+                              icon={<IconMailResend />}
                             />
                           </AdminActionForm>
                         ) : null}
@@ -324,14 +333,15 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                             confirmMessage="¿Eliminar definitivamente este registro de email?"
                           >
                             <input type="hidden" name="email_id" value={log.id} />
-                            <AdminSubmitButton
-                              idleLabel="Eliminar"
+                            <IconSubmitButton
+                              label="Eliminar"
                               pendingLabel="Eliminando…"
-                              variant="eliminar"
+                              icon={<IconTrash />}
+                              variant="danger"
                             />
                           </AdminActionForm>
                         ) : null}
-                      </div>
+                      </AccountRowActions>
                     </td>
                   </tr>
                 ))}

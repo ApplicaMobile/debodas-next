@@ -12,6 +12,7 @@ import { IllustrationRings } from "@/components/account/AccountIllustrations";
 import {
   AccountFilterBar,
   AccountPageBody,
+  AccountRowActions,
   AccountPageHeader,
   AccountSection,
   AccountTable,
@@ -23,9 +24,13 @@ import {
 } from "@/components/account/AccountPage";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
-import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 import {
+  IconCheck,
+  IconChevronRight,
   IconDownload,
+  IconExternalLink,
+  IconLink,
+  IconSubmitButton,
   Input,
   Select,
   buttonClasses,
@@ -216,7 +221,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                         <td className={accountTableTdClass} data-label="Plan">
                           <AdminActionForm
                             action={updateBodaPlanAction}
-                            className="flex flex-col items-start gap-2"
+                            className="flex items-center gap-2 min-[769px]:flex-col min-[769px]:items-start"
                             confirmMessage={`¿Confirmás el cambio de plan de ${name}?`}
                           >
                             <input type="hidden" name="boda_id" value={boda.id} />
@@ -227,7 +232,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                               id={`plan-${boda.id}`}
                               name="plan"
                               defaultValue={boda.plan}
-                              className={accountCompactControlClass}
+                              className={`${accountCompactControlClass} min-[769px]:min-w-[7.5rem]`}
                             >
                               {planOptions.map((value) => (
                                 <option key={value} value={value}>
@@ -235,10 +240,10 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                                 </option>
                               ))}
                             </select>
-                            <AdminSubmitButton
-                              idleLabel="Guardar"
+                            <IconSubmitButton
+                              label="Guardar"
                               pendingLabel="Guardando…"
-                              variant="secundario"
+                              icon={<IconCheck />}
                             />
                           </AdminActionForm>
                         </td>
@@ -248,22 +253,20 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                           <p>{boda._count.ratings} ratings</p>
                         </td>
                         <td className={`${accountTableTdClass} whitespace-nowrap`} data-label="Acciones" data-actions="">
-                          <div className="flex flex-col items-start gap-1">
-                            <Link
+                          <AccountRowActions>
+                            <IconLink
                               href={`/admin/bodas/${boda.id}`}
-                              className="focus-ring rounded-sm font-semibold text-text-link hover:underline"
-                            >
-                              Detalle
-                            </Link>
-                            <Link
+                              label="Detalle"
+                              icon={<IconChevronRight />}
+                            />
+                            <IconLink
                               href={`/bodas/${boda.slug}`}
-                              target="_blank"
-                              className="focus-ring rounded-sm font-semibold text-text-accent hover:underline"
-                            >
-                              Ver sitio <span aria-hidden="true">↗</span>
-                              <span className="sr-only"> (se abre en otra pestaña)</span>
-                            </Link>
-                          </div>
+                              newTab
+                              label="Ver sitio (se abre en otra pestaña)"
+                              tooltip="Ver sitio"
+                              icon={<IconExternalLink />}
+                            />
+                          </AccountRowActions>
                         </td>
                       </tr>
                     );

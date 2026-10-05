@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { IllustrationLedger } from "@/components/account/AccountIllustrations";
 import {
@@ -7,6 +6,7 @@ import {
   AccountFormActions,
   AccountPageBody,
   AccountPageHeader,
+  AccountRowActions,
   AccountSection,
   AccountTable,
   accountTableHeadClass,
@@ -15,7 +15,18 @@ import {
   accountTableThClass,
 } from "@/components/account/AccountPage";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
-import { Alert, Input, Select } from "@/components/ui";
+import {
+  Alert,
+  IconExternalLink,
+  IconEye,
+  IconImage,
+  IconImport,
+  IconLink,
+  IconRefresh,
+  IconSubmitButton,
+  Input,
+  Select,
+} from "@/components/ui";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import {
   migrateAllPendingAction,
@@ -258,13 +269,12 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
                       {item.pictureCount}/{item.giftCount}/{item.guestCount}
                     </td>
                     <td className={accountTableTdClass} data-label="Acciones" data-actions="">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <Link
+                      <AccountRowActions>
+                        <IconLink
                           href={`/admin/migracion?preview=${item.wpPostId}&status=${statusFilter}&q=${encodeURIComponent(q ?? "")}`}
-                          className="focus-ring rounded-sm type-button-sm text-text-link hover:underline"
-                        >
-                          Vista previa
-                        </Link>
+                          label="Vista previa"
+                          icon={<IconEye />}
+                        />
                         <AdminActionForm action={migrateWpBodaAction}>
                           <input type="hidden" name="wp_post_id" value={item.wpPostId} />
                           <input
@@ -272,21 +282,19 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
                             name="overwrite"
                             value={item.status === "migrada" ? "1" : "0"}
                           />
-                          <AdminSubmitButton
-                            idleLabel={item.status === "migrada" ? "Re-migrar" : "Migrar"}
-                            pendingLabel="…"
-                            variant="secundario"
+                          <IconSubmitButton
+                            label={item.status === "migrada" ? "Re-migrar" : "Migrar"}
+                            icon={item.status === "migrada" ? <IconRefresh /> : <IconImport />}
                           />
                         </AdminActionForm>
                         {item.prismaSlug ? (
-                          <Link
+                          <IconLink
                             href={`/bodas/${item.prismaSlug}`}
-                            target="_blank"
-                            className="focus-ring rounded-sm type-button-sm text-text-accent hover:underline"
-                          >
-                            Ver sitio
-                            <span className="sr-only"> (se abre en otra pestaña)</span>
-                          </Link>
+                            newTab
+                            label="Ver sitio (se abre en otra pestaña)"
+                            tooltip="Ver sitio"
+                            icon={<IconExternalLink />}
+                          />
                         ) : null}
                         {item.prismaBodaId ? (
                           <AdminActionForm
@@ -294,14 +302,13 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
                             confirmMessage="¿Copiar fotos WP a /uploads de esta boda?"
                           >
                             <input type="hidden" name="boda_id" value={item.prismaBodaId} />
-                            <AdminSubmitButton
-                              idleLabel="Rehost fotos"
-                              pendingLabel="…"
-                              variant="fantasma"
+                            <IconSubmitButton
+                              label="Rehost fotos"
+                              icon={<IconImage />}
                             />
                           </AdminActionForm>
                         ) : null}
-                      </div>
+                      </AccountRowActions>
                     </td>
                   </tr>
                 ))}

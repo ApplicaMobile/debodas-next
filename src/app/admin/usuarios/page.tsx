@@ -20,8 +20,7 @@ import {
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import { AdminPlanBadge } from "@/components/admin/AdminStatusBadge";
-import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
-import { Alert, Badge, Input } from "@/components/ui";
+import { Alert, Badge, IconCheck, IconSubmitButton, Input } from "@/components/ui";
 
 const PAGE_SIZE = 25;
 
@@ -162,7 +161,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                     <td className={accountTableTdClass} data-label="Rol">
                       <AdminActionForm
                         action={updateUserRoleAction}
-                        className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center"
+                        className="flex max-w-full items-center gap-2"
                         confirmMessage={`¿Confirmás el cambio de rol de ${user.email}?`}
                       >
                         <input type="hidden" name="user_id" value={user.id} />
@@ -175,15 +174,15 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                           id={`role-${user.id}`}
                           name="role"
                           defaultValue={user.role}
-                          className={accountCompactControlClass}
+                          className={`${accountCompactControlClass} min-[769px]:min-w-[7rem]`}
                         >
                           <option value="couple">couple</option>
                           <option value="admin">admin</option>
                         </select>
-                        <AdminSubmitButton
-                          idleLabel="Guardar"
+                        <IconSubmitButton
+                          label="Guardar"
                           pendingLabel="Guardando…"
-                          variant="secundario"
+                          icon={<IconCheck />}
                         />
                       </AdminActionForm>
                     </td>
