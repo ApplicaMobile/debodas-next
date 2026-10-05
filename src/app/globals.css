@@ -152,7 +152,9 @@
 
     .account-table--stacked tbody td[data-actions] {
       display: flex;
+      flex-direction: row;
       flex-wrap: wrap;
+      align-items: center;
       gap: 0.5rem;
       margin-top: 0.25rem;
       padding-top: 0.85rem;
@@ -164,26 +166,59 @@
       display: none;
     }
 
+    /* Row of icon buttons (AccountRowActions) at the bottom of the card. */
+    .account-table--stacked tbody td[data-actions] > [data-row-actions] {
+      flex: 1 1 100%;
+      min-width: 0;
+      justify-content: flex-start;
+    }
+
     .account-table--stacked tbody td select,
     .account-table--stacked tbody td input:not([type="hidden"]),
-    .account-table--stacked tbody td button[type="submit"] {
+    .account-table--stacked tbody td button[type="submit"]:not([data-icon-action]) {
       width: 100%;
       min-height: 2.75rem; /* 44px */
     }
 
-    .account-table--stacked tbody td[data-actions] > *,
-    .account-table--stacked tbody td[data-actions] form {
-      flex: 1 1 100%;
-      min-width: 0;
-    }
-
+    /* Inline forms: control + icon submit side by side (wraps extra blocks). */
     .account-table--stacked tbody td form {
       display: flex;
-      flex-direction: column;
-      align-items: stretch;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 0.5rem;
       width: 100%;
       max-width: 100%;
     }
+
+    .account-table--stacked tbody td form > select,
+    .account-table--stacked tbody td form > input:not([type="hidden"]) {
+      flex: 1 1 0%;
+      width: auto;
+      min-width: 0;
+    }
+
+    .account-table--stacked tbody td form > div {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+
+    /* Single-action forms inside the actions row keep their icon size. */
+    .account-table--stacked tbody td [data-row-actions] form {
+      display: inline-flex;
+      flex: 0 0 auto;
+      width: auto;
+    }
   }
+}
+
+/*
+ * Row actions: the last icon tooltip aligns to the right edge so it never
+ * overflows the table scroll container (unlayered to win over utilities).
+ */
+[data-row-actions] > :last-child [data-icon-tooltip],
+[data-row-actions] > [data-icon-action]:last-child > [data-icon-tooltip] {
+  left: auto;
+  right: 0;
+  translate: none;
 }

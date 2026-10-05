@@ -1,4 +1,15 @@
 export { Button, buttonClasses, type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button";
+export {
+  IconButton,
+  IconLink,
+  iconButtonClasses,
+  type IconButtonProps,
+  type IconLinkProps,
+  type IconButtonVariant,
+  type IconTooltipAlign,
+  type IconTooltipPlacement,
+} from "./IconButton";
+export { IconSubmitButton, type IconSubmitButtonProps } from "./IconSubmitButton";
 export { Input, type InputProps } from "./Input";
 export { Textarea, type TextareaProps } from "./Textarea";
 export { Select, type SelectProps, type SelectOption } from "./Select";

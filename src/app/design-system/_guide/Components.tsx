@@ -5,7 +5,13 @@ import {
   Card,
   Checkbox,
   IconArrowRight,
+  IconButton,
+  IconCheck,
+  IconChevronRight,
+  IconExternalLink,
   IconGift,
+  IconLink,
+  IconPencil,
   IconTrash,
   Input,
   PaymentStatusBadge,
@@ -98,6 +104,36 @@ export function Buttons() {
         <Demo label="Ancho completo (mobile)" className="w-full max-w-sm">
           <Button fullWidth size="lg">Armá tu lista</Button>
         </Demo>
+      </div>
+
+      <SubTitle>Botón de ícono (acciones de filas)</SubTitle>
+      <div className="flex flex-col gap-4 rounded-md border border-border-subtle bg-surface-default p-4 sm:p-6">
+        <p className="max-w-2xl type-body-sm text-text-secondary">
+          Solo para acciones de filas en tablas y listas: 44×44px, <Spec>label</Spec> obligatorio (nombre accesible
+          y tooltip al pasar el mouse o enfocar). Las acciones principales de la página siguen siendo botones con texto.
+        </p>
+        <div className="flex flex-wrap items-start gap-6 pt-8">
+          <Demo label="neutral">
+            <span className="flex gap-2">
+              <IconButton label="Editar" icon={<IconPencil />} />
+              <IconButton label="Guardar" icon={<IconCheck />} />
+            </span>
+          </Demo>
+          <Demo label="primary"><IconButton label="Confirmar" icon={<IconCheck />} variant="primary" /></Demo>
+          <Demo label="danger"><IconButton label="Eliminar" icon={<IconTrash />} variant="danger" /></Demo>
+          <Demo label="IconLink">
+            <span className="flex gap-2">
+              <IconLink href="#botones" label="Detalle" icon={<IconChevronRight />} />
+              <IconLink href="#botones" label="Ver sitio" icon={<IconExternalLink />} />
+            </span>
+          </Demo>
+          <Demo label="Cargando / deshabilitado">
+            <span className="flex gap-2">
+              <IconButton label="Guardando…" icon={<IconCheck />} loading />
+              <IconButton label="Guardar" icon={<IconCheck />} disabled />
+            </span>
+          </Demo>
+        </div>
       </div>
 
       <div className="mt-6 rounded-md bg-surface-inverse p-6">

@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   IconArrowRight,
+  IconSubmitButton,
   IconTrash,
   UsageMeter,
 } from "@/components/ui";
@@ -365,6 +366,56 @@ export function AccountDeleteButton({
       <IconTrash size={16} />
       <span>{children}</span>
     </button>
+  );
+}
+
+/**
+ * Acciones de una fila (tabla o lista) como fila de IconButton / IconLink.
+ * En las tarjetas apiladas de AccountTable (mobile) quedan al pie de la tarjeta;
+ * el tooltip del último ícono se alinea a la derecha para no desbordar la tabla.
+ */
+export function AccountRowActions({
+  children,
+  align = "start",
+  className,
+}: {
+  children: ReactNode;
+  /** `end` alinea a la derecha desde 769px (columna de acciones de una tabla). */
+  align?: "start" | "end";
+  className?: string;
+}) {
+  return (
+    <div
+      data-row-actions=""
+      className={cn(
+        "flex flex-wrap items-center gap-2",
+        align === "end" && "min-[769px]:justify-end",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Eliminar como ícono (papelera roja) para filas de tablas y listas. Va dentro de
+ * ConfirmDeleteForm (que pide confirmación); el nombre accesible sigue siendo "Eliminar".
+ */
+export function AccountDeleteIconButton({
+  label = "Eliminar",
+  className,
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <IconSubmitButton
+      label={label}
+      icon={<IconTrash />}
+      variant="danger"
+      className={className}
+    />
   );
 }
 
