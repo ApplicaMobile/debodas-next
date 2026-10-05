@@ -47,7 +47,7 @@ export function MicrositeCanvaInvite({
           Abrir en Canva ↗
         </a>
       </div>
-      <p className="mt-2 text-xs text-[var(--theme-text-muted)]">
+      <p className="mt-2 type-caption text-[var(--theme-text-muted)]">
         Para descargar la invitación (PNG/PDF), usá la opción de descarga en
         Canva.
       </p>

@@ -21,7 +21,7 @@ export function ThemeSwitcher({ weddingSlug }: ThemeSwitcherProps) {
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="text-sm font-medium text-stone-600 hover:text-stone-900"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-stone-600 hover:text-stone-900"
           >
             ← Inicio
           </Link>
@@ -31,14 +31,14 @@ export function ThemeSwitcher({ weddingSlug }: ThemeSwitcherProps) {
           </p>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex max-w-full gap-2 overflow-x-auto overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch]">
           {themeList.map((theme) => {
             const isActive = theme.slug === activeSlug;
             return (
               <Link
                 key={theme.slug}
                 href={`/bodas/${weddingSlug}?theme=${theme.slug}${embeddedQuery}`}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full px-4 type-button-sm font-medium transition ${
                   isActive
                     ? "bg-[#e6dac7] text-stone-800"
                     : "bg-stone-100 text-stone-700 hover:bg-stone-200"

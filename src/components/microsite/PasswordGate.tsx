@@ -72,7 +72,7 @@ export function PasswordGate({ slug, coupleName }: PasswordGateProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-2 my-auto rounded-lg px-3 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+                className="absolute inset-y-0 right-2 my-auto inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-stone-600 hover:bg-stone-50"
               >
                 {showPassword ? t("microsite.passwordHide") : t("microsite.passwordShow")}
               </button>

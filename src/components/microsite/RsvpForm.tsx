@@ -49,7 +49,7 @@ export function RsvpForm({
           <p className="mt-2 text-sm font-medium text-emerald-900">
             {state.success}
           </p>
-          <p className="mt-2 text-xs text-emerald-800/80">
+          <p className="mt-2 type-caption text-emerald-800/80">
             {t("microsite.rsvpReceived")}
           </p>
         </div>
@@ -183,7 +183,7 @@ export function RsvpForm({
                         current.filter((_, guestIndex) => guestIndex !== index),
                       )
                     }
-                    className="text-xs font-medium text-red-600 hover:underline"
+                    className="inline-flex min-h-11 items-center type-caption font-medium text-red-600 hover:underline"
                   >
                     {t("microsite.rsvpRemove")}
                   </button>

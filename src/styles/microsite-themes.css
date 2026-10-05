@@ -452,8 +452,8 @@
 }
 
 .microsite-banner__eyebrow {
-  font-size: 0.72rem;
-  letter-spacing: 0.32em;
+  font-size: 0.75rem; /* 12px minimum for mobile readability */
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   opacity: 0.9;
 }

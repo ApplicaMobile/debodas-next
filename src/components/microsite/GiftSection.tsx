@@ -206,7 +206,7 @@ export function GiftSection({
                       {formatPrice(gift.price ?? 0)}
                     </p>
                     {gift.quantity && Number(gift.quantity) > 1 ? (
-                      <p className="mt-1 text-xs text-[var(--theme-text-muted)]">
+                      <p className="mt-1 type-caption text-[var(--theme-text-muted)]">
                         {t("microsite.giftQty", { qty: String(gift.quantity) })}
                       </p>
                     ) : null}
