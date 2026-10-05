@@ -44,7 +44,7 @@ export default async function ContactoPage() {
             </a>
           </p>
 
-          <ul className="mt-8 space-y-3 text-sm text-stone-600">
+          <ul className="mt-8 space-y-3 text-base text-stone-600">
             <li>
               <span className="font-medium text-stone-800">
                 {t(messages, "contact.networks")}:{" "}

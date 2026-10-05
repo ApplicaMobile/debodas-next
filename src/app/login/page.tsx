@@ -65,7 +65,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <LoginForm nextPath={nextPath} />
 
             {process.env.NODE_ENV === "development" ? (
-              <p className="mt-6 text-center text-xs text-stone-400">
+              <p className="mt-6 text-center text-sm text-stone-400">
                 Dev: demo@debodas.local / demo1234 · admin@debodas.local /
                 admin1234
               </p>

@@ -40,7 +40,7 @@ function StepError({ message }: { message: string }) {
   return (
     <p
       role="alert"
-      className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+      className="rounded-xl bg-red-50 px-4 py-3 text-base text-red-700"
     >
       {message}
     </p>
@@ -202,7 +202,7 @@ export function RegisterWizard() {
   } as const;
 
   const inputClassName =
-    "w-full rounded-xl border border-stone-200 px-4 py-3";
+    "focus-ring min-h-12 w-full rounded-xl border border-stone-200 px-4 py-3 text-base text-stone-800";
   const stepLabels = [
     t("auth.stepAccount"),
     t("auth.stepWedding"),
@@ -221,7 +221,7 @@ export function RegisterWizard() {
             <li
               key={label}
               aria-current={isActive ? "step" : undefined}
-              className={`flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold sm:text-sm ${
+              className={`flex min-h-11 flex-1 items-center justify-center rounded-full px-3 py-2 text-center text-sm font-semibold ${
                 isActive
                   ? "bg-[#e6dac7] text-stone-800"
                   : isDone
@@ -427,7 +427,7 @@ export function RegisterWizard() {
             ))}
           </div>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 p-4 text-sm text-stone-700">
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 p-4 text-base text-stone-700">
             <input
               type="checkbox"
               name="accept_terms"
@@ -471,7 +471,7 @@ export function RegisterWizard() {
               type="button"
               onClick={handleBack}
               disabled={isPending}
-              className="rounded-full border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-700 disabled:opacity-60"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-stone-300 px-5 py-3 text-base font-semibold text-stone-700 disabled:opacity-60"
             >
               {t("auth.previous")}
             </button>
@@ -483,7 +483,7 @@ export function RegisterWizard() {
             <button
               type="button"
               onClick={handleNext}
-              className="rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#e6dac7] px-5 py-3 text-base font-semibold text-stone-800"
             >
               {t("auth.next")}
             </button>
@@ -491,7 +491,7 @@ export function RegisterWizard() {
             <button
               type="submit"
               disabled={isBusy}
-              className="rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#e6dac7] px-5 py-3 text-base font-semibold text-stone-800 disabled:opacity-60"
             >
               {isBusy
                 ? isPaidPlanSelected

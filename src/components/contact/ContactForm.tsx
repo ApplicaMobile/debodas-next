@@ -26,7 +26,7 @@ export function ContactForm() {
           required
           maxLength={120}
           autoComplete="name"
-          className="mt-2 w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
+          className="focus-ring mt-2 min-h-12 w-full rounded-xl border border-stone-200 px-4 py-3 text-base text-stone-800"
           placeholder="Tu nombre"
         />
       </label>
@@ -39,7 +39,7 @@ export function ContactForm() {
           required
           maxLength={254}
           autoComplete="email"
-          className="mt-2 w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
+          className="focus-ring mt-2 min-h-12 w-full rounded-xl border border-stone-200 px-4 py-3 text-base text-stone-800"
           placeholder="tu@email.com"
         />
       </label>
@@ -51,7 +51,7 @@ export function ContactForm() {
           required
           rows={5}
           maxLength={4000}
-          className="mt-2 w-full rounded-xl border border-stone-200 px-4 py-3 text-sm"
+          className="focus-ring mt-2 min-h-12 w-full rounded-xl border border-stone-200 px-4 py-3 text-base text-stone-800"
           placeholder="¿En qué podemos ayudarte?"
         />
       </label>
@@ -59,7 +59,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
+        className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#e6dac7] px-5 py-3 text-base font-semibold text-stone-800 disabled:opacity-60 sm:w-auto"
       >
         {pending ? "Enviando…" : "Enviar mensaje"}
       </button>
