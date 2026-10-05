@@ -457,7 +457,7 @@ export function InvitationBuilder({
             </AccountFieldGroup>
 
             <AccountFieldGroup title="Vista previa">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:items-start">
                 <div>
                   <p className="mb-2 type-label text-text-primary">
                     Vista previa del tema
@@ -539,7 +539,7 @@ export function InvitationBuilder({
               {invitations.map((invitation) => (
                 <article
                   key={invitation.id}
-                  className="overflow-hidden rounded-md border border-border-subtle bg-surface-default"
+                  className="max-w-full overflow-hidden rounded-md border border-border-subtle bg-surface-default"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
                     <h4 className="type-label text-text-primary">

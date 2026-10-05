@@ -131,7 +131,7 @@ function PaletteEditor({
                 name={`${prefix}_color_hex_${index}`}
                 value={color.hex}
                 onChange={(e) => onUpdate(index, "hex", e.target.value)}
-                className={`${formControlClassName} min-h-11 px-2.5 py-2 font-mono type-body-sm`}
+                className={`${formControlClassName} min-h-11 px-2.5 py-2 font-mono type-body`}
                 placeholder="#C4A484"
                 aria-label={`Hex ${index + 1}`}
               />
@@ -139,7 +139,7 @@ function PaletteEditor({
                 name={`${prefix}_color_name_${index}`}
                 value={color.name}
                 onChange={(e) => onUpdate(index, "name", e.target.value)}
-                className={`${formControlClassName} min-h-11 px-2.5 py-2 type-body-sm`}
+                className={`${formControlClassName} min-h-11 px-2.5 py-2 type-body`}
                 placeholder="Champagne"
                 aria-label={`Nombre ${index + 1}`}
               />

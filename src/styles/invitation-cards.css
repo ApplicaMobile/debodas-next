@@ -2,7 +2,7 @@
 
 .invitation-card-stage {
   position: relative;
-  width: 400px;
+  width: min(400px, 100%);
   max-width: 100%;
   margin: 0 auto;
 }
@@ -13,12 +13,12 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 400px;
+  width: min(400px, 100%);
   max-width: 100%;
   aspect-ratio: 400 / 618;
   height: auto;
   min-height: 360px;
-  padding: 2rem 2.75rem;
+  padding: 2rem clamp(1rem, 4vw, 2.75rem);
   box-sizing: border-box;
   background-size: cover;
   background-position: center;

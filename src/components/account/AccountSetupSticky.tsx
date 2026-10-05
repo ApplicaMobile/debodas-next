@@ -17,7 +17,7 @@ export function AccountSetupSticky({
   if (ready) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle bg-surface-default/95 px-4 py-3 shadow-elevation-3 backdrop-blur-sm sm:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle bg-surface-default/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-elevation-3 backdrop-blur-sm sm:hidden">
       <div className="flex items-center justify-between gap-3">
         <p className="type-caption text-text-secondary">
           <span className="font-semibold text-text-primary">Siguiente paso:</span>

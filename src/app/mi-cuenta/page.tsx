@@ -332,7 +332,7 @@ export default async function MiCuentaPage() {
     : IllustrationRings;
 
   return (
-    <div className="space-y-6 pb-24 sm:space-y-8 sm:pb-0">
+    <div className="space-y-6 pb-32 sm:space-y-8 sm:pb-0">
       {/* Saludo */}
       <Card as="section" padding="none" className="overflow-hidden" aria-labelledby="inicio-saludo">
         <div className="flex flex-col gap-6 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-8">
