@@ -14,7 +14,7 @@ import {
   accountTableThClass,
 } from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
-import { Button, Input, Textarea } from "@/components/ui";
+import { Button, IconEye, IconLink, Input, Textarea } from "@/components/ui";
 
 const initialState: FormState = {};
 
@@ -96,14 +96,12 @@ export function AbonarTarjetaPanel({
                   <td className={accountTableTdClass} data-label="Monto">${pago.monto}</td>
                   <td className={accountTableTdClass} data-label="Comprobante">
                     {pago.comprobante_url ? (
-                      <a
+                      <IconLink
                         href={pago.comprobante_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="focus-ring rounded-sm font-semibold text-text-link underline-offset-2 hover:underline"
-                      >
-                        Ver
-                      </a>
+                        newTab
+                        label="Ver"
+                        icon={<IconEye />}
+                      />
                     ) : (
                       "—"
                     )}

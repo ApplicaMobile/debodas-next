@@ -18,9 +18,10 @@ import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { IllustrationEnvelope } from "@/components/account/AccountIllustrations";
 import {
-  AccountDeleteButton,
+  AccountDeleteIconButton,
   AccountFieldGroup,
   AccountFormActions,
+  AccountRowActions,
   AccountSection,
 } from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
@@ -31,6 +32,8 @@ import {
   Button,
   Card,
   Checkbox,
+  IconButton,
+  IconPencil,
   Input,
   Select,
   Textarea,
@@ -570,15 +573,12 @@ export function InvitationBuilder({
                     >
                       Descargar invitación
                     </Button>
-                    <div className="flex items-center justify-between gap-2">
-                      <Button
-                        type="button"
-                        variant="secundario"
-                        size="sm"
+                    <AccountRowActions className="justify-between">
+                      <IconButton
+                        label="Editar"
+                        icon={<IconPencil />}
                         onClick={() => openEdit(invitation)}
-                      >
-                        Editar
-                      </Button>
+                      />
                       <ConfirmDeleteForm
                         action={deleteInvitationAction}
                         message="¿Eliminar esta invitación?"
@@ -588,9 +588,9 @@ export function InvitationBuilder({
                           name="invitation_id"
                           value={invitation.id}
                         />
-                        <AccountDeleteButton />
+                        <AccountDeleteIconButton />
                       </ConfirmDeleteForm>
-                    </div>
+                    </AccountRowActions>
                   </div>
                 </article>
               ))}

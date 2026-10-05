@@ -15,8 +15,9 @@ import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { IllustrationGift } from "@/components/account/AccountIllustrations";
 import {
-  AccountDeleteButton,
+  AccountDeleteIconButton,
   AccountFormActions,
+  AccountRowActions,
   AccountSection,
   AccountPlanUsage,
 } from "@/components/account/AccountPage";
@@ -24,6 +25,9 @@ import {
   Badge,
   Button,
   Checkbox,
+  IconButton,
+  IconPencil,
+  IconX,
   Input,
 } from "@/components/ui";
 import { ImageFileInput } from "@/components/ui/ImageFileInput";
@@ -241,28 +245,25 @@ export function GiftsPanel({
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="secundario"
-                      size="sm"
+                  <AccountRowActions className="shrink-0">
+                    <IconButton
+                      label={editingId === gift.id ? "Cerrar" : "Editar"}
+                      icon={editingId === gift.id ? <IconX /> : <IconPencil />}
                       aria-expanded={editingId === gift.id}
                       onClick={() =>
                         setEditingId((current) =>
                           current === gift.id ? null : gift.id,
                         )
                       }
-                    >
-                      {editingId === gift.id ? "Cerrar" : "Editar"}
-                    </Button>
+                    />
                     <ConfirmDeleteForm
                       action={deleteGiftAction}
                       message="¿Eliminar este regalo?"
                     >
                       <input type="hidden" name="gift_id" value={gift.id} />
-                      <AccountDeleteButton />
+                      <AccountDeleteIconButton />
                     </ConfirmDeleteForm>
-                  </div>
+                  </AccountRowActions>
                 </div>
                 {editingId === gift.id ? (
                   <GiftEditor

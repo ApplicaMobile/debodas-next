@@ -14,7 +14,7 @@ import {
   IllustrationQuestions,
 } from "@/components/account/AccountIllustrations";
 import {
-  AccountDeleteButton,
+  AccountDeleteIconButton,
   AccountFormActions,
   AccountItemList,
   AccountListItem,
@@ -93,7 +93,7 @@ export function CronogramaPanel({ items }: CronogramaPanelProps) {
                     message="¿Eliminar este ítem del cronograma?"
                   >
                     <input type="hidden" name="item_id" value={item.id} />
-                    <AccountDeleteButton />
+                    <AccountDeleteIconButton />
                   </ConfirmDeleteForm>
                 }
               >
@@ -211,7 +211,7 @@ export function FaqPanel({
                     message="¿Eliminar esta pregunta?"
                   >
                     <input type="hidden" name="item_id" value={item.id} />
-                    <AccountDeleteButton />
+                    <AccountDeleteIconButton />
                   </ConfirmDeleteForm>
                 }
               >

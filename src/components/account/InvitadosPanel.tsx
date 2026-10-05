@@ -13,9 +13,10 @@ import { FormAlert } from "@/components/account/FormAlert";
 import { ConfirmDeleteForm } from "@/components/account/ConfirmDeleteForm";
 import { IllustrationGuests } from "@/components/account/AccountIllustrations";
 import {
-  AccountDeleteButton,
+  AccountDeleteIconButton,
   AccountFilterChip,
   AccountFormActions,
+  AccountRowActions,
   AccountSection,
   AccountTable,
   accountCompactControlClass,
@@ -29,6 +30,10 @@ import { formControlClassName } from "@/components/account/FormField";
 import {
   Badge,
   Button,
+  IconCheck,
+  IconClock,
+  IconSubmitButton,
+  IconX,
   Input,
   Select,
   type BadgeTone,
@@ -185,12 +190,7 @@ function GuestTableField({
             className={`${accountCompactControlClass} min-w-0 flex-1`}
             aria-label="Nueva mesa"
           />
-          <button
-            type="submit"
-            className="focus-ring min-h-9 shrink-0 rounded-sm px-2 type-button-sm text-text-accent hover:bg-surface-muted"
-          >
-            OK
-          </button>
+          <IconSubmitButton label="OK" icon={<IconCheck />} />
         </div>
       ) : (
         <input type="hidden" name="table_name" value={selectValue} />
@@ -250,48 +250,41 @@ function GuestQuickActions({
   status: string;
   statusAction: (payload: FormData) => void;
 }) {
+  // Solo en las tarjetas apiladas (mobile): en la tabla ya está el select de estado.
+  const formClass = "min-[769px]:hidden";
+
   if (status === "confirmed") {
     return (
-      <form action={statusAction} className="mt-3">
+      <form action={statusAction} className={formClass}>
         <input type="hidden" name="guest_id" value={guestId} />
         <input type="hidden" name="status" value="declined" />
-        <Button type="submit" variant="fantasma" size="sm">
-          Marcar como no asiste
-        </Button>
+        <IconSubmitButton label="Marcar como no asiste" icon={<IconX />} />
       </form>
     );
   }
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
-      {status !== "confirmed" ? (
-        <form action={statusAction}>
-          <input type="hidden" name="guest_id" value={guestId} />
-          <input type="hidden" name="status" value="confirmed" />
-          <Button type="submit" size="sm">
-            Confirmar
-          </Button>
-        </form>
-      ) : null}
+    <>
+      <form action={statusAction} className={formClass}>
+        <input type="hidden" name="guest_id" value={guestId} />
+        <input type="hidden" name="status" value="confirmed" />
+        <IconSubmitButton label="Confirmar" icon={<IconCheck />} variant="primary" />
+      </form>
       {status !== "declined" ? (
-        <form action={statusAction}>
+        <form action={statusAction} className={formClass}>
           <input type="hidden" name="guest_id" value={guestId} />
           <input type="hidden" name="status" value="declined" />
-          <Button type="submit" variant="secundario" size="sm">
-            No asiste
-          </Button>
+          <IconSubmitButton label="No asiste" icon={<IconX />} />
         </form>
       ) : null}
       {status !== "pending" ? (
-        <form action={statusAction}>
+        <form action={statusAction} className={formClass}>
           <input type="hidden" name="guest_id" value={guestId} />
           <input type="hidden" name="status" value="pending" />
-          <Button type="submit" variant="fantasma" size="sm">
-            Pendiente
-          </Button>
+          <IconSubmitButton label="Pendiente" icon={<IconClock />} />
         </form>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -300,10 +293,10 @@ function GuestDeleteButton({ guestId }: { guestId: string }) {
     <ConfirmDeleteForm
       action={deleteRsvpGuestAction}
       message="¿Eliminar este invitado?"
-      className="inline"
+      className="ml-auto inline-flex"
     >
       <input type="hidden" name="guest_id" value={guestId} />
-      <AccountDeleteButton />
+      <AccountDeleteIconButton />
     </ConfirmDeleteForm>
   );
 }
@@ -584,16 +577,14 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
                       />
                     </td>
                     <td className={`${accountTableTdClass} text-right`} data-label="Acciones" data-actions="">
-                      <div className="flex flex-col items-stretch gap-2 min-[769px]:items-end">
-                        <div className="min-[769px]:hidden">
-                          <GuestQuickActions
-                            guestId={guest.id}
-                            status={guest.status}
-                            statusAction={statusAction}
-                          />
-                        </div>
+                      <AccountRowActions align="end">
+                        <GuestQuickActions
+                          guestId={guest.id}
+                          status={guest.status}
+                          statusAction={statusAction}
+                        />
                         <GuestDeleteButton guestId={guest.id} />
-                      </div>
+                      </AccountRowActions>
                     </td>
                   </tr>
                 ))}

@@ -5,9 +5,12 @@ import { formatPrice } from "@/data/bodas";
 import { confirmReceivedGiftAction } from "@/lib/microsite/actions/gift-checkout";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { IllustrationGift } from "@/components/account/AccountIllustrations";
-import { AccountSection } from "@/components/account/AccountPage";
+import {
+  AccountRowActions,
+  AccountSection,
+} from "@/components/account/AccountPage";
 import { FormAlert } from "@/components/account/FormAlert";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Card, IconButton, IconCheck } from "@/components/ui";
 
 interface ConfirmedGiftRow {
   id: string;
@@ -92,16 +95,15 @@ function ConfirmGiftButton({ giftId }: { giftId: string }) {
     <form action={formAction} className="mt-4 space-y-3">
       <input type="hidden" name="gift_id" value={giftId} />
       <FormAlert error={state.error} success={state.success} />
-      <div className="flex sm:justify-end">
-        <Button
+      <AccountRowActions className="justify-end">
+        <IconButton
           type="submit"
+          label={isPending ? "Confirmando…" : "Acreditar regalo"}
+          icon={<IconCheck />}
+          variant="primary"
           loading={isPending}
-          loadingLabel="Confirmando…"
-          className="w-full sm:w-auto"
-        >
-          Acreditar regalo
-        </Button>
-      </div>
+        />
+      </AccountRowActions>
     </form>
   );
 }

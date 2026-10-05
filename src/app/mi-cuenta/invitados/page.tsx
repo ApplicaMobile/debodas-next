@@ -9,7 +9,7 @@ import {
   accountTableTdClass,
   accountTableThClass,
 } from "@/components/account/AccountPage";
-import { Badge } from "@/components/ui";
+import { Badge, IconEye, IconLink } from "@/components/ui";
 import { InvitadosPanel } from "@/components/account/InvitadosPanel";
 import { markRsvpSectionReviewedAction } from "@/lib/account/actions/content";
 import { getOwnedBoda } from "@/lib/account/require-boda";
@@ -80,14 +80,12 @@ export default async function MiCuentaInvitadosPage() {
                   </td>
                   <td className={accountTableTdClass} data-label="Comprobante">
                     {pago.comprobante_url ? (
-                      <a
+                      <IconLink
                         href={pago.comprobante_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="focus-ring rounded-sm font-semibold text-text-link underline-offset-2 hover:underline"
-                      >
-                        Ver
-                      </a>
+                        newTab
+                        label="Ver"
+                        icon={<IconEye />}
+                      />
                     ) : (
                       "—"
                     )}
