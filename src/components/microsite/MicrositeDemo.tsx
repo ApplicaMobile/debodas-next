@@ -7,6 +7,7 @@ import {
   getCoupleDisplayName,
 } from "@/data/bodas";
 import { ThemeBanner } from "@/components/themes/ThemeBanner";
+import { buildMicrositeNavItems } from "@/components/themes/microsite-nav-items";
 import {
   MicrositeSectionTitle,
   ThemeSection,
@@ -27,6 +28,7 @@ import { MicrositeInvitationActions } from "@/components/microsite/MicrositeInvi
 import { MicrositeCanvaInvite } from "@/components/microsite/MicrositeCanvaInvite";
 import { MicrositeGallery } from "@/components/microsite/MicrositeGallery";
 import { MicrositeSpotify } from "@/components/microsite/MicrositeSpotify";
+import { MicrositeSectionNav } from "@/components/microsite/MicrositeSectionNav";
 import {
   parseCanvaLink,
   parseInvitations,
@@ -175,6 +177,16 @@ export function MicrositeDemo({
   const freeMount = allowsFreeGiftAmount(boda.options) && isPremium;
   const abonarConfig = getAbonarConfig(boda.misc);
   const showAbonar = isAbonarEnabled(boda.misc, boda.options);
+  const navFlags = {
+    showGallery,
+    showSchedule: Boolean(boda.schedule?.length),
+    showLocation,
+    showFaq: Boolean(showFaq && boda.faq_items?.length),
+    showDressCode: Boolean(showDressCode && hasDressCodeContent(dressCode)),
+    showRsvp: rsvpOpen,
+    showCanva,
+    showMusic,
+  };
 
   return (
     <>
@@ -183,16 +195,11 @@ export function MicrositeDemo({
         eventDate={eventDate}
         eventPlace={String(boda.event?.place ?? "")}
         bannerPhotoUrl={bannerUrl}
-        showGallery={showGallery}
-        showSchedule={Boolean(boda.schedule?.length)}
-        showLocation={showLocation}
-        showFaq={Boolean(showFaq && boda.faq_items?.length)}
-        showDressCode={Boolean(
-          showDressCode && hasDressCodeContent(dressCode),
-        )}
-        showRsvp={rsvpOpen}
-        showCanva={showCanva}
-        showMusic={showMusic}
+        {...navFlags}
+      />
+      <MicrositeSectionNav
+        coupleName={coupleName}
+        items={buildMicrositeNavItems(t, navFlags)}
       />
 
       <ThemeSection>
@@ -266,14 +273,14 @@ export function MicrositeDemo({
                     }`}
                   >
                     <div className="microsite-schedule-item__text">
-                      <p className="text-sm font-semibold text-[var(--theme-accent)]">
+                      <p className="text-base font-semibold text-[var(--theme-accent)]">
                         {entry.time}
                       </p>
                       <h3 className="mt-0.5 text-base font-semibold sm:text-lg">
                         {entry.title}
                       </h3>
                       {entry.description ? (
-                        <p className="mt-1 text-sm text-[var(--theme-text-muted)]">
+                        <p className="mt-1 text-base text-[var(--theme-text-muted)]">
                           {entry.description}
                         </p>
                       ) : null}

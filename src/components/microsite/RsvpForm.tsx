@@ -92,49 +92,45 @@ export function RsvpForm({
         <input type="hidden" name="boda_slug" value={slug} />
         <HoneypotField id="rsvp-website" />
 
-        <label
-          htmlFor="rsvp-name"
-          className="block text-sm font-medium text-stone-700"
-        >
-          {t("microsite.rsvpName")}
-        </label>
-        <input
-          id="rsvp-name"
-          name="name"
-          required
-          minLength={2}
-          maxLength={120}
-          className="w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-stone-800"
-          placeholder={t("microsite.rsvpNamePlaceholder")}
-          autoComplete="name"
-        />
+        <div className="space-y-1.5">
+          <label htmlFor="rsvp-name" className="microsite-rsvp-label">
+            {t("microsite.rsvpName")}
+          </label>
+          <input
+            id="rsvp-name"
+            name="name"
+            required
+            minLength={2}
+            maxLength={120}
+            className="microsite-rsvp-input"
+            placeholder={t("microsite.rsvpNamePlaceholder")}
+            autoComplete="name"
+          />
+        </div>
 
-        <label
-          htmlFor="rsvp-email"
-          className="block text-sm font-medium text-stone-700"
-        >
-          {t("microsite.rsvpEmail")}
-        </label>
-        <input
-          id="rsvp-email"
-          name="email"
-          type="email"
-          maxLength={254}
-          className="w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-stone-800"
-          placeholder={t("microsite.rsvpEmail")}
-          autoComplete="email"
-        />
+        <div className="space-y-1.5">
+          <label htmlFor="rsvp-email" className="microsite-rsvp-label">
+            {t("microsite.rsvpEmail")}
+          </label>
+          <input
+            id="rsvp-email"
+            name="email"
+            type="email"
+            maxLength={254}
+            className="microsite-rsvp-input"
+            placeholder={t("microsite.rsvpEmail")}
+            autoComplete="email"
+          />
+        </div>
 
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-stone-700">
+        <fieldset className="space-y-1.5">
+          <legend className="microsite-rsvp-label">
             {t("microsite.rsvpGoing")}
           </legend>
           <div className="grid gap-2 sm:grid-cols-2">
             <label
-              className={`flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 text-sm font-medium transition ${
-                status === "confirmed"
-                  ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                  : "border-stone-200/80 bg-white/90 text-stone-700 hover:bg-white"
+              className={`microsite-rsvp-choice${
+                status === "confirmed" ? " microsite-rsvp-choice--selected" : ""
               }`}
             >
               <input
@@ -146,13 +142,12 @@ export function RsvpForm({
                 required
                 className="sr-only"
               />
+              <span className="microsite-rsvp-choice__dot" aria-hidden="true" />
               {t("microsite.rsvpYes")}
             </label>
             <label
-              className={`flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 text-sm font-medium transition ${
-                status === "declined"
-                  ? "border-stone-400 bg-stone-100 text-stone-800"
-                  : "border-stone-200/80 bg-white/90 text-stone-700 hover:bg-white"
+              className={`microsite-rsvp-choice${
+                status === "declined" ? " microsite-rsvp-choice--selected" : ""
               }`}
             >
               <input
@@ -164,6 +159,7 @@ export function RsvpForm({
                 required
                 className="sr-only"
               />
+              <span className="microsite-rsvp-choice__dot" aria-hidden="true" />
               {t("microsite.rsvpNo")}
             </label>
           </div>
@@ -176,7 +172,7 @@ export function RsvpForm({
                 <div className="flex items-center justify-between gap-2">
                   <label
                     htmlFor={`extra-guest-${index}`}
-                    className="text-sm font-medium text-stone-700"
+                    className="microsite-rsvp-label"
                   >
                     {t("microsite.rsvpExtra", { n: index + 1 })}
                   </label>
@@ -199,7 +195,7 @@ export function RsvpForm({
                   minLength={2}
                   maxLength={120}
                   defaultValue={guestName}
-                  className="mt-2 w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-stone-800"
+                  className="microsite-rsvp-input mt-2"
                   placeholder={t("microsite.rsvpName")}
                 />
               </div>
@@ -207,7 +203,7 @@ export function RsvpForm({
             <button
               type="button"
               onClick={() => setExtraGuests((current) => [...current, ""])}
-              className="text-sm font-medium text-[#6f5f47] hover:underline"
+              className="microsite-rsvp-add hover:underline"
             >
               {t("microsite.rsvpAdd")}
             </button>
@@ -215,12 +211,12 @@ export function RsvpForm({
         ) : null}
 
         {showMenu ? (
-          <label className="block text-sm font-medium text-stone-700">
+          <label className="microsite-rsvp-label">
             {t("microsite.rsvpMenu")}
             <select
               name="menu"
               defaultValue="general"
-              className="mt-2 w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-sm font-normal text-stone-800"
+              className="microsite-rsvp-input mt-1.5 font-normal"
             >
               {RSVP_MENU_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -233,27 +229,26 @@ export function RsvpForm({
           <input type="hidden" name="menu" value="general" />
         )}
 
-        <label
-          htmlFor="rsvp-notes"
-          className="block text-sm font-medium text-stone-700"
-        >
-          {t("microsite.rsvpNotes")}
-        </label>
-        <textarea
-          id="rsvp-notes"
-          name="notes"
-          rows={2}
-          maxLength={1000}
-          className="w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-stone-800"
-          placeholder={t("microsite.rsvpNotes")}
-        />
+        <div className="space-y-1.5">
+          <label htmlFor="rsvp-notes" className="microsite-rsvp-label">
+            {t("microsite.rsvpNotes")}
+          </label>
+          <textarea
+            id="rsvp-notes"
+            name="notes"
+            rows={2}
+            maxLength={1000}
+            className="microsite-rsvp-input"
+            placeholder={t("microsite.rsvpNotes")}
+          />
+        </div>
 
         <FormAlert error={state.error} />
 
         <button
           type="submit"
           disabled={isPending}
-          className="microsite-btn w-full disabled:opacity-60"
+          className="microsite-btn microsite-btn--lg w-full disabled:opacity-60"
         >
           {isPending ? t("microsite.rsvpSending") : t("microsite.rsvpSubmit")}
         </button>

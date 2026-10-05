@@ -201,7 +201,7 @@ export function GiftSection({
                     className="microsite-gift-image"
                   />
                   <div className="microsite-gift-card__body">
-                    <h3 className="text-lg font-semibold">{gift.title}</h3>
+                    <h3 className="text-lg font-semibold sm:text-xl">{gift.title}</h3>
                     <p className="microsite-gift-price">
                       {formatPrice(gift.price ?? 0)}
                     </p>

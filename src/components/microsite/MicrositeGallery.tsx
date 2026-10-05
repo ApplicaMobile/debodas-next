@@ -65,7 +65,13 @@ export function MicrositeGallery({
       <h2 id={titleId} className={titleClass ?? "microsite-section__title theme-heading"}>
         {t("microsite.photos")}
       </h2>
-      <div className="microsite-gallery mt-10" role="list" aria-labelledby={titleId}>
+      <div
+        className={`microsite-gallery mt-10${
+          pictures.length === 3 ? " microsite-gallery--three" : ""
+        }`}
+        role="list"
+        aria-labelledby={titleId}
+      >
         {pictures.map((picture, index) => (
           <button
             key={`${picture.url}-${index}`}
