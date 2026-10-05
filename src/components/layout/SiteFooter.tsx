@@ -29,7 +29,7 @@ export async function SiteFooter() {
     <footer className="bg-[#06263a] text-white">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.2fr_1fr]">
         <div>
-          <Link href="/" className="inline-block">
+          <Link href="/" className="inline-flex min-h-11 items-center">
             <Image
               src="/assets/img/logo-white.svg"
               alt="DeBodas"
@@ -44,7 +44,7 @@ export async function SiteFooter() {
           <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/80">
             {footerLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="transition hover:text-white">
+                <Link href={link.href} className="inline-flex min-h-11 items-center transition hover:text-white">
                   {FOOTER_LABELS[link.href]
                     ? t(messages, FOOTER_LABELS[link.href])
                     : link.label}
@@ -63,7 +63,7 @@ export async function SiteFooter() {
               href={socialLinks.instagram.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-white"
+              className="inline-flex min-h-11 items-center transition hover:text-white"
             >
               {socialLinks.instagram.label}
             </a>
@@ -71,14 +71,14 @@ export async function SiteFooter() {
               href={socialLinks.facebook.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-white"
+              className="inline-flex min-h-11 items-center transition hover:text-white"
             >
               {socialLinks.facebook.label}
             </a>
           </div>
           <Link
             href="/registro"
-            className="mt-8 inline-flex rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+            className="mt-8 inline-flex min-h-11 items-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
           >
             {t(messages, "footer.createSite")}
           </Link>
@@ -97,7 +97,7 @@ export async function SiteFooter() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="transition hover:text-white"
+                  className="inline-flex min-h-11 items-center transition hover:text-white"
                 >
                   {LEGAL_LABELS[link.href]
                     ? t(messages, LEGAL_LABELS[link.href])

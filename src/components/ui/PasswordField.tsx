@@ -55,7 +55,7 @@ function EyeIcon({ open }: { open: boolean }) {
 
 export function PasswordField({
   className = "",
-  inputClassName = "w-full rounded-xl border border-stone-200 px-4 py-3 pr-12",
+  inputClassName = "focus-ring min-h-12 w-full rounded-xl border border-stone-200 px-4 py-3 pr-12 text-base text-stone-800",
   id,
   ...inputProps
 }: PasswordFieldProps) {
@@ -74,7 +74,7 @@ export function PasswordField({
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+        className="absolute right-2 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-stone-500 hover:bg-stone-100 hover:text-stone-800"
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
         aria-pressed={visible}
         tabIndex={-1}
