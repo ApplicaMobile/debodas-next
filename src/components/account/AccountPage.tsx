@@ -247,25 +247,35 @@ export function AccountItemList({ children, label }: { children: ReactNode; labe
   );
 }
 
-/** Tabla de datos con estilo común (scroll horizontal en mobile). */
+/** Tabla de datos con estilo común (scroll horizontal en mobile + pista). */
 export function AccountTable({
   children,
   caption,
   className,
   tableClassName,
+  scrollHint = true,
 }: {
   children: ReactNode;
   caption?: string;
   className?: string;
   /** Clases extra de la tabla (p. ej. un ancho mínimo para tablas densas). */
   tableClassName?: string;
+  /** Muestra "Deslizá para ver más" en viewports chicos cuando la tabla puede desbordar. */
+  scrollHint?: boolean;
 }) {
   return (
-    <div className={cn("overflow-x-auto rounded-md border border-border-subtle", className)}>
-      <table className={cn("min-w-full text-left type-body-sm text-text-primary", tableClassName)}>
-        {caption ? <caption className="sr-only">{caption}</caption> : null}
-        {children}
-      </table>
+    <div className={cn("max-w-full", className)}>
+      {scrollHint ? (
+        <p className="mb-2 type-caption text-text-tertiary md:hidden" aria-hidden="true">
+          Deslizá horizontalmente para ver más →
+        </p>
+      ) : null}
+      <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-md border border-border-subtle [-webkit-overflow-scrolling:touch]">
+        <table className={cn("min-w-full text-left type-body-sm text-text-primary", tableClassName)}>
+          {caption ? <caption className="sr-only">{caption}</caption> : null}
+          {children}
+        </table>
+      </div>
     </div>
   );
 }
@@ -291,7 +301,7 @@ export function AccountDeleteButton({
     <button
       type="submit"
       className={cn(
-        "focus-ring inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 type-button-sm text-status-error-fg transition-colors hover:bg-status-error-bg motion-reduce:transition-none",
+        "focus-ring inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3 type-button-sm text-status-error-fg transition-colors hover:bg-status-error-bg motion-reduce:transition-none",
         className,
       )}
     >
@@ -422,7 +432,7 @@ function AccountNavIconInline() {
 
 /** Control compacto (selects/inputs dentro de tablas y listas densas). */
 export const accountCompactControlClass =
-  "focus-ring min-h-9 rounded-sm border border-border-strong bg-surface-default px-2 py-1.5 type-body-sm text-text-primary hover:border-text-primary disabled:cursor-not-allowed disabled:bg-surface-disabled";
+  "focus-ring min-h-11 w-full max-w-full rounded-sm border border-border-strong bg-surface-default px-2.5 py-2 type-body text-text-primary hover:border-text-primary disabled:cursor-not-allowed disabled:bg-surface-disabled";
 
 /** Chip de filtro (aria-pressed) con contador opcional. */
 export function AccountFilterChip({
@@ -442,7 +452,7 @@ export function AccountFilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "focus-ring inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 type-button-sm transition-colors motion-reduce:transition-none",
+        "focus-ring inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 type-button-sm transition-colors motion-reduce:transition-none",
         active
           ? "border-action-primary-bg bg-action-primary-bg text-action-primary-fg"
           : "border-border-default bg-surface-default text-text-primary hover:bg-surface-muted",
@@ -480,7 +490,7 @@ export function AccountFilterChipLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "focus-ring inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 type-button-sm transition-colors motion-reduce:transition-none",
+        "focus-ring inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 type-button-sm transition-colors motion-reduce:transition-none",
         active
           ? "border-action-primary-bg bg-action-primary-bg text-action-primary-fg"
           : "border-border-default bg-surface-default text-text-primary hover:bg-surface-muted",

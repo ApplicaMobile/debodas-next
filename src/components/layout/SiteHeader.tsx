@@ -50,7 +50,7 @@ export async function SiteHeader({
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex min-h-11 items-center gap-3">
           <Image
             src={transparent ? "/assets/img/logo-white.svg" : "/assets/img/logo.svg"}
             alt="DeBodas"
@@ -69,7 +69,7 @@ export async function SiteHeader({
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition ${
+              className={`inline-flex min-h-11 items-center text-sm font-medium transition ${
                 transparent
                   ? "text-white/90 hover:text-white"
                   : "text-stone-700 hover:text-stone-900"
@@ -84,7 +84,7 @@ export async function SiteHeader({
           <LanguageSwitcher compact variant={switcherVariant} />
           <Link
             href={accountHref}
-            className={`hidden text-sm font-medium sm:inline ${
+            className={`hidden min-h-11 items-center text-sm font-medium sm:inline-flex ${
               transparent ? "text-white/90 hover:text-white" : "text-stone-700"
             }`}
           >

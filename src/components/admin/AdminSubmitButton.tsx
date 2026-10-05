@@ -20,7 +20,7 @@ interface AdminSubmitButtonProps {
   className?: string;
   /** Sin variante se mantiene el estilo que llegue por `className`. */
   variant?: AdminSubmitVariant;
-  /** sm (36px) por defecto: el panel admin es denso. */
+  /** sm (44px táctil) por defecto. */
   size?: ButtonSize;
   icon?: ReactNode;
   fullWidth?: boolean;
@@ -58,7 +58,7 @@ export function AdminSubmitButton({
         disabled={pending}
         aria-busy={pending || undefined}
         className={cn(
-          "focus-ring inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 type-button-sm text-status-error-fg transition-colors hover:bg-status-error-bg disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none",
+          "focus-ring inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3 type-button-sm text-status-error-fg transition-colors hover:bg-status-error-bg disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none",
           className,
         )}
       >

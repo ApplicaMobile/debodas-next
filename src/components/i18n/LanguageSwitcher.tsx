@@ -108,11 +108,11 @@ export function LanguageSwitcher({
         aria-controls={open ? menuId : undefined}
         disabled={pending}
         onClick={() => setOpen((value) => !value)}
-        className={`flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-[#e6dac7]/50 sm:min-h-10 ${triggerClass} ${pending ? "opacity-70" : ""}`}
+        className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-[#e6dac7]/50 ${triggerClass} ${pending ? "opacity-70" : ""}`}
       >
         <Flag locale={locale} />
         <span>{compact ? locale.toUpperCase() : LOCALE_LABELS[locale]}</span>
-        <span aria-hidden className="text-[10px] opacity-70">
+        <span aria-hidden className="text-xs opacity-70">
           ▾
         </span>
       </button>
@@ -131,7 +131,7 @@ export function LanguageSwitcher({
                   type="button"
                   disabled={pending}
                   onClick={() => choose(code)}
-                  className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-stone-50 ${
+                  className={`flex min-h-11 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-stone-50 ${
                     selected ? "bg-[#e6dac7]/35 font-semibold" : "font-medium"
                   }`}
                 >

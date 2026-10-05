@@ -196,7 +196,7 @@ export function AccountNotificationsBell({
       <button
         type="button"
         onClick={toggleOpen}
-        className="focus-ring relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border-default bg-surface-default text-text-secondary transition-colors hover:bg-surface-muted hover:text-text-primary"
+        className="focus-ring relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-border-default bg-surface-default text-text-secondary transition-colors hover:bg-surface-muted hover:text-text-primary"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={
@@ -220,7 +220,7 @@ export function AccountNotificationsBell({
           />
         </svg>
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-status-error-fg px-1 text-[10px] font-bold text-text-inverse">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-status-error-fg px-1 type-caption font-bold text-text-inverse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         ) : null}
@@ -251,7 +251,7 @@ export function AccountNotificationsBell({
                 type="button"
                 disabled={pending}
                 onClick={markAll}
-                className="focus-ring rounded-sm type-caption font-semibold text-text-accent hover:underline disabled:opacity-60"
+                className="focus-ring inline-flex min-h-11 items-center rounded-sm px-2 type-caption font-semibold text-text-accent hover:underline disabled:opacity-60"
               >
                 Marcar leídas
               </button>
@@ -281,11 +281,11 @@ export function AccountNotificationsBell({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${notificationTypeBadgeClass(item.type)}`}
+                          className={`rounded-full px-2 py-0.5 type-caption font-bold uppercase tracking-wide ${notificationTypeBadgeClass(item.type)}`}
                         >
                           {notificationTypeLabel(item.type)}
                         </span>
-                        <span className="text-[11px] text-text-tertiary">
+                        <span className="type-caption text-text-tertiary">
                           {formatNotificationRelative(item.createdAt)}
                         </span>
                       </div>
@@ -314,7 +314,7 @@ export function AccountNotificationsBell({
             <Link
               href="/mi-cuenta/notificaciones"
               onClick={() => setOpen(false)}
-              className="focus-ring rounded-sm type-caption font-semibold text-text-accent hover:underline"
+              className="focus-ring inline-flex min-h-11 items-center rounded-sm type-caption font-semibold text-text-accent hover:underline"
             >
               Ver historial →
             </Link>

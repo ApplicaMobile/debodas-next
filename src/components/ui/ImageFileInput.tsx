@@ -136,7 +136,7 @@ export function ImageFileInput({
               <span className="text-sm font-semibold text-stone-800">
                 {fileName}
               </span>
-              <span className="text-xs text-stone-500">
+              <span className="text-sm text-stone-500">
                 Tocá para cambiar el archivo
               </span>
             </>
@@ -199,7 +199,7 @@ export function ImageFileInput({
           name={name}
           accept={accept}
           onChange={handleChange}
-          className="block w-full text-sm text-stone-600 file:mr-3 file:rounded-full file:border-0 file:bg-stone-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-stone-700 hover:file:bg-stone-200"
+          className="block w-full text-base text-stone-600 file:mr-3 file:rounded-full file:border-0 file:bg-stone-100 file:px-4 file:py-2.5 file:text-base file:font-semibold file:text-stone-700 hover:file:bg-stone-200"
         />
         {fileName ? (
           <button

@@ -312,12 +312,12 @@ export function PanelSidebar({
   return (
     <>
       {/* Mobile: barra fija con la sección actual y el botón del menú */}
-      <div className="sticky top-16 z-20 -mx-4 mb-5 border-b border-border-subtle bg-bg-canvas/95 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:hidden">
+      <div className="sticky top-16 z-20 mb-5 border-b border-border-subtle bg-bg-canvas/95 py-2 backdrop-blur-sm lg:hidden">
         <button
           ref={triggerRef}
           type="button"
           onClick={() => setOpen(true)}
-          className="focus-ring flex w-full items-center justify-between gap-3 rounded-md border border-border-default bg-surface-default px-3 py-2.5 text-left shadow-elevation-1"
+          className="focus-ring flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-border-default bg-surface-default px-3 py-2.5 text-left shadow-elevation-1"
           aria-haspopup="dialog"
           aria-expanded={open}
         >

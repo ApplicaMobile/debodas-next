@@ -13,7 +13,7 @@ export type ButtonSize = "sm" | "md" | "lg";
 interface ButtonOwnProps {
   /** Primario (navy) = 1 acción principal por vista. Secundario (beige) = apoyo. Fantasma = terciaria. Peligro = destructiva. */
   variant?: ButtonVariant;
-  /** sm 36px (solo tablas / alta densidad), md 48px, lg 56px. */
+  /** sm 44px (mínimo táctil; tablas/alta densidad), md 48px, lg 56px. */
   size?: ButtonSize;
   /** Muestra spinner, bloquea la acción y anuncia "Cargando…". */
   loading?: boolean;
@@ -43,7 +43,7 @@ const base =
   "focus-ring relative inline-flex select-none items-center justify-center rounded-full text-center no-underline transition-colors duration-150 motion-reduce:transition-none";
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "min-h-9 gap-2 px-4 py-2 type-button-sm",
+  sm: "min-h-11 gap-2 px-4 py-2 type-button-sm",
   md: "min-h-12 gap-2 px-6 py-3 type-button",
   lg: "min-h-14 gap-3 px-8 py-4 type-button",
 };
