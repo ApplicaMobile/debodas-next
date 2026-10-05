@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { buttonClasses } from "@/components/ui";
 import { getViewer } from "@/lib/auth/viewer";
 import { t } from "@/i18n/dictionary";
 import { getDictionary } from "@/i18n/get-locale";
@@ -89,12 +90,14 @@ export async function SiteHeader({
           >
             {accountLabel}
           </Link>
-          <Link
-            href={primaryHref}
-            className="hidden min-h-11 items-center rounded-full bg-[#e6dac7] px-5 py-2.5 text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-[#d4c4a8] sm:inline-flex"
-          >
-            {primaryLabel}
-          </Link>
+          <span className="hidden sm:inline-flex">
+            <Link
+              href={primaryHref}
+              className={buttonClasses({ variant: "secundario", className: "shadow-sm" })}
+            >
+              {primaryLabel}
+            </Link>
+          </span>
           <details className="group relative md:hidden">
             <summary
               aria-label={t(messages, "header.menuAria")}
@@ -127,7 +130,7 @@ export async function SiteHeader({
               </Link>
               <Link
                 href={primaryHref}
-                className="flex min-h-11 items-center rounded-xl bg-[#e6dac7] px-4 text-sm font-semibold text-stone-800"
+                className="flex min-h-11 items-center rounded-xl bg-action-secondary-bg px-4 text-sm font-semibold text-action-secondary-fg hover:bg-action-secondary-bg-hover"
               >
                 {primaryLabel}
               </Link>
