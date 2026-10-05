@@ -146,7 +146,7 @@ function PaletteEditor({
               <button
                 type="button"
                 onClick={() => onRemove(index)}
-                className="focus-ring inline-flex min-h-9 shrink-0 items-center rounded-full px-2.5 type-button-sm text-status-error-fg hover:bg-status-error-bg"
+                className="focus-ring inline-flex min-h-11 shrink-0 items-center rounded-full px-3 type-button-sm text-status-error-fg hover:bg-status-error-bg"
               >
                 Quitar
               </button>
