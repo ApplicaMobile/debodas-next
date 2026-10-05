@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
+import { MarketingSectionHeader } from "@/components/home/MarketingSectionHeader";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { themes } from "@/data/home";
 import { planLabels } from "@/lib/plans/features";
@@ -23,22 +24,17 @@ export function ThemesSection() {
     <section id="themes" className="bg-[#EBEBEB] py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="max-w-xl">
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
-              {t("home.themesEyebrow")}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
-              {t("home.themesTitle")}
-            </h2>
-            <p className="mt-3 text-base text-stone-600 sm:text-lg">
-              {t("home.themesLead")}
-            </p>
-          </div>
+          <MarketingSectionHeader
+            align="left"
+            eyebrow={t("home.themesEyebrow")}
+            title={t("home.themesTitle")}
+            lead={t("home.themesLead")}
+          />
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => scrollByCard(-1)}
-              className="hidden h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-50 sm:inline-flex"
+              className="focus-ring hidden h-11 w-11 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-50 sm:inline-flex"
               aria-label={t("home.themesPrev")}
             >
               ←
@@ -46,7 +42,7 @@ export function ThemesSection() {
             <button
               type="button"
               onClick={() => scrollByCard(1)}
-              className="hidden h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-50 sm:inline-flex"
+              className="focus-ring hidden h-11 w-11 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-50 sm:inline-flex"
               aria-label={t("home.themesNext")}
             >
               →
@@ -71,7 +67,8 @@ export function ThemesSection() {
                   style={{ backgroundImage: `url('${theme.bannerImage}')` }}
                 />
                 <div className="absolute inset-0 bg-black/10" />
-                <div className="absolute inset-x-3 bottom-3 top-3 overflow-hidden rounded-xl border border-white/40 bg-white/90 shadow-lg">
+                {/* Panel casi transparente: la decoración del tema se ve sobre la foto. */}
+                <div className="absolute inset-x-3 bottom-3 top-3 overflow-hidden rounded-xl border border-white/50 bg-white/25 shadow-lg">
                   <Image
                     src={theme.previewImage}
                     alt={`Tema ${theme.label}`}
@@ -85,7 +82,7 @@ export function ThemesSection() {
                 <span className="truncate text-sm font-semibold text-stone-800">
                   {theme.label}
                 </span>
-                <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-stone-500">
+                <span className="shrink-0 type-overline text-text-secondary">
                   {planLabels[theme.plan] ?? theme.plan}
                 </span>
               </div>

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { MarketingSectionHeader } from "@/components/home/MarketingSectionHeader";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { buttonClasses } from "@/components/ui";
 
 /**
  * Preview del micrositio: el iframe solo carga cuando entra en viewport.
@@ -17,8 +19,9 @@ export function HowItLooksSection() {
     if (!node || shouldLoad) return;
 
     if (!("IntersectionObserver" in window)) {
-      setShouldLoad(true);
-      return;
+      // Sin IntersectionObserver se carga directo (en un callback, no en el cuerpo del efecto).
+      const frame = requestAnimationFrame(() => setShouldLoad(true));
+      return () => cancelAnimationFrame(frame);
     }
 
     const observer = new IntersectionObserver(
@@ -45,13 +48,13 @@ export function HowItLooksSection() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-2">
         <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-white/60">
-            {t("home.lookEyebrow")}
-          </p>
-          <h2 className="mt-3 font-serif text-3xl font-semibold sm:text-4xl">
-            {t("home.lookTitle")}
-          </h2>
-          <p className="mt-4 text-lg text-white/75">{t("home.lookLead")}</p>
+          <MarketingSectionHeader
+            align="left"
+            tone="dark"
+            eyebrow={t("home.lookEyebrow")}
+            title={t("home.lookTitle")}
+            lead={t("home.lookLead")}
+          />
           <ol className="mt-6 space-y-3 text-sm text-white/80">
             <li className="flex gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-semibold text-[#e6dac7]">
@@ -75,13 +78,13 @@ export function HowItLooksSection() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/bodas/demo"
-              className="rounded-full bg-[#e6dac7] px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+              className={buttonClasses({ variant: "secundario" })}
             >
               {t("home.lookOpenDemo")}
             </Link>
             <Link
               href="/#themes"
-              className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              className="focus-ring inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-6 py-3 type-button text-white transition-colors hover:bg-white/10"
             >
               {t("home.lookThemes")}
             </Link>

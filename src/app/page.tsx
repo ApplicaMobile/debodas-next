@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { AdminLanding } from "@/components/home/AdminLanding";
 import { HeroSection } from "@/components/home/HeroSection";
+import { MarketingSectionHeader } from "@/components/home/MarketingSectionHeader";
 import { HowItLooksSection } from "@/components/home/HowItLooksSection";
 import { InstagramSection } from "@/components/home/InstagramSection";
 import { PlansSection } from "@/components/home/PlansSection";
@@ -13,6 +14,7 @@ import { WeddingsSection } from "@/components/home/WeddingsSection";
 import { getOnlineWeddingsForHome } from "@/lib/bodas/queries";
 import { getApprovedHomeReviews } from "@/lib/ratings/queries";
 import { getViewer } from "@/lib/auth/viewer";
+import { buttonClasses } from "@/components/ui";
 import { t } from "@/i18n/dictionary";
 import { getDictionary } from "@/i18n/get-locale";
 
@@ -58,23 +60,26 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <section className="relative overflow-hidden bg-[#06263a] py-20 text-center text-white sm:py-24">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(230,218,199,0.18),transparent_55%)]" />
           <div className="relative mx-auto max-w-3xl px-6">
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/55">
-              DeBodas
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold sm:text-4xl">
-              {t(messages, "home.ctaTitle")}
-            </h2>
-            <p className="mt-4 text-white/80">{t(messages, "home.ctaLead")}</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <MarketingSectionHeader
+              tone="dark"
+              eyebrow="DeBodas"
+              title={t(messages, "home.ctaTitle")}
+              lead={t(messages, "home.ctaLead")}
+            />
+            <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:justify-center sm:gap-4">
               <Link
                 href="/registro"
-                className="rounded-full bg-[#e6dac7] px-8 py-3.5 text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+                className={buttonClasses({
+                  variant: "secundario",
+                  size: "lg",
+                  className: "w-full sm:w-auto",
+                })}
               >
                 {t(messages, "home.ctaCreate")}
               </Link>
               <Link
                 href="/bodas/demo"
-                className="rounded-full border border-white/30 px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="focus-ring inline-flex min-h-14 w-full items-center justify-center rounded-full border border-white/30 px-8 py-4 type-button text-white transition-colors hover:bg-white/10 sm:w-auto"
               >
                 {t(messages, "home.ctaExample")}
               </Link>

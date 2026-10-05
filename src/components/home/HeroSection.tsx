@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonClasses } from "@/components/ui";
 import { heroContent } from "@/data/home";
 import { t } from "@/i18n/dictionary";
 import { getDictionary } from "@/i18n/get-locale";
@@ -26,16 +27,20 @@ export async function HeroSection() {
           {t(messages, "home.heroSubtitle")}
         </p>
 
-        <div className="debodas-fade-up-delay-3 mt-8 flex flex-wrap gap-3 sm:mt-10">
+        <div className="debodas-fade-up-delay-3 mt-8 grid gap-3 sm:mt-10 sm:flex sm:flex-wrap">
           <Link
             href={heroContent.ctaHref}
-            className="rounded-full bg-[#e6dac7] px-8 py-3.5 text-base font-semibold text-stone-800 shadow-lg transition hover:bg-[#d4c4a8] sm:py-4"
+            className={buttonClasses({
+              variant: "secundario",
+              size: "lg",
+              className: "w-full shadow-lg sm:w-auto",
+            })}
           >
             {t(messages, "home.heroCta")}
           </Link>
           <Link
             href="/bodas/demo"
-            className="rounded-full border border-white/60 bg-white/10 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 sm:py-4"
+            className="focus-ring inline-flex min-h-14 w-full items-center justify-center rounded-full border border-white/60 bg-white/10 px-8 py-4 type-button text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto"
           >
             {t(messages, "home.heroDemo")}
           </Link>

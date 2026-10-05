@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MarketingSectionHeader } from "@/components/home/MarketingSectionHeader";
 import type { HomeWeddingCard } from "@/lib/bodas/queries";
 import { t } from "@/i18n/dictionary";
 import { getDictionary } from "@/i18n/get-locale";
@@ -19,19 +20,18 @@ export async function WeddingsSection({ weddings }: WeddingsSectionProps) {
       className="relative overflow-hidden bg-[#F5F1E8] py-20 sm:py-24"
     >
       <div className="mx-auto max-w-6xl px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
-            {t(messages, "home.weddingsEyebrow")}
-          </p>
-          <h2 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
-            {t(messages, "home.weddingsTitle")}
-          </h2>
-          <p className="mt-4 text-stone-600">
-            {t(messages, "home.weddingsLead")}
-          </p>
-        </div>
+        <MarketingSectionHeader
+          eyebrow={t(messages, "home.weddingsEyebrow")}
+          title={t(messages, "home.weddingsTitle")}
+          lead={t(messages, "home.weddingsLead")}
+        />
 
-        <div className="mt-12 flex gap-5 overflow-x-auto pb-4 [scrollbar-width:thin]">
+        {/* Con pocas bodas se centran; con 4 o más sigue el scroll horizontal. */}
+        <div
+          className={`mt-12 flex gap-5 overflow-x-auto pb-4 [scrollbar-width:thin] ${
+            weddings.length < 4 ? "justify-center-safe" : ""
+          }`}
+        >
           {weddings.map((wedding) => (
             <Link
               key={wedding.slug}
