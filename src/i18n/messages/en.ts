@@ -90,7 +90,7 @@ export const en: Messages = {
     planFreeF1: "Basic microsite",
     planFreeF2: "Up to 10 gifts",
     planFreeF3: "RSVP for up to 40 guests",
-    planFreeF4: "1 custom gift",
+    planFreeF4: "Up to 10 custom gifts",
     planBasicF1: "Core premium themes",
     planBasicF2: "Unlimited gifts",
     planBasicF3: "Photo album",

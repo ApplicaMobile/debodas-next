@@ -92,7 +92,7 @@ export const es = {
     planFreeF1: "Micrositio básico",
     planFreeF2: "Hasta 10 regalos",
     planFreeF3: "RSVP hasta 40 invitados",
-    planFreeF4: "1 regalo personalizado",
+    planFreeF4: "Hasta 10 regalos personalizados",
     planBasicF1: "Temas premium básicos",
     planBasicF2: "Regalos ilimitados",
     planBasicF3: "Álbum de fotos",

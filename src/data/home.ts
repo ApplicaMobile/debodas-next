@@ -101,7 +101,7 @@ export const plans: HomePlan[] = [
       "Micrositio básico",
       "Hasta 10 regalos",
       "RSVP hasta 40 invitados",
-      "1 regalo personalizado",
+      "Hasta 10 regalos personalizados",
     ],
     cta: "Empezar gratis",
   },

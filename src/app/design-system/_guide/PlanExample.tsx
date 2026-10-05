@@ -112,8 +112,8 @@ export function PlanExample() {
             hay que definir <Spec>PLAN_BASICO_PRICE_ARS=90000</Spec> y <Spec>PLAN_PREMIUM_PRICE_ARS=135500</Spec>.
           </li>
           <li>
-            <strong className="text-text-primary">Regalos personalizados:</strong> la home dice “1 regalo personalizado” para Free, pero el código
-            (<Spec>limits.ts</Spec>) define <Spec>maxCustomGifts: 10</Spec> y el límite que realmente se aplica es <Spec>maxGifts: 10</Spec>
+            <strong className="text-text-primary">Regalos personalizados:</strong> la home decía “1 regalo personalizado” para Free; ahora dice “Hasta 10 regalos personalizados”, igual que el código
+            (<Spec>limits.ts</Spec>), que define <Spec>maxCustomGifts: 10</Spec> y el límite que realmente se aplica es <Spec>maxGifts: 10</Spec>
             (<Spec>canAddCustomGift</Spec> no se usa). Se muestra “Hasta 10 regalos · todos personalizables”.
           </li>
           <li>
