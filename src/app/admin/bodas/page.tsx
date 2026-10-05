@@ -221,7 +221,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                         </dl>
                         <AdminActionForm
                           action={updateBodaPlanAction}
-                          className="flex items-end gap-2"
+                          className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-end"
                           confirmMessage={`¿Confirmás el cambio de plan de ${name}?`}
                         >
                           <input type="hidden" name="boda_id" value={boda.id} />

@@ -39,7 +39,7 @@ export default async function AdminLayout({
           <div className="flex min-w-0 items-center gap-3">
             <Link
               href="/"
-              className="focus-ring shrink-0 rounded-sm font-serif text-xl font-semibold text-text-primary"
+              className="focus-ring inline-flex min-h-11 shrink-0 items-center rounded-sm font-serif text-xl font-semibold text-text-primary"
             >
               DeBodas
               <span className="sr-only"> (ir al sitio principal)</span>
@@ -57,7 +57,7 @@ export default async function AdminLayout({
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitcher compact variant="onLight" />
-            <LogoutButton className="focus-ring inline-flex min-h-10 items-center rounded-full border border-border-default px-3 type-button-sm text-text-secondary transition-colors hover:bg-surface-muted hover:text-text-primary disabled:cursor-wait disabled:opacity-60 sm:px-4" />
+            <LogoutButton className="focus-ring inline-flex min-h-11 items-center rounded-full border border-border-default px-4 type-button-sm text-text-secondary transition-colors hover:bg-surface-muted hover:text-text-primary disabled:cursor-wait disabled:opacity-60" />
           </div>
         </div>
       </header>

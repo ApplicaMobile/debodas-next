@@ -162,7 +162,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                     <td className={accountTableTdClass}>
                       <AdminActionForm
                         action={updateUserRoleAction}
-                        className="flex items-center gap-2"
+                        className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center"
                         confirmMessage={`¿Confirmás el cambio de rol de ${user.email}?`}
                       >
                         <input type="hidden" name="user_id" value={user.id} />
@@ -189,7 +189,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                     </td>
                     <td className={accountTableTdClass}>
                       {user.boda ? (
-                        <span className="flex flex-wrap items-center gap-2">
+                        <span className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                           <Link
                             href={`/admin/bodas/${user.boda.id}`}
                             className="focus-ring rounded-sm font-semibold text-text-link hover:underline"
