@@ -38,7 +38,7 @@ export default async function ContactoPage() {
           <p className="mt-2">
             <a
               href={`mailto:${CONTACT_EMAIL}`}
-              className="font-medium text-[#6f5f47] underline"
+              className="inline-flex min-h-11 items-center font-medium text-[#6f5f47] underline"
             >
               {CONTACT_EMAIL}
             </a>
@@ -53,7 +53,7 @@ export default async function ContactoPage() {
                 href={socialLinks.instagram.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-stone-900"
+                className="inline-flex min-h-11 items-center underline hover:text-stone-900"
               >
                 Instagram
               </a>
@@ -62,19 +62,19 @@ export default async function ContactoPage() {
                 href={socialLinks.facebook.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-stone-900"
+                className="inline-flex min-h-11 items-center underline hover:text-stone-900"
               >
                 Facebook
               </a>
             </li>
             <li>
-              <Link href="/terminos" className="underline hover:text-stone-900">
+              <Link href="/terminos" className="inline-flex min-h-11 items-center underline hover:text-stone-900">
                 {t(messages, "footer.terms")}
               </Link>
               {" · "}
               <Link
                 href="/privacidad"
-                className="underline hover:text-stone-900"
+                className="inline-flex min-h-11 items-center underline hover:text-stone-900"
               >
                 {t(messages, "footer.privacy")}
               </Link>

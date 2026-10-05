@@ -47,7 +47,7 @@ export function LoginForm({ nextPath = "/mi-cuenta" }: LoginFormProps) {
       <input
         id="login-email"
         name="email"
-        className="w-full rounded-xl border border-stone-200 px-4 py-3"
+        className="focus-ring min-h-12 w-full rounded-xl border border-stone-200 px-4 py-3 text-base text-stone-800"
         placeholder={t("auth.email")}
         type="email"
         maxLength={254}
@@ -79,14 +79,14 @@ export function LoginForm({ nextPath = "/mi-cuenta" }: LoginFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#e6dac7] px-5 py-3 text-base font-semibold text-stone-800 disabled:opacity-60"
       >
         {isPending ? t("auth.submitting") : t("auth.submit")}
       </button>
       <p className="text-center text-sm">
         <Link
           href="/recuperar"
-          className="font-medium text-stone-600 underline-offset-4 hover:text-stone-900 hover:underline"
+          className="inline-flex min-h-11 items-center font-medium text-stone-600 underline-offset-4 hover:text-stone-900 hover:underline"
         >
           {t("auth.forgot")}
         </Link>
