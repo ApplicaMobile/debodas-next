@@ -92,9 +92,9 @@ export function AbonarTarjetaPanel({
             <tbody>
               {pagos.map((pago) => (
                 <tr key={pago.id} className={accountTableRowClass}>
-                  <td className={accountTableTdClass}>{pago.nombre}</td>
-                  <td className={accountTableTdClass}>${pago.monto}</td>
-                  <td className={accountTableTdClass}>
+                  <td className={accountTableTdClass} data-primary="">{pago.nombre}</td>
+                  <td className={accountTableTdClass} data-label="Monto">${pago.monto}</td>
+                  <td className={accountTableTdClass} data-label="Comprobante">
                     {pago.comprobante_url ? (
                       <a
                         href={pago.comprobante_url}
@@ -108,7 +108,7 @@ export function AbonarTarjetaPanel({
                       "—"
                     )}
                   </td>
-                  <td className={`${accountTableTdClass} text-text-secondary`}>
+                  <td className={`${accountTableTdClass} text-text-secondary`} data-label="Fecha">
                     {pago.fecha.slice(0, 16).replace("T", " ")}
                   </td>
                 </tr>

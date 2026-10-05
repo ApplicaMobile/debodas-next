@@ -17,6 +17,7 @@ import {
   AccountFilterChip,
   AccountFormActions,
   AccountSection,
+  AccountTable,
   accountCompactControlClass,
   accountTableHeadClass,
   accountTableRowClass,
@@ -529,134 +530,76 @@ export function InvitadosPanel({ plan, guests }: InvitadosPanelProps) {
             </Button>
           </div>
         ) : (
-          <>
-            <ul id="lista-invitados" role="list" className="mt-6 space-y-3 md:hidden">
-              {filteredGuests.map((guest) => (
-                <li
-                  key={guest.id}
-                  className="rounded-md border border-border-subtle bg-surface-default p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="type-label text-text-primary">{guest.name}</p>
-                      <p className="mt-0.5 truncate type-body-sm text-text-secondary">
-                        {guest.email ?? "Sin email"}
-                      </p>
-                      <div className="mt-2">
+          <div id="lista-invitados" className="mt-6">
+            <AccountTable caption="Lista de invitados" tableClassName="min-[769px]:min-w-[720px]">
+              <thead className={accountTableHeadClass}>
+                <tr>
+                  <th className={accountTableThClass}>Nombre</th>
+                  <th className={accountTableThClass}>Email</th>
+                  <th className={accountTableThClass}>Menú</th>
+                  {tablesEnabled ? (
+                    <th className={accountTableThClass}>Mesa</th>
+                  ) : null}
+                  <th className={accountTableThClass}>Notas</th>
+                  <th className={accountTableThClass}>Estado</th>
+                  <th className={accountTableThClass}>
+                    <span className="sr-only">Acciones</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredGuests.map((guest) => (
+                  <tr key={guest.id} className={accountTableRowClass}>
+                    <td className={`${accountTableTdClass} font-semibold`} data-primary="">
+                      <p>{guest.name}</p>
+                      <div className="mt-1 min-[769px]:hidden">
                         <GuestStatusBadge status={guest.status} />
                       </div>
-                    </div>
-                    <GuestDeleteButton guestId={guest.id} />
-                  </div>
-                  <GuestQuickActions
-                    guestId={guest.id}
-                    status={guest.status}
-                    statusAction={statusAction}
-                  />
-                  <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-border-subtle pt-3 type-body-sm">
-                    <div>
-                      <dt className="type-caption font-semibold uppercase tracking-wide text-text-secondary">
-                        Menú
-                      </dt>
-                      <dd className="mt-0.5 text-text-primary">
-                        {rsvpMenuLabel(guest.menu)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="type-caption font-semibold uppercase tracking-wide text-text-secondary">
-                        Estado
-                      </dt>
-                      <dd className="mt-1">
-                        <GuestStatusSelect
-                          guestId={guest.id}
-                          status={guest.status}
-                          statusAction={statusAction}
-                        />
-                      </dd>
-                    </div>
+                    </td>
+                    <td className={`${accountTableTdClass} text-text-secondary`} data-label="Email">
+                      {guest.email ?? "—"}
+                    </td>
+                    <td className={`${accountTableTdClass} text-text-secondary`} data-label="Menú">
+                      {rsvpMenuLabel(guest.menu)}
+                    </td>
                     {tablesEnabled ? (
-                      <div className="col-span-2">
-                        <dt className="type-caption font-semibold uppercase tracking-wide text-text-secondary">
-                          Mesa
-                        </dt>
-                        <dd className="mt-1">
-                          <GuestTableField
-                            key={`${guest.id}-m-${guest.tableName ?? ""}`}
-                            guestId={guest.id}
-                            tableName={guest.tableName}
-                            knownTables={knownTables}
-                            tableAction={tableAction}
-                          />
-                        </dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                  {guest.notes ? (
-                    <p className="mt-3 type-body-sm text-text-secondary">{guest.notes}</p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-6 hidden overflow-x-auto rounded-md border border-border-subtle md:block">
-              <table className="min-w-full text-left type-body-sm text-text-primary">
-                <thead className={accountTableHeadClass}>
-                  <tr>
-                    <th className={accountTableThClass}>Nombre</th>
-                    <th className={accountTableThClass}>Email</th>
-                    <th className={accountTableThClass}>Menú</th>
-                    {tablesEnabled ? (
-                      <th className={accountTableThClass}>Mesa</th>
-                    ) : null}
-                    <th className={accountTableThClass}>Notas</th>
-                    <th className={accountTableThClass}>Estado</th>
-                    <th className={accountTableThClass}>
-                      <span className="sr-only">Acciones</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredGuests.map((guest) => (
-                    <tr key={guest.id} className={accountTableRowClass}>
-                      <td className={`${accountTableTdClass} font-semibold`}>
-                        {guest.name}
-                      </td>
-                      <td className={`${accountTableTdClass} text-text-secondary`}>
-                        {guest.email ?? "—"}
-                      </td>
-                      <td className={`${accountTableTdClass} text-text-secondary`}>
-                        {rsvpMenuLabel(guest.menu)}
-                      </td>
-                      {tablesEnabled ? (
-                        <td className={`${accountTableTdClass} min-w-[11rem]`}>
-                          <GuestTableField
-                            key={`${guest.id}-d-${guest.tableName ?? ""}`}
-                            guestId={guest.id}
-                            tableName={guest.tableName}
-                            knownTables={knownTables}
-                            tableAction={tableAction}
-                          />
-                        </td>
-                      ) : null}
-                      <td className={`${accountTableTdClass} max-w-[12rem] truncate text-text-secondary`}>
-                        {guest.notes ?? "—"}
-                      </td>
-                      <td className={accountTableTdClass}>
-                        <GuestStatusSelect
+                      <td className={`${accountTableTdClass} min-w-[11rem]`} data-label="Mesa">
+                        <GuestTableField
+                          key={`${guest.id}-${guest.tableName ?? ""}`}
                           guestId={guest.id}
-                          status={guest.status}
-                          statusAction={statusAction}
+                          tableName={guest.tableName}
+                          knownTables={knownTables}
+                          tableAction={tableAction}
                         />
                       </td>
-                      <td className={`${accountTableTdClass} text-right`}>
+                    ) : null}
+                    <td className={`${accountTableTdClass} max-w-[12rem] truncate text-text-secondary`} data-label="Notas">
+                      {guest.notes ?? "—"}
+                    </td>
+                    <td className={accountTableTdClass} data-label="Estado">
+                      <GuestStatusSelect
+                        guestId={guest.id}
+                        status={guest.status}
+                        statusAction={statusAction}
+                      />
+                    </td>
+                    <td className={`${accountTableTdClass} text-right`} data-label="Acciones" data-actions="">
+                      <div className="flex flex-col items-stretch gap-2 min-[769px]:items-end">
+                        <div className="min-[769px]:hidden">
+                          <GuestQuickActions
+                            guestId={guest.id}
+                            status={guest.status}
+                            statusAction={statusAction}
+                          />
+                        </div>
                         <GuestDeleteButton guestId={guest.id} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </AccountTable>
+          </div>
         )}
       </AccountSection>
 
