@@ -13,7 +13,10 @@ export function ThemeSwitcher({ weddingSlug }: ThemeSwitcherProps) {
   const embeddedQuery = embedded ? "&embedded=1" : "";
 
   return (
-    <div className="sticky top-0 z-[100] border-b border-stone-200 bg-white/95 backdrop-blur-md">
+    <div
+      data-theme-switcher
+      className="sticky top-0 z-[100] border-b border-stone-200 bg-white/95 backdrop-blur-md"
+    >
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link

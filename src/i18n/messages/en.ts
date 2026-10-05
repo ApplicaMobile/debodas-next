@@ -212,6 +212,8 @@ export const en: Messages = {
     album: "Album",
     photos: "Photos",
     navAria: "Microsite sections",
+    stickyNavAria: "Jump to a microsite section",
+    home: "Home",
     schedule: "Schedule",
     location: "Location",
     dressCode: "Dress code",

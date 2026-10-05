@@ -220,6 +220,8 @@ export const es = {
     album: "Álbum",
     photos: "Fotos",
     navAria: "Secciones del micrositio",
+    stickyNavAria: "Ir a una sección del micrositio",
+    home: "Inicio",
     schedule: "Cronograma",
     location: "Ubicación",
     dressCode: "Dress code",

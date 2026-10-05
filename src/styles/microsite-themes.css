@@ -647,7 +647,8 @@
 .microsite-section {
   position: relative;
   padding: 4rem 0;
-  scroll-margin-top: 5rem;
+  /* --microsite-sticky-offset lo define MicrositeSectionNav (barra fija + ThemeSwitcher). */
+  scroll-margin-top: max(5rem, calc(var(--microsite-sticky-offset, 0px) + 1.5rem));
 }
 
 .microsite-section--decor {
@@ -1317,3 +1318,151 @@
 }
 
 
+
+/* Barra fija de secciones (MicrositeSectionNav): aparece al pasar el banner.
+   Solo variables del tema, así cada tema conserva colores, tipografía y radios. */
+.microsite-section-nav {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 45;
+  background: color-mix(in srgb, var(--theme-page) 92%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: var(--theme-card-border, 1px solid rgba(0, 0, 0, 0.08));
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--theme-text) 8%, transparent);
+  color: var(--theme-text);
+  font-family: var(--theme-font-body);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-100%);
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+.microsite-section-nav--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.microsite-section-nav__inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0.5rem 1.25rem;
+}
+
+.microsite-section-nav__names {
+  flex: none;
+  font-family: var(--theme-font-heading);
+  font-size: 1.25rem;
+  line-height: 1.2;
+  letter-spacing: var(--theme-letter-spacing);
+  white-space: nowrap;
+}
+
+.microsite-section-nav__names--uppercase {
+  text-transform: uppercase;
+}
+
+.microsite-section-nav__links {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 0.25rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+
+.microsite-section-nav__links::-webkit-scrollbar {
+  display: none;
+}
+
+.microsite-section-nav__link {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border-radius: var(--theme-radius-button, 9999px);
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.microsite-section-nav__link:last-child {
+  margin-right: 1.5rem;
+}
+
+.microsite-section-nav__link:hover {
+  background: color-mix(in srgb, var(--theme-accent) 10%, transparent);
+}
+
+.microsite-section-nav__link--active {
+  background: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+  color: var(--theme-accent);
+  font-weight: 600;
+}
+
+.microsite-section-nav__cta {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: var(--theme-radius-button, 9999px);
+  background: var(--theme-button);
+  color: var(--theme-button-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.microsite-section-nav__cta:hover {
+  background: var(--theme-accent-hover);
+}
+
+.microsite-section-nav__link:focus-visible,
+.microsite-section-nav__cta:focus-visible {
+  outline: 3px solid var(--theme-accent, #6f5f47);
+  outline-offset: -3px;
+}
+
+@media (max-width: 640px) {
+  .microsite-section-nav__inner {
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .microsite-section-nav__names {
+    display: none;
+  }
+
+  .microsite-section-nav__link {
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .microsite-section-nav__cta {
+    padding: 0 1rem;
+    font-size: 0.875rem;
+  }
+}

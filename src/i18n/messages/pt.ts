@@ -212,6 +212,8 @@ export const pt: Messages = {
     album: "Álbum",
     photos: "Fotos",
     navAria: "Seções do microsite",
+    stickyNavAria: "Ir para uma seção do microsite",
+    home: "Início",
     schedule: "Cronograma",
     location: "Local",
     dressCode: "Dress code",

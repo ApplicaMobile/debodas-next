@@ -2,6 +2,7 @@
 
 import { useMicrositeTheme } from "./ThemeProvider";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { buildMicrositeNavItems } from "./microsite-nav-items";
 
 interface ThemeBannerProps {
   coupleName: string;
@@ -16,12 +17,6 @@ interface ThemeBannerProps {
   showRsvp?: boolean;
   showCanva?: boolean;
   showMusic?: boolean;
-}
-
-interface BannerNavItem {
-  href: string;
-  label: string;
-  primary?: boolean;
 }
 
 export function ThemeBanner({
@@ -82,27 +77,16 @@ export function ThemeBanner({
     overlayOpacity !== null &&
     theme.bannerMode !== "full-background";
 
-  const navItems: BannerNavItem[] = [
-    { href: "#regalos", label: t("microsite.gifts") },
-    ...(showGallery ? [{ href: "#album", label: t("microsite.photos") }] : []),
-    ...(showSchedule
-      ? [{ href: "#cronograma", label: t("microsite.schedule") }]
-      : []),
-    ...(showLocation
-      ? [{ href: "#ubicacion", label: t("microsite.location") }]
-      : []),
-    ...(showCanva
-      ? [{ href: "#invitacion-canva", label: t("microsite.invite") }]
-      : []),
-    ...(showDressCode
-      ? [{ href: "#dress-code", label: t("microsite.attire") }]
-      : []),
-    ...(showFaq ? [{ href: "#faq", label: t("microsite.faq") }] : []),
-    ...(showMusic ? [{ href: "#musica", label: t("microsite.music") }] : []),
-    ...(showRsvp
-      ? [{ href: "#rsvp", label: t("microsite.rsvp"), primary: true }]
-      : []),
-  ];
+  const navItems = buildMicrositeNavItems(t, {
+    showGallery,
+    showSchedule,
+    showLocation,
+    showFaq,
+    showDressCode,
+    showRsvp,
+    showCanva,
+    showMusic,
+  });
 
   const bannerClass = [
     "microsite-banner",
