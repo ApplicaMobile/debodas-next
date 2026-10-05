@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { MarketingSectionHeader } from "@/components/home/MarketingSectionHeader";
+import { PlansComparison } from "@/components/home/PlansComparison";
+import { Badge, buttonClasses, IconCheck } from "@/components/ui";
 import { plans } from "@/data/home";
 import { LOCALE_NUMBER } from "@/i18n/config";
 import { t } from "@/i18n/dictionary";
 import { getDictionary } from "@/i18n/get-locale";
+import { getAccountPlanCards, type AccountPlanId } from "@/lib/plans/comparison";
 import { formatPlanPriceArs, getPlanProduct } from "@/lib/plans/pricing";
 
 const PLAN_COPY = {
@@ -23,50 +27,64 @@ const PLAN_COPY = {
   },
 } as const;
 
+/** Plan de la comparación (/mi-cuenta) → slug de la home. */
+const COMPARISON_SLUG: Record<AccountPlanId, keyof typeof PLAN_COPY> = {
+  free: "gratuito",
+  basico: "basico",
+  premium: "premium",
+};
+
 export async function PlansSection() {
   const { locale, messages } = await getDictionary();
   const numberLocale = LOCALE_NUMBER[locale];
 
+  // Mismo origen de precios de siempre: producto del plan (env / constante) o fallback de data/home.
+  const homePlans = plans.map((plan) => {
+    const product = getPlanProduct(plan.slug);
+    return {
+      plan,
+      copy: PLAN_COPY[plan.slug as keyof typeof PLAN_COPY],
+      price: product ? formatPlanPriceArs(product.priceArs, numberLocale) : plan.price,
+    };
+  });
+
+  const comparisonColumns = getAccountPlanCards().map((card) => {
+    const slug = COMPARISON_SLUG[card.id];
+    const home = homePlans.find((item) => item.plan.slug === slug);
+    return {
+      id: card.id,
+      name: t(messages, PLAN_COPY[slug].name),
+      price: home?.price ?? card.priceLabel,
+      recommended: slug === "basico",
+      rows: card.featureRows,
+    };
+  });
+
   return (
     <section id="planes" className="bg-white py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">
-            {t(messages, "home.plansEyebrow")}
+        <MarketingSectionHeader
+          eyebrow={t(messages, "home.plansEyebrow")}
+          title={t(messages, "home.plansTitle")}
+          lead={t(messages, "home.plansLead")}
+        >
+          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-surface-muted px-4 py-2 type-body-sm text-text-secondary">
+            <IconCheck size={16} className="shrink-0 text-status-success-fg" />
+            {t(messages, "home.plansNoteShort")}
           </p>
-          <h2 className="mt-3 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
-            {t(messages, "home.plansTitle")}
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600">
-            {t(messages, "home.plansLead")}
-          </p>
-          <p className="mx-auto mt-3 max-w-3xl text-sm text-stone-500">
-            {t(messages, "home.plansNote")}
-          </p>
-        </div>
+        </MarketingSectionHeader>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          {plans.map((plan) => {
-            const copy = PLAN_COPY[plan.slug as keyof typeof PLAN_COPY];
-            const product = getPlanProduct(plan.slug);
-            const price = product
-              ? formatPlanPriceArs(product.priceArs, numberLocale)
-              : plan.price;
+          {homePlans.map(({ plan, copy, price }) => {
+            const featured = plan.slug === "basico";
 
             return (
               <article
                 key={plan.slug}
                 className={`relative overflow-hidden rounded-3xl bg-stone-900 text-white shadow-xl ${
-                  plan.slug === "basico"
-                    ? "ring-2 ring-[#e6dac7]/70 lg:-translate-y-1"
-                    : ""
+                  featured ? "ring-2 ring-[#e6dac7]/70 lg:-translate-y-1" : ""
                 }`}
               >
-                {plan.slug === "basico" ? (
-                  <span className="absolute right-4 top-4 z-10 rounded-full bg-[#e6dac7] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-stone-800">
-                    {t(messages, "home.planMostChosen")}
-                  </span>
-                ) : null}
                 <div
                   className="absolute inset-0 bg-cover bg-center opacity-35"
                   style={{ backgroundImage: `url('${plan.image}')` }}
@@ -74,31 +92,39 @@ export async function PlansSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/30" />
 
                 <div className="relative flex h-full flex-col p-7">
-                  <p className="text-sm uppercase tracking-widest text-white/70">
-                    {t(messages, "home.planLabel")}
-                  </p>
-                  <h3 className="mt-2 text-3xl font-semibold">
+                  <div className="flex min-h-7 flex-wrap items-center justify-between gap-2">
+                    <p className="type-overline text-white/70">
+                      {t(messages, "home.planLabel")}
+                    </p>
+                    {featured ? (
+                      <Badge tone="recomendado">{t(messages, "home.planMostChosen")}</Badge>
+                    ) : null}
+                  </div>
+                  <h3 className="mt-2 type-h3">
                     {copy ? t(messages, copy.name) : plan.name}
                   </h3>
-                  <p className="mt-2 text-2xl font-semibold">{price}</p>
+                  <p className="mt-3 text-h2 font-semibold tabular-nums">{price}</p>
                   {plan.priceNote ? (
-                    <p className="mt-1 text-sm text-white/75">
+                    <p className="mt-1 type-body-sm text-white/75">
                       {t(messages, "home.planPriceNote")}
                     </p>
                   ) : null}
 
-                  <p className="mt-8 text-sm font-medium text-white/85">
+                  <hr className="my-6 border-white/15" />
+
+                  <p className="type-label text-white/85">
                     {t(messages, "home.planIncludes")}
                   </p>
-                  <ul className="mt-4 space-y-2 text-sm text-white/85">
+                  <ul className="mt-4 space-y-3 type-body text-white/90">
                     {(copy?.features ?? plan.features).map((feature) => (
-                      <li key={feature} className="flex gap-2">
-                        <span className="text-[#6CC39E]" aria-hidden>
-                          ✓
+                      <li key={feature} className="flex items-start gap-3">
+                        <span
+                          className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[var(--color-verde-500)]"
+                          aria-hidden="true"
+                        >
+                          <IconCheck size={14} strokeWidth={2.5} />
                         </span>
-                        <span>
-                          {copy ? t(messages, feature) : feature}
-                        </span>
+                        <span>{copy ? t(messages, feature) : feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -106,11 +132,11 @@ export async function PlansSection() {
                   <div className="mt-auto pt-8">
                     <Link
                       href="/registro"
-                      className="block rounded-full bg-[#e6dac7] px-5 py-3 text-center text-sm font-semibold text-stone-800 transition hover:bg-[#d4c4a8]"
+                      className={buttonClasses({ variant: "secundario", fullWidth: true })}
                     >
                       {copy ? t(messages, copy.cta) : plan.cta}
                     </Link>
-                    <p className="mt-3 text-center text-xs text-white/65">
+                    <p className="mt-3 text-center type-caption text-white/65">
                       {t(messages, "home.planUnlimited")}
                     </p>
                   </div>
@@ -119,6 +145,18 @@ export async function PlansSection() {
             );
           })}
         </div>
+
+        <PlansComparison
+          columns={comparisonColumns}
+          labels={{
+            show: t(messages, "home.plansCompare"),
+            hide: t(messages, "home.plansCompareHide"),
+            intro: t(messages, "home.plansNote"),
+            caption: t(messages, "home.plansCompareCaption"),
+            notIncluded: t(messages, "home.plansCompareNotIncluded"),
+            recommended: t(messages, "home.planMostChosen"),
+          }}
+        />
       </div>
     </section>
   );

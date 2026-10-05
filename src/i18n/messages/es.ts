@@ -80,6 +80,11 @@ export const es = {
     plansLead: "Elegí la experiencia ideal para tu gran día",
     plansNote:
       "Pago único: pagás una sola vez y tenés acceso ilimitado a tu gestor de bodas. Sin suscripción mensual.",
+    plansNoteShort: "Pago único · Sin suscripción mensual",
+    plansCompare: "Ver la comparación completa de planes",
+    plansCompareHide: "Ocultar la comparación de planes",
+    plansCompareCaption: "Comparación completa de los planes Gratuito, Básico y Premium",
+    plansCompareNotIncluded: "No incluido:",
     planLabel: "Plan",
     planIncludes: "¿Qué servicios incluye?",
     planMostChosen: "Más elegido",
