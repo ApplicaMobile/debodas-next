@@ -110,7 +110,7 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
             description="Cuando una pareja pague un plan, el registro va a aparecer acá."
           />
         ) : (
-          <AccountTable caption="Pagos registrados" tableClassName="min-w-[680px]">
+          <AccountTable caption="Pagos registrados" tableClassName="min-[769px]:min-w-[680px]">
             <thead className={accountTableHeadClass}>
               <tr>
                 <th scope="col" className={accountTableThClass}>Tipo</th>
@@ -123,11 +123,11 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
             <tbody>
               {payments.map((payment) => (
                 <tr key={payment.id} className={accountTableRowClass}>
-                  <td className={`${accountTableTdClass} capitalize`}>
+                  <td className={`${accountTableTdClass} capitalize`} data-primary="">
                     {payment.type}
                     {payment.planTarget ? ` → ${payment.planTarget}` : ""}
                   </td>
-                  <td className={accountTableTdClass}>
+                  <td className={accountTableTdClass} data-label="Boda">
                     <Link
                       href={`/admin/bodas/${payment.boda.id}`}
                       className="focus-ring rounded-sm font-semibold text-text-link hover:underline"
@@ -135,13 +135,13 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
                       {payment.boda.title}
                     </Link>
                   </td>
-                  <td className={`${accountTableTdClass} whitespace-nowrap text-right tabular-nums`}>
+                  <td className={`${accountTableTdClass} whitespace-nowrap text-right tabular-nums`} data-label="Monto">
                     {money(payment.amount, payment.currency)}
                   </td>
-                  <td className={accountTableTdClass}>
+                  <td className={accountTableTdClass} data-label="Estado">
                     <AdminStatusBadge kind="payment" status={payment.status} />
                   </td>
-                  <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                  <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`} data-label="Fecha">
                     {payment.createdAt.toLocaleString("es-AR")}
                   </td>
                 </tr>
@@ -175,7 +175,7 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
             description="Cuando un invitado informe un regalo, va a aparecer acá."
           />
         ) : (
-          <AccountTable caption="Regalos confirmados y pendientes" tableClassName="min-w-[760px]">
+          <AccountTable caption="Regalos confirmados y pendientes" tableClassName="min-[769px]:min-w-[760px]">
             <thead className={accountTableHeadClass}>
               <tr>
                 <th scope="col" className={accountTableThClass}>De</th>
@@ -189,13 +189,13 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
             <tbody>
               {gifts.map((gift) => (
                 <tr key={gift.id} className={accountTableRowClass}>
-                  <td className={accountTableTdClass}>
+                  <td className={accountTableTdClass} data-primary="">
                     <p className="font-semibold">{gift.participants}</p>
                     <p className="break-all type-caption text-text-secondary">
                       {gift.email || "—"}
                     </p>
                   </td>
-                  <td className={accountTableTdClass}>
+                  <td className={accountTableTdClass} data-label="Boda">
                     <Link
                       href={`/admin/bodas/${gift.boda.id}`}
                       className="focus-ring rounded-sm font-semibold text-text-link hover:underline"
@@ -203,11 +203,11 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
                       {gift.boda.title}
                     </Link>
                   </td>
-                  <td className={`${accountTableTdClass} whitespace-nowrap text-right tabular-nums`}>
+                  <td className={`${accountTableTdClass} whitespace-nowrap text-right tabular-nums`} data-label="Monto">
                     {money(gift.amount, gift.currency)}
                   </td>
-                  <td className={accountTableTdClass}>{gift.method}</td>
-                  <td className={accountTableTdClass}>
+                  <td className={accountTableTdClass} data-label="Método">{gift.method}</td>
+                  <td className={accountTableTdClass} data-label="Comprobante">
                     {gift.voucherUrl ? (
                       <a
                         href={gift.voucherUrl}
@@ -223,7 +223,7 @@ export default async function AdminPagosPage({ searchParams }: PageProps) {
                       <span className="text-text-tertiary">—</span>
                     )}
                   </td>
-                  <td className={accountTableTdClass}>
+                  <td className={accountTableTdClass} data-label="Estado" data-actions="">
                     {gift.confirmed ? (
                       <Badge tone="aprobado">Confirmado</Badge>
                     ) : (

@@ -162,7 +162,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
               }
             />
           ) : (
-            <AccountTable caption="Acciones administrativas" tableClassName="min-w-[860px]">
+            <AccountTable caption="Acciones administrativas" tableClassName="min-[769px]:min-w-[860px]">
               <thead className={accountTableHeadClass}>
                 <tr>
                   <th scope="col" className={accountTableThClass}>Fecha</th>
@@ -175,13 +175,13 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
               <tbody>
                 {logs.map((log) => (
                   <tr key={log.id} className={accountTableRowClass}>
-                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`} data-primary="">
                       {log.createdAt.toLocaleString("es-AR")}
                     </td>
-                    <td className={`${accountTableTdClass} break-all`}>
+                    <td className={`${accountTableTdClass} break-all`} data-label="Administrador">
                       {log.actorEmail}
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Acción">
                       <span className="font-semibold">
                         {auditActionLabel(log.action)}
                       </span>
@@ -189,7 +189,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
                         {log.action}
                       </span>
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Entidad">
                       {auditEntityLabel(log.entity)}
                       {log.entityId ? (
                         <span className="block max-w-48 truncate type-caption text-text-tertiary">
@@ -197,7 +197,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
                         </span>
                       ) : null}
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Detalle">
                       <code className="block max-w-md whitespace-pre-wrap break-words type-caption text-text-secondary">
                         {JSON.stringify(log.metadata)}
                       </code>

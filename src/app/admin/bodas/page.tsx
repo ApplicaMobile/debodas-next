@@ -23,12 +23,9 @@ import {
 } from "@/components/account/AccountPage";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
-import { AdminPlanBadge } from "@/components/admin/AdminStatusBadge";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
 import {
-  Button,
   IconDownload,
-  IconExternalLink,
   Input,
   Select,
   buttonClasses,
@@ -171,117 +168,10 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
               }
             />
           ) : (
-            <>
-              <ul role="list" className="space-y-3 lg:hidden">
-                {bodas.map((boda) => {
-                  const name = coupleLabel(boda.couple, boda.title);
-                  return (
-                    <li key={boda.id}>
-                      <article className="space-y-4 rounded-md border border-border-subtle bg-surface-default p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <Link
-                              href={`/admin/bodas/${boda.id}`}
-                              className="focus-ring rounded-sm type-label text-text-primary underline-offset-4 hover:underline"
-                            >
-                              {name}
-                            </Link>
-                            <p className="mt-1 break-all type-caption text-text-secondary">
-                              /{boda.slug}
-                            </p>
-                          </div>
-                          <AdminPlanBadge plan={boda.plan} />
-                        </div>
-                        <dl className="grid grid-cols-2 gap-3">
-                          <div>
-                            <dt className="type-caption font-semibold text-text-tertiary">
-                              Fecha
-                            </dt>
-                            <dd className="mt-1 type-body-sm text-text-primary">
-                              {eventDateFromJson(boda.event)}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="type-caption font-semibold text-text-tertiary">
-                              Dueño
-                            </dt>
-                            <dd className="mt-1 break-all type-body-sm text-text-primary">
-                              {boda.user.email}
-                            </dd>
-                          </div>
-                          <div className="col-span-2">
-                            <dt className="type-caption font-semibold text-text-tertiary">
-                              Actividad
-                            </dt>
-                            <dd className="mt-1 type-body-sm text-text-primary">
-                              {boda._count.rsvpGuests} RSVP · {boda._count.gifts}{" "}
-                              regalos · {boda._count.ratings} ratings
-                            </dd>
-                          </div>
-                        </dl>
-                        <AdminActionForm
-                          action={updateBodaPlanAction}
-                          className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-end"
-                          confirmMessage={`¿Confirmás el cambio de plan de ${name}?`}
-                        >
-                          <input type="hidden" name="boda_id" value={boda.id} />
-                          <div className="min-w-0 flex-1">
-                            <label
-                              htmlFor={`mobile-plan-${boda.id}`}
-                              className="mb-1 block type-caption font-semibold text-text-secondary"
-                            >
-                              Plan
-                              <span className="sr-only"> de {name}</span>
-                            </label>
-                            <select
-                              id={`mobile-plan-${boda.id}`}
-                              name="plan"
-                              defaultValue={boda.plan}
-                              className={`${accountCompactControlClass} w-full`}
-                            >
-                              {planOptions.map((value) => (
-                                <option key={value} value={value}>
-                                  {planLabels[value]}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <AdminSubmitButton
-                            idleLabel="Guardar"
-                            pendingLabel="Guardando…"
-                            variant="secundario"
-                          />
-                        </AdminActionForm>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            href={`/admin/bodas/${boda.id}`}
-                            size="sm"
-                          >
-                            Ver detalle
-                          </Button>
-                          <Button
-                            href={`/bodas/${boda.slug}`}
-                            target="_blank"
-                            variant="fantasma"
-                            size="sm"
-                            icon={<IconExternalLink size={16} />}
-                            iconPosition="end"
-                          >
-                            Ver sitio
-                            <span className="sr-only"> (se abre en otra pestaña)</span>
-                          </Button>
-                        </div>
-                      </article>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              <AccountTable
-                caption="Bodas, propietarios, planes y actividad"
-                className="hidden lg:block"
-                tableClassName="min-w-[840px]"
-              >
+            <AccountTable
+              caption="Bodas, propietarios, planes y actividad"
+              tableClassName="min-[769px]:min-w-[840px]"
+            >
                 <thead className={accountTableHeadClass}>
                   <tr>
                     <th scope="col" className={accountTableThClass}>Boda</th>
@@ -297,7 +187,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                     const name = coupleLabel(boda.couple, boda.title);
                     return (
                       <tr key={boda.id} className={accountTableRowClass}>
-                        <td className={`${accountTableTdClass} min-w-[11rem]`}>
+                        <td className={`${accountTableTdClass} min-w-[11rem]`} data-primary="">
                           <Link
                             href={`/admin/bodas/${boda.id}`}
                             className="focus-ring rounded-sm font-semibold text-text-primary hover:underline"
@@ -311,19 +201,19 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                             {boda.micrositeTheme}
                           </p>
                         </td>
-                        <td className={`${accountTableTdClass} whitespace-nowrap`}>
+                        <td className={`${accountTableTdClass} whitespace-nowrap`} data-label="Fecha">
                           {eventDateFromJson(boda.event)}
                           <p className="type-caption text-text-tertiary">
                             Alta {boda.createdAt.toLocaleDateString("es-AR")}
                           </p>
                         </td>
-                        <td className={`${accountTableTdClass} min-w-[12rem]`}>
+                        <td className={`${accountTableTdClass} min-w-[12rem]`} data-label="Dueño">
                           <p className="break-words">{boda.user.name || "—"}</p>
                           <p className="break-all type-caption text-text-secondary">
                             {boda.user.email}
                           </p>
                         </td>
-                        <td className={accountTableTdClass}>
+                        <td className={accountTableTdClass} data-label="Plan">
                           <AdminActionForm
                             action={updateBodaPlanAction}
                             className="flex flex-col items-start gap-2"
@@ -352,12 +242,12 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                             />
                           </AdminActionForm>
                         </td>
-                        <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                        <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`} data-label="RSVP / Regalos">
                           <p>{boda._count.rsvpGuests} RSVP</p>
                           <p>{boda._count.gifts} regalos</p>
                           <p>{boda._count.ratings} ratings</p>
                         </td>
-                        <td className={`${accountTableTdClass} whitespace-nowrap`}>
+                        <td className={`${accountTableTdClass} whitespace-nowrap`} data-label="Acciones" data-actions="">
                           <div className="flex flex-col items-start gap-1">
                             <Link
                               href={`/admin/bodas/${boda.id}`}
@@ -379,8 +269,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                     );
                   })}
                 </tbody>
-              </AccountTable>
-            </>
+            </AccountTable>
           )}
 
           <AdminPagination

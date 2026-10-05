@@ -134,7 +134,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
               }
             />
           ) : (
-            <AccountTable caption="Usuarios, roles y bodas" tableClassName="min-w-[720px]">
+            <AccountTable caption="Usuarios, roles y bodas" tableClassName="min-[769px]:min-w-[720px]">
               <thead className={accountTableHeadClass}>
                 <tr>
                   <th scope="col" className={accountTableThClass}>Usuario</th>
@@ -146,7 +146,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
               <tbody>
                 {users.map((user) => (
                   <tr key={user.id} className={accountTableRowClass}>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-primary="">
                       <p className="flex flex-wrap items-center gap-2 font-semibold">
                         {user.name || "—"}
                         {user.id === admin.id ? (
@@ -159,7 +159,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                         {user.email}
                       </p>
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Rol">
                       <AdminActionForm
                         action={updateUserRoleAction}
                         className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center"
@@ -187,7 +187,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                         />
                       </AdminActionForm>
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Boda">
                       {user.boda ? (
                         <span className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                           <Link
@@ -202,7 +202,7 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                         <span className="text-text-tertiary">—</span>
                       )}
                     </td>
-                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`} data-label="Alta">
                       {user.createdAt.toLocaleDateString("es-AR")}
                     </td>
                   </tr>

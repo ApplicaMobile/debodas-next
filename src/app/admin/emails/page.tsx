@@ -253,7 +253,7 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
               }
             />
           ) : (
-            <AccountTable caption="Historial de emails" tableClassName="min-w-[860px]">
+            <AccountTable caption="Historial de emails" tableClassName="min-[769px]:min-w-[860px]">
               <thead className={accountTableHeadClass}>
                 <tr>
                   <th scope="col" className={accountTableThClass}>Fecha</th>
@@ -267,13 +267,13 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
               <tbody>
                 {logs.map((log) => (
                   <tr key={log.id} className={accountTableRowClass}>
-                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`}>
+                    <td className={`${accountTableTdClass} whitespace-nowrap text-text-secondary`} data-primary="">
                       {log.createdAt.toLocaleString("es-AR")}
                     </td>
-                    <td className={`${accountTableTdClass} break-all`}>
+                    <td className={`${accountTableTdClass} break-all`} data-label="Para">
                       {log.toAddress}
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Asunto">
                       <span className="font-semibold">{log.subject}</span>
                       {log.error ? (
                         <p className="mt-1 type-caption text-status-error-fg">
@@ -287,13 +287,13 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                         </p>
                       ) : null}
                     </td>
-                    <td className={`${accountTableTdClass} tabular-nums text-text-secondary`}>
+                    <td className={`${accountTableTdClass} tabular-nums text-text-secondary`} data-label="Intentos">
                       {log.attempts}/{log.maxAttempts}
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Estado">
                       <AdminStatusBadge kind="email" status={log.status} />
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Acción" data-actions="">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={`/admin/emails/${log.id}`}

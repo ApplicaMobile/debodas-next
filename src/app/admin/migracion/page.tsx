@@ -228,7 +228,7 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
               }
             />
           ) : (
-            <AccountTable caption="Bodas de WordPress" tableClassName="min-w-[920px]">
+            <AccountTable caption="Bodas de WordPress" tableClassName="min-[769px]:min-w-[920px]">
               <thead className={accountTableHeadClass}>
                 <tr>
                   <th scope="col" className={accountTableThClass}>Slug</th>
@@ -243,21 +243,21 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
               <tbody>
                 {items.map((item) => (
                   <tr key={item.wpPostId} className={accountTableRowClass}>
-                    <td className={`${accountTableTdClass} font-semibold`}>
+                    <td className={`${accountTableTdClass} font-semibold`} data-primary="">
                       {item.slug}
                     </td>
-                    <td className={accountTableTdClass}>{item.coupleLabel}</td>
-                    <td className={`${accountTableTdClass} break-all text-text-secondary`}>
+                    <td className={accountTableTdClass} data-label="Pareja">{item.coupleLabel}</td>
+                    <td className={`${accountTableTdClass} break-all text-text-secondary`} data-label="Email">
                       {item.email}
                     </td>
-                    <td className={accountTableTdClass}>{item.plan}</td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Plan">{item.plan}</td>
+                    <td className={accountTableTdClass} data-label="Estado">
                       <AdminStatusBadge kind="migration" status={item.status} />
                     </td>
-                    <td className={`${accountTableTdClass} tabular-nums text-text-secondary`}>
+                    <td className={`${accountTableTdClass} tabular-nums text-text-secondary`} data-label="Fotos / regalos / RSVP">
                       {item.pictureCount}/{item.giftCount}/{item.guestCount}
                     </td>
-                    <td className={accountTableTdClass}>
+                    <td className={accountTableTdClass} data-label="Acciones" data-actions="">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <Link
                           href={`/admin/migracion?preview=${item.wpPostId}&status=${statusFilter}&q=${encodeURIComponent(q ?? "")}`}
