@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import type { ComponentType, ReactNode, SVGProps, TdHTMLAttributes } from "react";
 import {
   AccountNavIcon,
   AccountNavIconBadge,
@@ -247,31 +247,58 @@ export function AccountItemList({ children, label }: { children: ReactNode; labe
   );
 }
 
-/** Tabla de datos con estilo común (scroll horizontal en mobile + pista). */
+/**
+ * Tabla de datos compartida (admin + mi-cuenta).
+ *
+ * - Por defecto (`stacked`) hasta 768px inclusive cada fila se restiliza como tarjeta
+ *   con `data-label` / `data-primary` / `data-actions` (un solo markup, sin
+ *   duplicar texto para e2e). Desde 769px se mantiene la tabla con scroll si hace falta.
+ * - Con `stacked={false}` conserva el hint + scroll horizontal en mobile.
+ */
 export function AccountTable({
   children,
   caption,
   className,
   tableClassName,
   scrollHint = true,
+  stacked = true,
 }: {
   children: ReactNode;
   caption?: string;
   className?: string;
-  /** Clases extra de la tabla (p. ej. un ancho mínimo para tablas densas). */
+  /** Clases extra de la tabla (p. ej. `min-[769px]:min-w-[720px]` para tablas densas). */
   tableClassName?: string;
-  /** Muestra "Deslizá para ver más" en viewports chicos cuando la tabla puede desbordar. */
+  /** Muestra "Deslizá para ver más" en viewports chicos (solo si no es stacked). */
   scrollHint?: boolean;
+  /**
+   * Hasta 768px inclusive, filas como tarjetas apiladas. Marcar celdas con
+   * `data-label`, `data-primary` (título) y `data-actions` (acciones al pie).
+   */
+  stacked?: boolean;
 }) {
+  const showScrollHint = scrollHint && !stacked;
   return (
     <div className={cn("max-w-full", className)}>
-      {scrollHint ? (
+      {showScrollHint ? (
         <p className="mb-2 type-caption text-text-tertiary md:hidden" aria-hidden="true">
           Deslizá horizontalmente para ver más →
         </p>
       ) : null}
-      <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-md border border-border-subtle [-webkit-overflow-scrolling:touch]">
-        <table className={cn("min-w-full text-left type-body-sm text-text-primary", tableClassName)}>
+      <div
+        className={cn(
+          "max-w-full",
+          stacked
+            ? "account-table-stacked-wrap min-[769px]:overflow-x-auto min-[769px]:overscroll-x-contain min-[769px]:rounded-md min-[769px]:border min-[769px]:border-border-subtle min-[769px]:[-webkit-overflow-scrolling:touch]"
+            : "overflow-x-auto overscroll-x-contain rounded-md border border-border-subtle [-webkit-overflow-scrolling:touch]",
+        )}
+      >
+        <table
+          className={cn(
+            "min-w-full text-left type-body-sm text-text-primary",
+            stacked && "account-table--stacked",
+            tableClassName,
+          )}
+        >
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           {children}
         </table>
@@ -285,6 +312,36 @@ export const accountTableHeadClass =
 export const accountTableThClass = "px-4 py-3 font-semibold";
 export const accountTableRowClass = "border-t border-border-subtle align-top";
 export const accountTableTdClass = "px-4 py-3";
+
+/** Celda con etiqueta para el modo stacked (mobile). */
+export function AccountTableCell({
+  label,
+  primary = false,
+  actions = false,
+  className,
+  children,
+  ...rest
+}: {
+  label?: string;
+  /** Primera columna: título de la tarjeta (sin etiqueta). */
+  primary?: boolean;
+  /** Acciones al pie de la tarjeta. */
+  actions?: boolean;
+  className?: string;
+  children?: ReactNode;
+} & Omit<TdHTMLAttributes<HTMLTableCellElement>, "className" | "children">) {
+  return (
+    <td
+      className={cn(accountTableTdClass, className)}
+      data-label={primary || actions ? undefined : label}
+      {...(primary ? { "data-primary": "" } : {})}
+      {...(actions ? { "data-actions": "" } : {})}
+      {...rest}
+    >
+      {children}
+    </td>
+  );
+}
 
 /**
  * Botón de eliminar para ítems de una lista (va dentro de ConfirmDeleteForm).
