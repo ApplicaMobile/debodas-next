@@ -3,6 +3,8 @@ export interface AccountSection {
   label: string;
   available: boolean;
   exact?: boolean;
+  /** false = no se muestra como tarjeta en el resumen de /mi-cuenta. */
+  inSummary?: boolean;
 }
 
 export const accountSections: AccountSection[] = [
@@ -28,6 +30,7 @@ export const accountSections: AccountSection[] = [
   { href: "/mi-cuenta/tema", label: "Tema del micrositio", available: true },
   { href: "/mi-cuenta/invitados", label: "Invitados / RSVP", available: true },
   { href: "/mi-cuenta/plan", label: "Plan y facturación", available: true },
+  { href: "/mi-cuenta/cuenta", label: "Mi cuenta", available: true, inSummary: false },
 ];
 
 export function isAccountSectionActive(

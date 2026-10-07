@@ -1,6 +1,6 @@
-import { put, del } from "@vercel/blob";
+import { put, del, list } from "@vercel/blob";
 import { randomUUID } from "crypto";
-import { mkdir, unlink, writeFile } from "fs/promises";
+import { mkdir, rm, unlink, writeFile } from "fs/promises";
 import path from "path";
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -279,6 +279,67 @@ export async function deleteLocalUpload(url: string): Promise<void> {
   if (usesCloudStorage()) {
     try {
       await del(url);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/**
+ * Carpeta de uploads borrable de una boda: solo `bodas/<slug>` (o más profunda).
+ * Nunca devuelve raíces genéricas ni `migrated/` (media compartida de WordPress).
+ */
+export function resolveDeletableUploadFolder(subdir: string): string | null {
+  const raw = subdir.replace(/\\/g, "/").trim();
+  if (!raw || raw.includes("..") || raw.includes("\0")) {
+    return null;
+  }
+  const safe = sanitizeUploadSubdir(raw);
+  const segments = safe.split("/");
+  if (segments.length < 2 || segments[0] !== "bodas") {
+    return null;
+  }
+  if (segments.some((seg) => seg === "migrated")) {
+    return null;
+  }
+  return safe;
+}
+
+/**
+ * Borra recursivamente una carpeta de uploads de una boda (disco local y, si aplica, Vercel Blob).
+ * Errores se ignoran (best-effort): se llama después de commitear el borrado en la base.
+ */
+export async function deleteUploadFolder(subdir: string): Promise<void> {
+  const safe = resolveDeletableUploadFolder(subdir);
+  if (!safe) {
+    console.warn("[deleteUploadFolder] carpeta rechazada:", subdir);
+    return;
+  }
+
+  const uploadsRoot = path.resolve(process.cwd(), "public", "uploads");
+  const absolute = path.resolve(uploadsRoot, ...safe.split("/"));
+  const relative = path.relative(uploadsRoot, absolute);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    console.warn("[deleteUploadFolder] ruta fuera de uploads:", subdir);
+    return;
+  }
+
+  try {
+    await rm(absolute, { recursive: true, force: true });
+  } catch {
+    // ignore
+  }
+
+  if (usesCloudStorage()) {
+    try {
+      let cursor: string | undefined;
+      do {
+        const page = await list({ prefix: `uploads/${safe}/`, cursor });
+        if (page.blobs.length > 0) {
+          await del(page.blobs.map((blob) => blob.url));
+        }
+        cursor = page.hasMore ? page.cursor : undefined;
+      } while (cursor);
     } catch {
       // ignore
     }

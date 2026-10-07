@@ -40,7 +40,7 @@ const SECTION_GROUPS: { title: string; hrefs: string[] }[] = [
   },
   {
     title: "Cuenta",
-    hrefs: ["/mi-cuenta/plan"],
+    hrefs: ["/mi-cuenta/plan", "/mi-cuenta/cuenta"],
   },
 ];
 

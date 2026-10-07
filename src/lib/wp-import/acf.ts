@@ -703,16 +703,18 @@ export function mapRsvpMenu(raw: string): string {
  * Convert WP password hash to something bcryptjs can verify when possible.
  * WP 6.8+ uses `$wp$2y$...` (bcrypt with prefix). Older `$P$` cannot be used.
  */
+/**
+ * Solo los bcrypt "puros" (`$2y$`/`$2a$`/`$2b$`) se pueden copiar tal cual a
+ * `User.passwordHash`. Los `$wp$2y$` de WordPress 6.8 llevan un pre-hash
+ * HMAC-SHA384 y NO son bcrypt directos: van a `legacyPasswordHash`
+ * (ver `planImportPassword` en `passwords.ts`), igual que `$P$` y MD5.
+ */
 export function adaptWpPasswordHash(wpHash: string): {
   passwordHash: string;
   needsReset: boolean;
 } {
   const hash = wpHash.trim();
-  if (hash.startsWith("$wp$2y$") || hash.startsWith("$wp$2a$") || hash.startsWith("$wp$2b$")) {
-    // WP stores `$wp` + `$2y$...` → strip only the `$wp` prefix
-    return { passwordHash: hash.replace(/^\$wp/, ""), needsReset: false };
-  }
-  if (hash.startsWith("$2y$") || hash.startsWith("$2a$") || hash.startsWith("$2b$")) {
+  if (/^\$2[aby]\$\d{2}\$/.test(hash)) {
     return { passwordHash: hash, needsReset: false };
   }
   return { passwordHash: "", needsReset: true };

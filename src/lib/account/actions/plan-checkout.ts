@@ -7,16 +7,13 @@ import {
   getPlanProduct,
   type PurchasablePlan,
 } from "@/lib/plans/pricing";
+import { MercadoPagoApiError } from "@/lib/mercadopago/api";
+import { isMercadoPagoConfigured } from "@/lib/mercadopago/config";
 import {
-  createMercadoPagoPreference,
-  MercadoPagoApiError,
-} from "@/lib/mercadopago/api";
-import {
-  getAppBaseUrl,
-  getMercadoPagoWebhookUrl,
-  isMercadoPagoConfigured,
-} from "@/lib/mercadopago/config";
-import { prisma } from "@/lib/db/prisma";
+  MP_NOT_CONFIGURED_MESSAGE,
+  PlanCheckoutError,
+  startPlanCheckout,
+} from "@/lib/payments/plan-checkout";
 
 export interface PlanCheckoutState {
   error?: string;
@@ -46,10 +43,7 @@ export async function createPlanCheckoutAction(
   }
 
   if (!(await isMercadoPagoConfigured())) {
-    return {
-      error:
-        "MercadoPago no está configurado. El administrador debe cargarlo en /admin/mercadopago.",
-    };
+    return { error: MP_NOT_CONFIGURED_MESSAGE };
   }
 
   const planSlug = String(formData.get("plan") ?? "").trim() as PurchasablePlan;
@@ -62,59 +56,16 @@ export async function createPlanCheckoutAction(
     return { error: "Ya tenés este plan o uno superior." };
   }
 
-  const externalRef = `plan_${boda.id}_${Date.now()}`;
-
   try {
-    const payment = await prisma.payment.create({
-      data: {
-        bodaId: boda.id,
-        type: "plan",
-        planTarget: product.dbValue,
-        amount: product.priceArs,
-        currency: "ARS",
-        status: "pending",
-        externalRef,
-        metadata: {
-          plan_slug: product.slug,
-          user_email: session.email,
-        },
-      },
+    const checkout = await startPlanCheckout({
+      bodaId: boda.id,
+      email: session.email,
+      plan: product.slug,
     });
-
-    const baseUrl = getAppBaseUrl();
-    const preference = await createMercadoPagoPreference({
-      externalReference: payment.externalRef,
-      items: [
-        {
-          title: `${product.name} · DeBodas`,
-          quantity: 1,
-          unit_price: product.priceArs,
-        },
-      ],
-      payerEmail: session.email,
-      backUrls: {
-        success: `${baseUrl}/mi-cuenta/plan?payment=success`,
-        failure: `${baseUrl}/mi-cuenta/plan?payment=failure`,
-        pending: `${baseUrl}/mi-cuenta/plan?payment=pending`,
-      },
-      notificationUrl: getMercadoPagoWebhookUrl(boda.id),
-      metadata: {
-        payment_id: payment.id,
-        boda_id: boda.id,
-        type: "plan",
-        plan_target: product.dbValue,
-      },
-    });
-
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: { mpPreferenceId: preference.id },
-    });
-
-    return { redirectTo: preference.initPoint };
+    return { redirectTo: checkout.initPoint };
   } catch (err) {
     console.error("[createPlanCheckoutAction]", err);
-    if (err instanceof MercadoPagoApiError) {
+    if (err instanceof MercadoPagoApiError || err instanceof PlanCheckoutError) {
       return { error: err.message };
     }
     return { error: "No se pudo iniciar el pago con MercadoPago." };

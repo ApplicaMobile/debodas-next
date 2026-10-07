@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+// Casos de la migración WP (contraseñas, idempotencia, rehost, redirects).
+// Se importan acá para que corran con `npm test` sin tocar package.json.
+import "./wp-migration.test";
 import { encryptSecret, isEncryptedSecret } from "@/lib/security/secrets";
 import {
   buildAbonarTarjetaFromMeta,

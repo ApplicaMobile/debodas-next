@@ -1,6 +1,7 @@
-import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
+import { checkUserPassword } from "@/lib/auth/legacy-password";
 import { migrateWpUserOnLogin } from "@/lib/wp-import";
+import { isAccountActive, normalizeAccountStatus, type AccountStatus } from "@/lib/account/status";
 
 export async function verifyCredentials(
   email: string,
@@ -12,6 +13,10 @@ export async function verifyCredentials(
   role: string;
   sessionVersion: number;
   bodaSlug: string | null;
+  /** active o suspended (las eliminadas devuelven null, como credenciales inválidas). */
+  status: AccountStatus;
+  /** null = registro con el email sin verificar. */
+  emailVerifiedAt: Date | null;
 } | null> {
   const normalizedEmail = email.trim().toLowerCase();
   if (!normalizedEmail || !password) {
@@ -24,8 +29,13 @@ export async function verifyCredentials(
   });
 
   if (user) {
-    const isValid = await compare(password, user.passwordHash);
-    if (!isValid) {
+    // Cuenta eliminada: igual que si no existiera (y nunca se intenta migrar desde WP).
+    if (normalizeAccountStatus(user.status) === "deleted") {
+      return null;
+    }
+    // bcrypt de Next y, si falla, hash legado de WordPress (se rehashea al entrar).
+    const check = await checkUserPassword(prisma, user, password);
+    if (!check.ok) {
       return null;
     }
     return {
@@ -35,6 +45,8 @@ export async function verifyCredentials(
       role: user.role,
       sessionVersion: user.sessionVersion,
       bodaSlug: user.boda?.slug ?? null,
+      status: normalizeAccountStatus(user.status),
+      emailVerifiedAt: user.emailVerifiedAt,
     };
   }
 
@@ -50,7 +62,7 @@ export async function verifyCredentials(
       where: { id: migrated.userId },
       include: { boda: { select: { slug: true } } },
     });
-    if (!created) {
+    if (!created || !isAccountActive(created.status)) {
       return null;
     }
     return {
@@ -60,9 +72,11 @@ export async function verifyCredentials(
       role: created.role,
       sessionVersion: created.sessionVersion,
       bodaSlug: created.boda?.slug ?? migrated.bodaSlug,
+      status: "active",
+      emailVerifiedAt: created.emailVerifiedAt,
     };
   } catch (error) {
-    console.warn("[verifyCredentials] WP migrate skipped", error);
+    console.warn("[verifyCredentials] WP migrate skipped", error instanceof Error ? error.message : error);
     return null;
   }
 }

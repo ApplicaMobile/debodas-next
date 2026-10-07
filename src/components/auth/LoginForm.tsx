@@ -33,7 +33,9 @@ export function LoginForm({ nextPath = "/mi-cuenta" }: LoginFormProps) {
         ? t("auth.dbError")
         : state.errorCode === "invalid"
           ? t("auth.invalid")
-          : state.error;
+          : state.errorCode === "suspended"
+            ? t("auth.suspended")
+            : state.error;
 
   return (
     <form action={formAction} aria-busy={isPending} className="mt-8 space-y-4">

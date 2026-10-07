@@ -12,6 +12,10 @@ import {
   sanitizeRsvpMenu,
 } from "@/lib/rsvp/menu";
 import { prisma } from "@/lib/db/prisma";
+import {
+  MICROSITE_ACCESS_SELECT,
+  micrositeAcceptsPublicActions,
+} from "@/lib/bodas/microsite-access";
 import { notifyNoviosRsvp } from "@/lib/email/notify";
 import { createRsvpNotification } from "@/lib/notifications/create";
 import {
@@ -96,10 +100,11 @@ export async function submitPublicRsvpAction(
         slug: true,
         plan: true,
         _count: { select: { rsvpGuests: true } },
+        ...MICROSITE_ACCESS_SELECT,
       },
     });
 
-    if (!boda) {
+    if (!boda || !(await micrositeAcceptsPublicActions(boda))) {
       return { error: "No encontramos esta boda." };
     }
 

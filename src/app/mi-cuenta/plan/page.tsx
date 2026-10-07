@@ -4,6 +4,8 @@ import { getOwnedBoda } from "@/lib/account/require-boda";
 import { isMercadoPagoConfigured } from "@/lib/mercadopago/config";
 import { isDemoPlanSwitchEnabled } from "@/lib/plans/demo";
 import { syncMercadoPagoReturn } from "@/lib/payments/sync-mp-return";
+import { t } from "@/i18n/dictionary";
+import { getDictionary } from "@/i18n/get-locale";
 
 function optionEnabled(value: unknown): boolean {
   return value === 1 || value === true || value === "1";
@@ -16,6 +18,7 @@ interface MiCuentaPlanPageProps {
     payment_id?: string;
     external_reference?: string;
     status?: string;
+    checkout?: string;
   }>;
 }
 
@@ -40,6 +43,10 @@ export default async function MiCuentaPlanPage({
     query.payment ??
     (query.status === "approved" ? "success" : query.status) ??
     null;
+  const checkoutError =
+    query.checkout === "error"
+      ? t((await getDictionary()).messages, "auth.checkoutError")
+      : null;
 
   return (
     <div className="space-y-6">
@@ -61,6 +68,7 @@ export default async function MiCuentaPlanPage({
         mpConfigured={await isMercadoPagoConfigured()}
         demoPlanSwitch={isDemoPlanSwitchEnabled()}
         paymentNotice={paymentNotice}
+        checkoutError={checkoutError}
         giftCount={latest.gifts.length}
         guestCount={latest.rsvpGuests.length}
       />

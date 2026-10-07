@@ -4,6 +4,7 @@ import { AccountNotificationsBell } from "@/components/account/AccountNotificati
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { VERIFY_EMAIL_PATH } from "@/lib/auth/register-account";
 import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
@@ -26,6 +27,11 @@ export default async function MiCuentaLayout({
 
   if (user && isAdminRole(user.role) && !user.boda) {
     redirect("/");
+  }
+
+  // Registro sin verificar: el panel queda bloqueado hasta confirmar el email.
+  if (user && !user.emailVerifiedAt && !isAdminRole(user.role)) {
+    redirect(VERIFY_EMAIL_PATH);
   }
 
   const notifications = user?.boda

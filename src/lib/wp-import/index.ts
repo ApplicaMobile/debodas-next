@@ -1,4 +1,5 @@
 export {
+  ADMIN_BATCH_CAP,
   listWpBodas,
   previewBoda,
   migrateBoda,
@@ -15,6 +16,8 @@ export {
 export type {
   WpBodaListItem,
   WpBodaPreview,
+  WpImportAction,
+  WpImportMode,
   WpMigrateResult,
   WpMigrateOptions,
 } from "@/lib/wp-import/types";

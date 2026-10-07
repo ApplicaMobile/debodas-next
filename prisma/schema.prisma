@@ -14,14 +14,35 @@ model User {
   name           String?
   role           String   @default("couple")
   sessionVersion Int      @default(0) @map("session_version")
+  /// Hash original de WordPress ($wp$2y$, $P$ o MD5). Se verifica en el primer login y se vacía al rehashear.
+  legacyPasswordHash String?   @map("legacy_password_hash") @db.VarChar(255)
+  /// ID de wp_users de origen (solo el usuario "principal" de ese ID).
+  legacyWpUserId     Int?      @unique @map("legacy_wp_user_id")
+  /// Cuenta importada desde WordPress (pantalla de bienvenida).
+  migratedFromWp     Boolean   @default(false) @map("migrated_from_wp")
+  welcomeSeenAt      DateTime? @map("welcome_seen_at")
+  /// Estado de la cuenta: active | suspended | deleted (baja lógica, no se borran filas).
+  status             String    @default("active") @db.VarChar(16)
+  statusChangedAt    DateTime? @map("status_changed_at")
+  statusReason       String?   @map("status_reason") @db.VarChar(500)
+  deletedAt          DateTime? @map("deleted_at")
+  /// Borrado definitivo pedido por la pareja (derecho al olvido): datos anonimizados, no se restaura.
+  erasedAt           DateTime? @map("erased_at")
+  /// Email confirmado con código. null = registro sin verificar. El default now() hace que
+  /// cualquier alta que no sea el registro público (WP, scripts, admin) quede verificada;
+  /// registerAccount lo pone en null explícitamente.
+  emailVerifiedAt    DateTime? @default(now()) @map("email_verified_at")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   boda               Boda?
   passwordResetTokens PasswordResetToken[]
   adminAuditLogs      AdminAuditLog[] @relation("AdminAuditActor")
+  verificationCodes   VerificationCode[]
 
   @@index([role])
+  @@index([migratedFromWp])
+  @@index([status])
   @@map("users")
 }
 
@@ -37,6 +58,27 @@ model PasswordResetToken {
 
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+/// Código de un solo uso (6 dígitos) para confirmar el borrado definitivo de la cuenta.
+/// Solo se guarda el HMAC del código. Uno por usuario: pedir otro reemplaza al anterior.
+/// Códigos de un solo uso (6 dígitos) enviados por email: verificación del registro,
+/// borrado de cuenta… Solo se guarda un HMAC. Uno vigente por usuario y propósito.
+model VerificationCode {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  /// email_verification | account_deletion
+  purpose   String   @db.VarChar(32)
+  codeHash  String   @map("code_hash") @db.Char(64)
+  attempts  Int      @default(0)
+  expiresAt DateTime @map("expires_at")
+  sentAt    DateTime @map("sent_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, purpose])
+  @@map("verification_codes")
 }
 
 model RateLimitBucket {
@@ -318,4 +360,39 @@ model ConfirmedGift {
   @@index([bodaId])
   @@index([confirmed])
   @@map("confirmed_gifts")
+}
+
+/// Mapeo de IDs WordPress → Prisma para que la importación sea idempotente.
+/// kind: "user" | "boda" | "rating". La identidad es (kind, wp_id), no el slug.
+model LegacyMap {
+  id         String   @id @default(cuid())
+  kind       String   @db.VarChar(32)
+  wpId       Int      @map("wp_id")
+  prismaId   String   @map("prisma_id") @db.VarChar(191)
+  /// sha256 del post + meta al momento del último import (modo --changed).
+  sourceHash String?  @map("source_hash") @db.Char(64)
+  importedAt DateTime @default(now()) @map("imported_at")
+  runId      String?  @map("run_id") @db.VarChar(64)
+
+  @@unique([kind, wpId])
+  @@index([kind, prismaId])
+  @@map("legacy_map")
+}
+
+/// Archivos de wp-content/uploads ya copiados (rehost). Dedupe global por sha256 del contenido.
+model LegacyMedia {
+  id             String   @id @default(cuid())
+  wpAttachmentId Int?     @map("wp_attachment_id")
+  /// URL original normalizada (sin query ni hash).
+  originalUrl    String   @unique @map("original_url") @db.VarChar(768)
+  sha256         String   @db.Char(64)
+  newPath        String   @map("new_path") @db.VarChar(1024)
+  bytes          Int
+  contentType    String?  @map("content_type") @db.VarChar(100)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([sha256])
+  @@index([wpAttachmentId])
+  @@map("legacy_media")
 }

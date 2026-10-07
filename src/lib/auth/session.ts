@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@/lib/db/prisma";
+import { isAccountActive } from "@/lib/account/status";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS,
@@ -77,12 +78,14 @@ export async function getSession(): Promise<SessionUser | null> {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { sessionVersion: true, email: true },
+      select: { sessionVersion: true, email: true, status: true },
     });
 
     if (
       !user ||
-      !sessionVersionMatches(tokenVersion, user.sessionVersion)
+      !sessionVersionMatches(tokenVersion, user.sessionVersion) ||
+      // Suspendida o eliminada: la sesión deja de valer aunque el token siga vigente.
+      !isAccountActive(user.status)
     ) {
       await deleteSession();
       return null;

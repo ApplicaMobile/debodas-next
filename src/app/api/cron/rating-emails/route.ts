@@ -33,6 +33,8 @@ export async function GET(request: Request) {
       where: {
         ratingEmailSentAt: null,
         ratings: { none: {} },
+        // Cuentas suspendidas o eliminadas no reciben emails.
+        user: { status: "active" },
       },
       select: {
         id: true,

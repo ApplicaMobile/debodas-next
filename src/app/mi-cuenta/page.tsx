@@ -41,7 +41,7 @@ export default async function MiCuentaPage() {
     : 0;
 
   const editableSections = accountSections.filter(
-    (item) => !item.exact && item.available,
+    (item) => !item.exact && item.available && item.inSummary !== false,
   );
 
   const boda = user?.boda;

@@ -14,7 +14,8 @@ export function toInvitationDatetimeLocal(
   const day = String(date.getDate()).padStart(2, "0");
   const time = /^(\d{1,2}):(\d{2})/.exec(timeRaw.trim());
   if (!time) {
-    return `${year}-${month}-${day}T`;
+    // Solo fecha: sin "T" suelta (datetime-local incompleto se veía en la tarjeta).
+    return `${year}-${month}-${day}`;
   }
 
   const hours = time[1].padStart(2, "0");
@@ -29,9 +30,27 @@ export function formatInvitationDateParts(datetime: string): {
     return { dateLabel: "", timeLabel: "" };
   }
 
-  const date = new Date(datetime);
+  const trimmed = datetime.trim();
+  // "2027-02-20" o un "T" suelto por datos viejos → solo fecha, sin hora.
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})T?$/.exec(trimmed);
+  if (dateOnly) {
+    const [, y, m, d] = dateOnly;
+    const date = new Date(Number(y), Number(m) - 1, Number(d));
+    if (Number.isNaN(date.getTime())) {
+      return { dateLabel: trimmed.replace(/T$/, ""), timeLabel: "" };
+    }
+    const dateLabel = new Intl.DateTimeFormat("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+    return { dateLabel, timeLabel: "" };
+  }
+
+  const date = new Date(trimmed);
   if (Number.isNaN(date.getTime())) {
-    return { dateLabel: datetime, timeLabel: "" };
+    return { dateLabel: trimmed.replace(/T$/, ""), timeLabel: "" };
   }
 
   const dateLabel = new Intl.DateTimeFormat("es-AR", {

@@ -9,11 +9,10 @@ import {
 } from "@/lib/admin/audit";
 import { verifyCredentials } from "@/lib/auth/credentials";
 import { isAdminRole } from "@/lib/auth/roles";
-import {
-  buildCoupleTitle,
-  buildPlanValue,
-  validateRegisterInput,
-} from "@/lib/auth/register";
+import { validateRegisterInput } from "@/lib/auth/register";
+import { registerAccount, VERIFY_EMAIL_PATH } from "@/lib/auth/register-account";
+import { sendEmailVerificationCodeTo } from "@/lib/auth/email-verification-server";
+import { loginOutcomeForStatus } from "@/lib/account/status";
 import { generateUniqueSlug } from "@/lib/auth/slug";
 import { createSession, deleteSession, getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
@@ -28,7 +27,7 @@ import {
 
 export interface LoginState {
   error?: string;
-  errorCode?: "invalid" | "too_many" | "db";
+  errorCode?: "invalid" | "too_many" | "db" | "suspended";
   retryAfter?: number;
   success?: boolean;
   redirectTo?: string;
@@ -76,6 +75,17 @@ export async function loginAction(
       return { error: "Email o contraseña incorrectos.", errorCode: "invalid" };
     }
 
+    const outcome = loginOutcomeForStatus(user.status);
+    if (outcome === "suspended") {
+      return {
+        error: "Tu cuenta está suspendida. Escribinos a hola@debodas.com.ar.",
+        errorCode: "suspended",
+      };
+    }
+    if (outcome === "invalid") {
+      return { error: "Email o contraseña incorrectos.", errorCode: "invalid" };
+    }
+
     await createSession({
       userId: user.id,
       email: user.email,
@@ -95,6 +105,16 @@ export async function loginAction(
           metadata: { next: safeNext },
         }),
       );
+    }
+
+    // Registro sin verificar: primero el código (se manda uno nuevo si no hay cooldown).
+    if (!user.emailVerifiedAt && !isAdminRole(user.role)) {
+      try {
+        await sendEmailVerificationCodeTo({ userId: user.id, email: user.email, name: user.name });
+      } catch (error) {
+        console.error("[loginAction] verification code", error);
+      }
+      return { success: true, redirectTo: VERIFY_EMAIL_PATH };
     }
 
     let redirectTo = safeNext;
@@ -173,115 +193,13 @@ export async function registerAction(
     };
   }
 
-  const {
-    email,
-    password,
-    brideName,
-    brideLastname,
-    groomName,
-    groomLastname,
-    phone,
-    eventDate,
-    ourStory,
-    siteSource,
-    siteSourceOther,
-    selectedPlan,
-  } = validation.data;
-
-  try {
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-
-    if (existingUser) {
-      return { error: "Ya existe una cuenta con ese email." };
-    }
-
-    const passwordHash = await hash(password, 10);
-    const title = buildCoupleTitle(
-      brideName,
-      brideLastname,
-      groomName,
-      groomLastname,
-    );
-    const slug = await generateUniqueSlug(brideName, groomName);
-    const plan = buildPlanValue(selectedPlan);
-    const bannerFile = formData.get("banner_file");
-
-    let bannerUrl = "";
-    if (bannerFile instanceof File && bannerFile.size > 0) {
-      try {
-        bannerUrl = await saveUploadedImage(bannerFile, `bodas/${slug}`);
-      } catch (uploadError) {
-        return { error: getUploadErrorMessage(uploadError) };
-      }
-    }
-
-    const user = await prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: {
-          email,
-          passwordHash,
-          name: title,
-          role: "couple",
-        },
-      });
-
-      await tx.boda.create({
-        data: {
-          userId: createdUser.id,
-          slug,
-          title,
-          plan,
-          micrositeTheme: "base",
-          couple: {
-            bride_name: brideName,
-            bride_lastname: brideLastname,
-            groom_name: groomName,
-            groom_lastname: groomLastname,
-            phone,
-          },
-          event: {
-            date: eventDate,
-            time: "",
-            place: "",
-          },
-          banner: bannerUrl
-            ? {
-                image: { url: bannerUrl },
-              }
-            : {},
-          featuredImageUrl: bannerUrl || null,
-          options: {
-            show_faq: 1,
-            show_dress_code: 0,
-          },
-          misc: {
-            our_story: ourStory,
-            spotify_url: "",
-            site_source: siteSource,
-            site_source_other:
-              siteSource === "other" ? siteSourceOther : "",
-          },
-        },
-      });
-
-      return createdUser;
-    });
-
-    await createSession({
-      userId: user.id,
-      email: user.email,
-      sessionVersion: user.sessionVersion,
-    });
-
-    return { success: true, redirectTo: "/mi-cuenta" };
-  } catch (error) {
-    console.error("[registerAction]", error);
-    return {
-      error:
-        "No se pudo crear la cuenta. Verificá que MySQL esté activo en XAMPP.",
-    };
-  }
+  return registerAccount(validation.data, formData.get("banner_file"), {
+    db: prisma,
+    hashPassword: (password) => hash(password, 10),
+    generateSlug: generateUniqueSlug,
+    saveBanner: saveUploadedImage,
+    describeUploadError: getUploadErrorMessage,
+    createSession,
+    sendVerificationCode: sendEmailVerificationCodeTo,
+  });
 }

@@ -10,7 +10,7 @@ export async function login(
     expectedPath === "/admin" ? "/login?next=/admin" : "/login",
   );
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Contraseña").fill(password);
+  await page.getByLabel("Contraseña", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   const isExpectedPath = (url: URL) =>
     url.pathname === expectedPath ||

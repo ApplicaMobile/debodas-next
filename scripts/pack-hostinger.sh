@@ -1,12 +1,49 @@
 #!/usr/bin/env bash
 # Arma un tar.gz fechado del código de debodas-next para subirlo a Hostinger.
 # Hostinger instala dependencias y corre `npm run build` en el servidor.
+# Antes de empaquetar corre el typecheck (los mismos errores TS que cortan el build).
 # No incluye node_modules, .next, .git ni archivos .env con secretos.
+#
+# Uso:
+#   ./scripts/pack-hostinger.sh
+#   ./scripts/pack-hostinger.sh --check-only
+#   ./scripts/pack-hostinger.sh --skip-check
+#   ./scripts/pack-hostinger.sh /ruta/salida.tar.gz
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-OUT="${1:-$(dirname "$ROOT")/debodas-next-${STAMP}.tar.gz}"
+SKIP_CHECK=0
+CHECK_ONLY=0
+OUT=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --skip-check) SKIP_CHECK=1 ;;
+    --check-only) CHECK_ONLY=1 ;;
+    -h|--help)
+      echo "Uso: $0 [--check-only] [--skip-check] [archivo.tar.gz]"
+      exit 0
+      ;;
+    *)
+      if [[ -n "$OUT" ]]; then
+        echo "Argumento extra: $arg" >&2
+        exit 1
+      fi
+      OUT="$arg"
+      ;;
+  esac
+done
+
+if [[ "$SKIP_CHECK" -eq 0 ]]; then
+  bash "$ROOT/scripts/check-hostinger.sh"
+fi
+
+if [[ "$CHECK_ONLY" -eq 1 ]]; then
+  exit 0
+fi
+
+OUT="${OUT:-$(dirname "$ROOT")/debodas-next-${STAMP}.tar.gz}"
 
 if [[ "$OUT" != /* ]]; then
   OUT="$(pwd)/$OUT"

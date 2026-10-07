@@ -81,6 +81,7 @@ export function RegisterWizard() {
   const [step, setStep] = useState(1);
   const [stepError, setStepError] = useState<string | null>(null);
   const [showSiteSourceOther, setShowSiteSourceOther] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("gratuito");
   const [state, formAction, isPending] = useActionState(
     registerAction,
     initialState,
@@ -91,6 +92,10 @@ export function RegisterWizard() {
       window.location.replace(state.redirectTo);
     }
   }, [state.success, state.redirectTo]);
+
+  // Mientras se crea la cuenta y hasta que el navegador sale de la página.
+  const isBusy = isPending || Boolean(state.success && state.redirectTo);
+  const isPaidPlanSelected = selectedPlan !== "gratuito";
 
   useEffect(() => {
     if (stepError) {
@@ -402,7 +407,10 @@ export function RegisterWizard() {
                   value={plan.slug}
                   defaultChecked={plan.slug === "gratuito"}
                   className="mt-1"
-                  onChange={clearStepError}
+                  onChange={(event) => {
+                    clearStepError();
+                    setSelectedPlan(event.currentTarget.value);
+                  }}
                 />
                 <span>
                   <span className="block font-semibold text-stone-800">
@@ -482,10 +490,14 @@ export function RegisterWizard() {
           ) : (
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isBusy}
               className="rounded-full bg-[#e6dac7] px-5 py-3 text-sm font-semibold text-stone-800 disabled:opacity-60"
             >
-              {isPending ? t("auth.creating") : t("auth.createAccount")}
+              {isBusy
+                ? isPaidPlanSelected
+                  ? t("auth.redirectingToPayment")
+                  : t("auth.creating")
+                : t("auth.createAccount")}
             </button>
           )}
         </div>

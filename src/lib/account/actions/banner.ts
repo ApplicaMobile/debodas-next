@@ -1,5 +1,6 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
 import { requireOwnedBoda } from "@/lib/account/auth-boda";
 import type { FormState } from "@/lib/account/form-state";
 import { revalidateBodaPaths } from "@/lib/account/revalidate";
@@ -11,17 +12,17 @@ import {
   saveUploadedImage,
 } from "@/lib/upload/local";
 
-function parseBanner(value: unknown): Record<string, unknown> {
-  if (value && typeof value === "object") {
-    return value as Record<string, unknown>;
+function parseBanner(value: unknown): Prisma.JsonObject {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Prisma.JsonObject;
   }
   return {};
 }
 
-function getBannerUrl(banner: Record<string, unknown>): string {
+function getBannerUrl(banner: Prisma.JsonObject): string {
   const image = banner.image;
-  if (image && typeof image === "object" && "url" in image) {
-    return String((image as { url?: string }).url ?? "");
+  if (image && typeof image === "object" && !Array.isArray(image) && "url" in image) {
+    return String(image.url ?? "");
   }
   return "";
 }
@@ -51,7 +52,7 @@ export async function uploadBannerFileAction(
         banner: {
           ...banner,
           image: { url },
-        },
+        } satisfies Prisma.InputJsonObject,
         featuredImageUrl: url,
       },
     });
@@ -89,7 +90,7 @@ export async function resetBannerToDefaultAction(
   await prisma.boda.update({
     where: { id: boda.id },
     data: {
-      banner: restBanner,
+      banner: restBanner as Prisma.InputJsonValue,
       ...(featuredMatchesBanner ? { featuredImageUrl: null } : {}),
     },
   });

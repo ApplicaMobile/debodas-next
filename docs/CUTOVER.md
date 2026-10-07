@@ -37,7 +37,7 @@ Si CPU/RAM del plan Business satura: Cloud Startup **antes** del DNS.
 
 1. WP en mantenimiento / solo lectura (no más altas ni pagos Woo).
 2. Dump final de WordPress (`wp_*`) sobre la misma MySQL `debodas_web`.
-3. Re-import: `npm run db:import-wp` (idempotente por slug).
+3. Re-import: `npm run db:import-wp -- --changed` (idempotente por ID de WP vía `legacy_map`; no pisa bodas editadas en Next).
 4. Rehost delta: `npm run db:rehost-blob`.
 5. Backup hPanel del website PHP.
 6. En hPanel: desasociar WordPress del dominio `debodas.com.ar` y asociar la Web App Next (o apuntar DNS A/CNAME según el panel).

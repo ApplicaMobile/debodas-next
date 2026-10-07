@@ -20,6 +20,8 @@ interface PlanPanelProps {
   mpConfigured: boolean;
   demoPlanSwitch: boolean;
   paymentNotice?: string | null;
+  /** Mensaje (ya traducido) cuando no se pudo abrir el checkout tras el registro. */
+  checkoutError?: string | null;
   giftCount: number;
   guestCount: number;
 }
@@ -44,6 +46,7 @@ export function PlanPanel({
   mpConfigured,
   demoPlanSwitch,
   paymentNotice,
+  checkoutError,
   giftCount,
   guestCount,
 }: PlanPanelProps) {
@@ -101,6 +104,15 @@ export function PlanPanel({
         {notice ? (
           <p className="mt-6 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
             {notice}
+          </p>
+        ) : null}
+
+        {checkoutError ? (
+          <p
+            role="alert"
+            className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          >
+            {checkoutError}
           </p>
         ) : null}
       </section>

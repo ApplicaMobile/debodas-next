@@ -1,11 +1,13 @@
 {
   "name": "debodas-web",
-  "version": "0.1.0",
+  "version": "2.1.0-rc.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "dev:docker": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "prisma generate && next build --webpack",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "check:hostinger": "bash scripts/check-hostinger.sh",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
     "test": "tsx --test tests/email-crypto.test.ts tests/admin-audit-labels.test.ts tests/system-health.test.ts tests/session-version.test.ts tests/maintenance-config.test.ts tests/mercadopago-webhook-signature.test.ts tests/mercadopago-settings.test.ts tests/upload-path-safety.test.ts tests/microsite-password.test.ts tests/wp-import-fields.test.ts tests/rehost-local.test.ts tests/i18n.test.ts tests/invite-message.test.ts",

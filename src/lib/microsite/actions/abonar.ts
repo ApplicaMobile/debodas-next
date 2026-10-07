@@ -6,6 +6,10 @@ import { revalidatePath } from "next/cache";
 import type { FormState } from "@/lib/account/form-state";
 import { getAbonarConfig, getTarjetaPagos } from "@/lib/bodas/abonar-tarjeta";
 import { prisma } from "@/lib/db/prisma";
+import {
+  MICROSITE_ACCESS_SELECT,
+  micrositeAcceptsPublicActions,
+} from "@/lib/bodas/microsite-access";
 import type { Prisma } from "@prisma/client";
 import { getUploadErrorMessage, saveUploadedVoucher } from "@/lib/upload/local";
 import {
@@ -51,9 +55,9 @@ export async function submitAbonarTarjetaAction(
 
     const boda = await prisma.boda.findUnique({
       where: { slug },
-      select: { id: true, slug: true, misc: true },
+      select: { id: true, slug: true, misc: true, ...MICROSITE_ACCESS_SELECT },
     });
-    if (!boda) {
+    if (!boda || !(await micrositeAcceptsPublicActions(boda))) {
       return { error: "No encontramos esta boda." };
     }
     const config = getAbonarConfig(boda.misc);

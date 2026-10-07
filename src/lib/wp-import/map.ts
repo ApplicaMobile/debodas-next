@@ -1,8 +1,6 @@
-import { createHash, randomBytes } from "crypto";
-import { hash } from "bcryptjs";
+import { createHash } from "crypto";
 import type mysql from "mysql2/promise";
 import {
-  adaptWpPasswordHash,
   mapRsvpMenu,
   mapRsvpStatus,
   metaBool,
@@ -124,7 +122,12 @@ export async function findWpUserByEmail(
 
 export async function loadWpBodas(
   conn: mysql.Connection,
-  filter?: { slug?: string | null; wpPostId?: number | null; limit?: number | null },
+  filter?: {
+    slug?: string | null;
+    wpPostId?: number | null;
+    ids?: number[] | null;
+    limit?: number | null;
+  },
 ): Promise<WpBodaRow[]> {
   const prefix = wpTablePrefix();
   const params: Array<string | number> = [];
@@ -140,6 +143,10 @@ export async function loadWpBodas(
   if (filter?.wpPostId) {
     sql += ` AND ID = ?`;
     params.push(filter.wpPostId);
+  }
+  if (filter?.ids && filter.ids.length > 0) {
+    sql += ` AND ID IN (${filter.ids.map(() => "?").join(",")})`;
+    params.push(...filter.ids);
   }
   sql += ` ORDER BY ID ASC`;
   if (filter?.limit && filter.limit > 0) {
@@ -500,21 +507,6 @@ export function buildConfirmedGifts(
     });
 }
 
-export async function resolvePasswordHash(wpPass: string): Promise<{
-  passwordHash: string;
-  needsReset: boolean;
-}> {
-  const adapted = adaptWpPasswordHash(wpPass);
-  if (!adapted.needsReset && adapted.passwordHash) {
-    return adapted;
-  }
-  const random = randomBytes(24).toString("base64url");
-  return {
-    passwordHash: await hash(random, 10),
-    needsReset: true,
-  };
-}
-
 export function syntheticEmail(baseEmail: string, wpPostId: number): string {
   const [local, domain] = baseEmail.split("@");
   if (!local || !domain) {
@@ -549,7 +541,7 @@ export function collectWarnings(input: {
   if (input.needsReset) {
     warnings.push({
       code: "RESET_PWD",
-      message: "Hash WP $P$: el usuario deberá usar /recuperar o entrar una vez con su clave.",
+      message: "Hash de WP en formato desconocido: la pareja tendrá que usar /recuperar.",
     });
   }
   return warnings;

@@ -17,11 +17,11 @@ import { t } from "@/i18n/dictionary";
 import { getDictionary } from "@/i18n/get-locale";
 
 interface HomePageProps {
-  searchParams: Promise<{ vista?: string }>;
+  searchParams: Promise<{ vista?: string; cuenta?: string }>;
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { vista } = await searchParams;
+  const { vista, cuenta } = await searchParams;
   const viewer = await getViewer();
 
   if (viewer.isAdmin && vista !== "publica") {
@@ -38,6 +38,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <>
       <SiteHeader transparent />
       <main>
+        {cuenta === "eliminada" ? (
+          <div
+            role="status"
+            className="fixed inset-x-0 top-20 z-40 mx-auto w-[min(92vw,40rem)] rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-900 shadow-lg"
+          >
+            {t(messages, "accountDeletion.doneNotice")}
+          </div>
+        ) : null}
         <HeroSection />
         <StepsSection />
         <HowItLooksSection />

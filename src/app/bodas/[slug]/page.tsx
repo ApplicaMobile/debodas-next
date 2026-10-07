@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getBannerUrl, getCoupleDisplayName } from "@/data/bodas";
-import { getBodaBySlug, getBodaRsvpCount } from "@/lib/bodas/queries";
+import { getBodaRsvpCount, getMicrositeBoda } from "@/lib/bodas/queries";
 import { getAppUrl } from "@/lib/email/client";
 import {
   getMicrositePassword,
@@ -49,7 +49,8 @@ export async function generateMetadata({
 }: BodaPageProps): Promise<Metadata> {
   const { slug } = await params;
   const { theme: themeParam } = await searchParams;
-  const boda = await getBodaBySlug(slug);
+  const found = await getMicrositeBoda(slug);
+  const boda = found?.boda ?? null;
 
   if (!boda) {
     return { title: "Boda no encontrada | DeBodas" };
@@ -71,6 +72,8 @@ export async function generateMetadata({
   const description = descriptionParts.join(" ");
 
   return {
+    // Vista previa de un micrositio offline: que no se indexe.
+    ...(found?.access === "preview" ? { robots: { index: false, follow: false } } : {}),
     title: `${coupleName} | DeBodas`,
     description,
     alternates: { canonical: pageUrl },
@@ -107,7 +110,9 @@ export async function generateMetadata({
 export default async function BodaPage({ params, searchParams }: BodaPageProps) {
   const { slug } = await params;
   const { theme: themeParam, embedded: embeddedParam } = await searchParams;
-  const boda = await getBodaBySlug(slug);
+  const found = await getMicrositeBoda(slug);
+  const boda = found?.boda ?? null;
+  const isPreview = found?.access === "preview";
 
   if (!boda) {
     notFound();
@@ -150,6 +155,14 @@ export default async function BodaPage({ params, searchParams }: BodaPageProps) 
       embedded={embedded}
     >
       {showThemeSwitcher ? <ThemeSwitcher weddingSlug={slug} /> : null}
+      {isPreview && !embedded ? (
+        <p
+          role="status"
+          className="fixed inset-x-0 bottom-4 z-50 mx-auto w-fit max-w-[92vw] rounded-full bg-stone-900/90 px-4 py-2 text-center text-xs font-medium text-white shadow-lg"
+        >
+          Vista previa: este micrositio está offline y solo lo ven vos y el equipo de DeBodas.
+        </p>
+      ) : null}
       <main>
         <MicrositeDemo
           boda={publicBoda}

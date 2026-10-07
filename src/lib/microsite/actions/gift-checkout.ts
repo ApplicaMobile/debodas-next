@@ -26,6 +26,10 @@ import {
 import { canUsePlatformGiftCheckout } from "@/lib/plans/demo";
 import { allowsFreeGiftAmount } from "@/lib/bodas/options";
 import { prisma } from "@/lib/db/prisma";
+import {
+  MICROSITE_ACCESS_SELECT,
+  micrositeAcceptsPublicActions,
+} from "@/lib/bodas/microsite-access";
 import { notifyNoviosGift } from "@/lib/email/notify";
 import { createGiftNotification } from "@/lib/notifications/create";
 import {
@@ -238,10 +242,17 @@ export async function createGiftCheckoutAction(
 
     const boda = await prisma.boda.findUnique({
       where: { slug: fields.slug },
-      select: { id: true, slug: true, plan: true, misc: true, options: true },
+      select: {
+        id: true,
+        slug: true,
+        plan: true,
+        misc: true,
+        options: true,
+        ...MICROSITE_ACCESS_SELECT,
+      },
     });
 
-    if (!boda) {
+    if (!boda || !(await micrositeAcceptsPublicActions(boda))) {
       return { error: "No encontramos esta boda." };
     }
 
@@ -383,10 +394,17 @@ export async function submitGiftTransferAction(
 
     const boda = await prisma.boda.findUnique({
       where: { slug: fields.slug },
-      select: { id: true, slug: true, plan: true, misc: true, options: true },
+      select: {
+        id: true,
+        slug: true,
+        plan: true,
+        misc: true,
+        options: true,
+        ...MICROSITE_ACCESS_SELECT,
+      },
     });
 
-    if (!boda) {
+    if (!boda || !(await micrositeAcceptsPublicActions(boda))) {
       return { error: "No encontramos esta boda." };
     }
 

@@ -7,9 +7,16 @@ import {
   LOCALE_MAX_AGE,
   parseLocale,
 } from "@/i18n/config";
+import { legacyRedirectFor } from "@/lib/routing/legacy-redirects";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // URLs del WordPress viejo (tienda, blog, términos…) → 301 permanente.
+  const legacyDestination = legacyRedirectFor(pathname);
+  if (legacyDestination) {
+    return NextResponse.redirect(new URL(legacyDestination, request.url), 301);
+  }
 
   let response: NextResponse;
   if (pathname.startsWith("/admin")) {

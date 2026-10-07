@@ -15,6 +15,25 @@ import { prisma } from "@/lib/db/prisma";
 import { getAppUrl } from "@/lib/email/client";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import { AdminAccountStatusForm } from "@/components/admin/AdminAccountStatusForm";
+import {
+  ACCOUNT_STATUS_LABELS,
+  normalizeAccountStatus,
+} from "@/lib/account/status";
+
+const STATUS_FLASH: Record<string, string> = {
+  "estado:suspend": "Cuenta suspendida. El micrositio quedó offline.",
+  "estado:reactivate": "Cuenta reactivada.",
+  "estado:delete": "Cuenta eliminada (baja lógica).",
+  "estado:restore": "Cuenta restaurada.",
+  "estado:self": "No podés suspender ni eliminar tu propia cuenta.",
+  "estado:last_admin": "No podés suspender ni eliminar al último administrador activo.",
+  "estado:confirm_email": "Para eliminar, escribí exactamente el email de la cuenta.",
+  "estado:invalid_transition": "La cuenta ya no está en un estado que permita esa acción.",
+  "estado:erased": "Esa cuenta fue borrada definitivamente por la pareja.",
+  "estado:not_found": "No encontramos la cuenta.",
+  "estado:datos": "Datos inválidos.",
+};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -25,14 +44,25 @@ export default async function AdminBodaDetailPage({
   params,
   searchParams,
 }: PageProps) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const { id } = await params;
   const flash = await searchParams;
 
   const boda = await prisma.boda.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, email: true, name: true, role: true } },
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          status: true,
+          statusReason: true,
+          statusChangedAt: true,
+          erasedAt: true,
+        },
+      },
       ratings: { orderBy: { createdAt: "desc" } },
       _count: {
         select: {
@@ -64,7 +94,7 @@ export default async function AdminBodaDetailPage({
     <div className="space-y-6">
       {flash.ok ? (
         <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {flash.ok}
+          {STATUS_FLASH[flash.ok] ?? flash.ok}
         </p>
       ) : null}
       {flash.error ? (
@@ -73,7 +103,7 @@ export default async function AdminBodaDetailPage({
             ? "La pareja no tiene email."
             : flash.error === "ya-calificada"
               ? "Esta boda ya tiene una calificación."
-              : flash.error}
+              : (STATUS_FLASH[flash.error] ?? flash.error)}
         </p>
       ) : null}
 
@@ -220,6 +250,33 @@ export default async function AdminBodaDetailPage({
               className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700"
             />
           </AdminActionForm>
+
+          <div className="mt-6 rounded-2xl border border-stone-200 p-4">
+            <h4 className="text-sm font-semibold text-stone-800">Estado de la cuenta</h4>
+            <p className="mt-1 text-sm text-stone-600">
+              {ACCOUNT_STATUS_LABELS[normalizeAccountStatus(boda.user.status)]}
+              {boda.user.statusChangedAt && boda.user.status !== "active"
+                ? ` desde ${boda.user.statusChangedAt.toLocaleString("es-AR")}`
+                : ""}
+              {boda.user.statusReason && boda.user.status !== "active"
+                ? ` · Motivo: ${boda.user.statusReason}`
+                : ""}
+            </p>
+            <p className="mt-1 text-xs text-stone-500">
+              Suspender o eliminar deja el micrositio offline y cierra la sesión de la pareja. Eliminar es una
+              baja lógica: no se borran datos ni archivos y se puede restaurar.
+            </p>
+            <div className="mt-3">
+              <AdminAccountStatusForm
+                userId={boda.user.id}
+                email={boda.user.email}
+                status={normalizeAccountStatus(boda.user.status)}
+                erased={Boolean(boda.user.erasedAt)}
+                isSelf={boda.user.id === admin.id}
+                returnTo={`/admin/bodas/${boda.id}`}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="rounded-3xl bg-white p-6 shadow-sm">

@@ -126,7 +126,7 @@ O desde el admin: `/admin/migracion` (rol admin). El CLI usa el mismo motor.
 
 Opciones: `--dry-run`, `--limit=N`, `--slug=mi-slug`.
 
-Importa bodas, usuarios, regalos, RSVP, regalos confirmados, galería (`pictures` + `extra_images`), cronograma, FAQ, calificaciones, métodos de pago (tokens MP cifrados), dress code, invitaciones, Canva, abonar tarjeta y mesas RSVP. Las imágenes quedan con URL de Hostinger/`debodas.com.ar` hasta el rehost. Usuarios con hash WP viejo (`$P$`) pueden entrar: el login migra la cuenta y luego conviene `/recuperar` si el hash no era bcrypt.
+Importa bodas, usuarios, regalos, RSVP, regalos confirmados, galería (`pictures` + `extra_images`), cronograma, FAQ, calificaciones, métodos de pago (tokens MP cifrados), dress code, invitaciones, Canva, abonar tarjeta y mesas RSVP. Las imágenes quedan con URL de Hostinger/`debodas.com.ar` hasta el rehost. Los usuarios conservan su clave de WordPress: el hash original (`$wp$2y$`, `$P$` o MD5) se guarda en `users.legacy_password_hash` y en el primer login se verifica y se pasa a bcrypt. El import es idempotente (`legacy_map`, modo `--only-new` por defecto); ver `docs/MIGRACION-WP.md`.
 
 **Nunca** `prisma migrate reset` ni `--accept-data-loss` en esta BD: borraría o dañaría `wp_*`.
 

@@ -1,6 +1,11 @@
 import { getMockBodaBySlug } from "@/data/bodas";
 import { mapBodaFromDb } from "@/lib/bodas/mapper";
 import { isDatabaseConfigured, prisma } from "@/lib/db/prisma";
+import { PUBLIC_OWNER_WHERE } from "@/lib/account/status";
+import {
+  MICROSITE_ACCESS_SELECT,
+  micrositeAccessFor,
+} from "@/lib/bodas/microsite-access";
 import type { Boda } from "@/types/boda";
 
 const bodaInclude = {
@@ -10,25 +15,45 @@ const bodaInclude = {
   faqItems: true,
 } as const;
 
-export async function getBodaBySlug(slug: string): Promise<Boda | null> {
+export interface MicrositeBodaResult {
+  boda: Boda;
+  /** "preview": micrositio offline visto por su dueño o un admin. */
+  access: "public" | "preview";
+}
+
+function mockResult(slug: string): MicrositeBodaResult | null {
+  const mock = getMockBodaBySlug(slug);
+  return mock ? { boda: mock, access: "public" } : null;
+}
+
+/**
+ * Boda para el micrositio público respetando estado de cuenta e `isOnline`:
+ * cuentas suspendidas/eliminadas no se ven; offline solo lo ven el dueño y los admins.
+ */
+export async function getMicrositeBoda(slug: string): Promise<MicrositeBodaResult | null> {
   if (!isDatabaseConfigured()) {
-    return getMockBodaBySlug(slug);
+    return mockResult(slug);
   }
 
   try {
     const row = await prisma.boda.findUnique({
       where: { slug },
-      include: bodaInclude,
+      include: { ...bodaInclude, user: MICROSITE_ACCESS_SELECT.user },
     });
 
     if (row) {
-      return mapBodaFromDb(row);
+      const access = await micrositeAccessFor(row);
+      return access === "hidden" ? null : { boda: mapBodaFromDb(row), access };
     }
   } catch (error) {
     console.error("[getBodaBySlug] Error leyendo MariaDB:", error);
   }
 
-  return getMockBodaBySlug(slug);
+  return mockResult(slug);
+}
+
+export async function getBodaBySlug(slug: string): Promise<Boda | null> {
+  return (await getMicrositeBoda(slug))?.boda ?? null;
 }
 
 export async function getBodaRsvpCount(slug: string): Promise<number> {
@@ -81,6 +106,7 @@ export async function getOnlineWeddingsForHome(
       where: {
         isOnline: true,
         slug: { not: "demo" },
+        user: PUBLIC_OWNER_WHERE,
       },
       select: {
         slug: true,

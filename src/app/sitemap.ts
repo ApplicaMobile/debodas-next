@@ -1,7 +1,38 @@
 import type { MetadataRoute } from "next";
 import { getAppUrl } from "@/lib/email/client";
+import { PUBLIC_OWNER_WHERE } from "@/lib/account/status";
+import { isDatabaseConfigured, prisma } from "@/lib/db/prisma";
+import { micrositeRequiresPassword } from "@/lib/microsite/password";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Se arma en cada request (las bodas online cambian y en el build puede no haber BD).
+export const dynamic = "force-dynamic";
+
+/** Micrositios online y sin contraseña (los protegidos no aportan a Google). */
+async function onlineBodaRoutes(base: string): Promise<MetadataRoute.Sitemap> {
+  if (!isDatabaseConfigured()) {
+    return [];
+  }
+  try {
+    const rows = await prisma.boda.findMany({
+      where: { isOnline: true, slug: { not: "demo" }, user: PUBLIC_OWNER_WHERE },
+      select: { slug: true, updatedAt: true, options: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return rows
+      .filter((row) => !micrositeRequiresPassword(row.options))
+      .map((row) => ({
+        url: `${base}/bodas/${encodeURIComponent(row.slug)}`,
+        lastModified: row.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      }));
+  } catch (error) {
+    console.error("[sitemap] bodas online", error instanceof Error ? error.message : error);
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getAppUrl();
   const now = new Date();
 
@@ -20,10 +51,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/privacidad", changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  return staticRoutes.map((route) => ({
-    url: `${base}${route.path}`,
-    lastModified: now,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
-  }));
+  return [
+    ...staticRoutes.map((route) => ({
+      url: `${base}${route.path}`,
+      lastModified: now,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+    })),
+    ...(await onlineBodaRoutes(base)),
+  ];
 }

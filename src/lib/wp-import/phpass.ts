@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes, timingSafeEqual } from "crypto";
 
 const ITOA64 =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -56,7 +56,9 @@ export function verifyPhpass(password: string, storedHash: string): boolean {
     checksum = md5Binary(Buffer.concat([checksum, Buffer.from(password)]));
   }
   const encoded = hash.slice(0, 12) + encode64(checksum, 16);
-  return encoded === hash;
+  const left = Buffer.from(encoded);
+  const right = Buffer.from(hash);
+  return left.length === right.length && timingSafeEqual(left, right);
 }
 
 export function isPhpassHash(hash: string): boolean {

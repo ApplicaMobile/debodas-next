@@ -5,7 +5,10 @@ import { hash } from "bcryptjs";
 import { headers } from "next/headers";
 import { getAppUrl } from "@/lib/email/client";
 import { enqueueEmail } from "@/lib/email/queue";
+import { passwordResetEmail } from "@/lib/email/password-reset-template";
+import { getLocaleOrDefault } from "@/i18n/get-locale";
 import { prisma } from "@/lib/db/prisma";
+import { isAccountActive } from "@/lib/account/status";
 import {
   checkRateLimit,
   clientIpFromHeaders,
@@ -15,6 +18,8 @@ export interface PasswordResetState {
   error?: string;
   success?: string;
 }
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -58,17 +63,17 @@ export async function requestPasswordResetAction(
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, name: true },
+    select: { id: true, email: true, name: true, status: true },
   });
 
-  // Respuesta genérica para no filtrar si el email existe
-  if (!user) {
+  // Respuesta genérica para no filtrar si el email existe (ni si está suspendida/eliminada)
+  if (!user || !isAccountActive(user.status)) {
     return { success: genericSuccess };
   }
 
   const token = randomBytes(32).toString("hex");
   const tokenHash = hashToken(token);
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS);
 
   await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
   await prisma.passwordResetToken.create({
@@ -76,13 +81,16 @@ export async function requestPasswordResetAction(
   });
 
   const resetUrl = `${getAppUrl()}/recuperar/${token}`;
+  const resetEmail = passwordResetEmail({
+    locale: await getLocaleOrDefault(),
+    resetUrl,
+    name: user.name,
+    minutes: RESET_TOKEN_TTL_MS / 60000,
+  });
   await enqueueEmail({
     to: user.email,
-    subject: "Restablecer contraseña — DeBodas",
-    html: `<p>Hola${user.name ? ` ${user.name}` : ""},</p>
-<p>Pediste restablecer tu contraseña. Este enlace vence en 1 hora:</p>
-<p><a href="${resetUrl}">${resetUrl}</a></p>
-<p>Si no fuiste vos, ignorá este mensaje.</p>`,
+    subject: resetEmail.subject,
+    html: resetEmail.html,
     type: "password_reset",
     dedupeKey: `password-reset:${tokenHash}`,
     meta: { userId: user.id },
@@ -139,6 +147,14 @@ export async function resetPasswordAction(
     return { error: "El enlace expiró o no es válido. Pedí uno nuevo." };
   }
 
+  const owner = await prisma.user.findUnique({
+    where: { id: record.userId },
+    select: { status: true },
+  });
+  if (!owner || !isAccountActive(owner.status)) {
+    return { error: "El enlace expiró o no es válido. Pedí uno nuevo." };
+  }
+
   const passwordHash = await hash(password, 10);
   const consumed = await prisma.$transaction(async (tx) => {
     const result = await tx.passwordResetToken.updateMany({
@@ -156,8 +172,15 @@ export async function resetPasswordAction(
       where: { id: record.userId },
       data: {
         passwordHash,
+        // La clave nueva reemplaza también al hash legado de WordPress.
+        legacyPasswordHash: null,
         sessionVersion: { increment: 1 },
       },
+    });
+    // Usar el enlace del email prueba que la dirección es suya.
+    await tx.user.updateMany({
+      where: { id: record.userId, emailVerifiedAt: null },
+      data: { emailVerifiedAt: new Date() },
     });
     await tx.passwordResetToken.deleteMany({
       where: { userId: record.userId, id: { not: record.id } },

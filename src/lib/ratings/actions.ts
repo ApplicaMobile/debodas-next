@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { FormState } from "@/lib/account/form-state";
 import { prisma } from "@/lib/db/prisma";
+import { isAccountActive } from "@/lib/account/status";
 import { notifyRatingSubmitted } from "@/lib/email/notify";
 import { getCoupleDisplayName } from "@/data/bodas";
 import type { Boda as BodaShape } from "@/types/boda";
@@ -73,10 +74,16 @@ export async function submitRatingAction(
 
     const boda = await prisma.boda.findUnique({
       where: { id: bodaId },
-      select: { id: true, title: true, couple: true, event: true },
+      select: {
+        id: true,
+        title: true,
+        couple: true,
+        event: true,
+        user: { select: { status: true } },
+      },
     });
 
-    if (!boda) {
+    if (!boda || !isAccountActive(boda.user?.status)) {
       return { error: "No encontramos esta boda." };
     }
 

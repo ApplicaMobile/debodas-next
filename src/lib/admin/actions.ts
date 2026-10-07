@@ -17,6 +17,10 @@ import { notifyRatingRequest } from "@/lib/email/notify";
 import { processEmailQueue } from "@/lib/email/worker";
 import { runMaintenance } from "@/lib/maintenance/run";
 import { prisma } from "@/lib/db/prisma";
+import {
+  changeAccountStatus,
+  isAccountStatusOp,
+} from "@/lib/account/admin-status";
 import type { Boda as BodaShape } from "@/types/boda";
 
 export async function updateRatingStatusAction(formData: FormData) {
@@ -531,6 +535,59 @@ export async function updateUserRoleAction(formData: FormData) {
   revalidatePath("/admin/usuarios");
   revalidatePath("/admin");
   redirect(adminUsersPath(formData, { ok: "1" }));
+}
+
+/** Volver a la pantalla desde donde se gestionó la cuenta (usuarios o detalle de boda). */
+function accountStatusReturnPath(
+  formData: FormData,
+  result: { ok?: string; error?: string },
+): string {
+  const returnTo = String(formData.get("return_to") ?? "").trim();
+  const bodaMatch = /^\/admin\/bodas\/([A-Za-z0-9_-]{1,64})$/.exec(returnTo);
+  if (bodaMatch) {
+    const params = new URLSearchParams(
+      result.ok ? { ok: `estado:${result.ok}` } : { error: `estado:${result.error}` },
+    );
+    return `/admin/bodas/${bodaMatch[1]}?${params.toString()}`;
+  }
+  const base = adminUsersPath(formData, result);
+  const estado = String(formData.get("estado") ?? "").trim();
+  return estado && /^[a-z-]{1,20}$/.test(estado) ? `${base}&estado=${estado}` : base;
+}
+
+/** Suspender / reactivar / eliminar (baja lógica) / restaurar una cuenta. */
+export async function changeAccountStatusAction(formData: FormData) {
+  const admin = await requireAdmin();
+
+  const userId = String(formData.get("user_id") ?? "").trim();
+  const op = String(formData.get("op") ?? "").trim();
+  if (!userId || !isAccountStatusOp(op)) {
+    redirect(accountStatusReturnPath(formData, { error: "datos" }));
+  }
+
+  const audit = await getAdminAuditContext(admin);
+  const result = await changeAccountStatus(prisma, {
+    actorId: admin.id,
+    audit,
+    userId,
+    op,
+    reason: String(formData.get("reason") ?? ""),
+    confirmEmail: String(formData.get("confirm_email") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirect(accountStatusReturnPath(formData, { error: result.error }));
+  }
+
+  revalidatePath("/admin/usuarios");
+  revalidatePath("/admin/bodas");
+  revalidatePath("/admin");
+  revalidatePath("/admin/estadisticas");
+  revalidatePath("/");
+  if (result.bodaId) {
+    revalidatePath(`/admin/bodas/${result.bodaId}`);
+  }
+  redirect(accountStatusReturnPath(formData, { ok: op }));
 }
 
 export async function runMaintenanceAdminAction() {

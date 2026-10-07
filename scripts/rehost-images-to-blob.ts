@@ -1,303 +1,125 @@
 /**
- * Rehostea imágenes migradas desde WordPress (URLs externas) a disco
- * (`public/uploads/`) o Vercel Blob si hay BLOB_READ_WRITE_TOKEN.
+ * Rehostea los medios migrados desde WordPress (URLs externas) a disco
+ * (`public/uploads/migrated/media/`) o Vercel Blob si hay BLOB_READ_WRITE_TOKEN.
+ * Re-ejecutable: dedupe global por sha256 del contenido + tabla legacy_media.
  *
  * Uso:
  *   npm run db:rehost-blob -- --dry-run
- *   npm run db:rehost-blob -- --limit=20
+ *   npm run db:rehost-blob -- --limit=20                 # como máximo 20 bodas
+ *   npm run db:rehost-blob -- --boda=slug-de-la-boda
  *   npm run db:rehost-blob -- --hosts=debodas.com.ar,test.debodas.com.ar
  *   npm run db:rehost-blob -- --from-uploads-dir=/path/a/wp-content/uploads
+ *   npm run db:rehost-blob -- --max-mb=25                # límite por archivo (o WP_REHOST_MAX_MB)
+ *   npm run db:rehost-blob -- --no-heic-convert
  *
  * Requiere DATABASE_URL en .env.local.
  */
-import { createHash } from "crypto";
-import { readFileSync } from "fs";
 import { config } from "dotenv";
-import { PrismaClient, type Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { usesCloudStorage } from "../src/lib/upload/local";
 import {
-  isManagedUpload,
-  putUploadedBuffer,
-  usesCloudStorage,
-} from "../src/lib/upload/local";
-import { resolveFromUploadsDir } from "./wp/rehost-source";
+  createRehostSession,
+  loadOptionalSharp,
+  rehostBodaImages,
+  rehostMaxBytesFromEnv,
+} from "../src/lib/wp-import/rehost";
 
 config({ path: ".env.local" });
 config();
 
 const prisma = new PrismaClient();
 
-type BannerJson = {
-  image?: { url?: string; id?: string | number };
-  title?: string;
-  description?: string;
-  [key: string]: unknown;
-};
-
 function parseArgs(argv: string[]) {
-  const dryRun = argv.includes("--dry-run");
-  const limitArg = argv.find((a) => a.startsWith("--limit="));
-  const hostsArg = argv.find((a) => a.startsWith("--hosts="));
-  const uploadsArg = argv.find((a) => a.startsWith("--from-uploads-dir="));
-  const limit = limitArg ? Number(limitArg.split("=")[1]) : undefined;
-  const hosts = (hostsArg?.split("=")[1] ?? "debodas.com.ar,test.debodas.com.ar")
-    .split(",")
-    .map((h) => h.trim().toLowerCase())
-    .filter(Boolean);
-  const fromUploadsDir = uploadsArg?.slice("--from-uploads-dir=".length).trim() || "";
+  const get = (name: string) => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3).trim();
+  const limit = Number(get("limit"));
+  const maxMb = Number(get("max-mb"));
   return {
-    dryRun,
-    limit: Number.isFinite(limit) ? limit : undefined,
-    hosts,
-    fromUploadsDir: fromUploadsDir || null,
+    dryRun: argv.includes("--dry-run"),
+    convertHeic: !argv.includes("--no-heic-convert"),
+    limit: Number.isInteger(limit) && limit > 0 ? limit : undefined,
+    boda: get("boda") || null,
+    hosts: (get("hosts") ?? "debodas.com.ar,test.debodas.com.ar")
+      .split(",")
+      .map((h) => h.trim().toLowerCase())
+      .filter(Boolean),
+    fromUploadsDir: get("from-uploads-dir") || null,
+    maxBytes: Number.isFinite(maxMb) && maxMb > 0 ? Math.round(maxMb * 1024 * 1024) : rehostMaxBytesFromEnv(),
   };
 }
 
-function extFromContentType(contentType: string, url: string): string {
-  const mime = contentType.split(";")[0]?.trim().toLowerCase() ?? "";
-  if (mime === "image/jpeg") return "jpg";
-  if (mime === "image/png") return "png";
-  if (mime === "image/webp") return "webp";
-  if (mime === "image/gif") return "gif";
-  if (mime === "application/pdf") return "pdf";
-  const fromUrl = url.split("?")[0]?.split(".").pop()?.toLowerCase();
-  if (fromUrl && ["jpg", "jpeg", "png", "webp", "gif", "pdf"].includes(fromUrl)) {
-    return fromUrl === "jpeg" ? "jpg" : fromUrl;
-  }
-  return "bin";
-}
-
-function contentTypeFromExt(ext: string): string {
-  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
-  if (ext === "png") return "image/png";
-  if (ext === "webp") return "image/webp";
-  if (ext === "gif") return "image/gif";
-  if (ext === "pdf") return "application/pdf";
-  return "application/octet-stream";
-}
-
-function shouldRehost(url: string | null | undefined, hosts: string[]): boolean {
-  if (!url || !url.trim()) return false;
-  const trimmed = url.trim();
-  if (isManagedUpload(trimmed)) return false;
-  if (trimmed.startsWith("/")) return false;
-  try {
-    const host = new URL(trimmed).hostname.toLowerCase();
-    if (hosts.length === 0) return true;
-    return hosts.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
-  } catch {
-    return false;
-  }
-}
-
-async function fetchRemote(url: string): Promise<{ buffer: Buffer; contentType: string }> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": "DeBodas-rehost/1.0" },
-    redirect: "follow",
-  });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} al bajar ${url}`);
-  }
-  const contentType =
-    res.headers.get("content-type")?.split(";")[0]?.trim() ||
-    contentTypeFromExt(extFromContentType("", url));
-  const buffer = Buffer.from(await res.arrayBuffer());
-  if (buffer.length === 0) {
-    throw new Error(`Archivo vacío: ${url}`);
-  }
-  if (buffer.length > 8 * 1024 * 1024) {
-    throw new Error(`Archivo > 8MB: ${url}`);
-  }
-  return { buffer, contentType };
+async function countPendingWpUrls(): Promise<Record<string, number>> {
+  const like = "%wp-content/uploads%";
+  const [pictures, gifts, vouchers, featured] = await Promise.all([
+    prisma.picture.count({ where: { url: { contains: "wp-content/uploads" } } }),
+    prisma.gift.count({ where: { imageUrl: { contains: "wp-content/uploads" } } }),
+    prisma.confirmedGift.count({ where: { voucherUrl: { contains: "wp-content/uploads" } } }),
+    prisma.boda.count({ where: { featuredImageUrl: { contains: "wp-content/uploads" } } }),
+  ]);
+  const json = await prisma.$queryRaw<Array<{ banner: bigint; misc: bigint }>>`
+    SELECT
+      SUM(CAST(banner AS CHAR) LIKE ${like}) AS banner,
+      SUM(CAST(misc AS CHAR) LIKE ${like}) AS misc
+    FROM bodas`;
+  return {
+    pictures,
+    gifts,
+    vouchers,
+    featured,
+    bannerJson: Number(json[0]?.banner ?? 0),
+    miscJson: Number(json[0]?.misc ?? 0),
+  };
 }
 
 async function main() {
-  const { dryRun, limit, hosts, fromUploadsDir } = parseArgs(process.argv.slice(2));
-  const cache = new Map<string, string>();
-  let scanned = 0;
-  let uploaded = 0;
-  let skipped = 0;
-  let failed = 0;
-  let updated = 0;
-  let fromDisk = 0;
-
-  console.log(
-    `[rehost] destino=${usesCloudStorage() ? "vercel-blob" : "public/uploads"} dryRun=${dryRun} hosts=${hosts.join(",")}${fromUploadsDir ? ` uploadsDir=${fromUploadsDir}` : ""}`,
-  );
-
-  async function resolveUrl(source: string, bodaId: string): Promise<string | null> {
-    scanned += 1;
-    if (limit != null && uploaded + failed >= limit) {
-      skipped += 1;
-      return null;
-    }
-    const cached = cache.get(source);
-    if (cached) return cached;
-
-    try {
-      let buffer: Buffer;
-      let contentType: string;
-      const localPath =
-        fromUploadsDir ? resolveFromUploadsDir(source, fromUploadsDir) : null;
-      if (localPath) {
-        buffer = readFileSync(localPath);
-        contentType = contentTypeFromExt(extFromContentType("", source));
-        fromDisk += 1;
-      } else {
-        const remote = await fetchRemote(source);
-        buffer = remote.buffer;
-        contentType = remote.contentType;
-      }
-      const ext = extFromContentType(contentType, source);
-      const hash = createHash("sha1").update(source).digest("hex").slice(0, 16);
-      const filename = `${hash}.${ext}`;
-      if (dryRun) {
-        console.log(
-          `[dry-run] ${localPath ? "disk" : "http"} ${source} → uploads/migrated/${bodaId}/${filename}`,
-        );
-        cache.set(source, source);
-        uploaded += 1;
-        return source;
-      }
-      const nextUrl = await putUploadedBuffer({
-        buffer,
-        subdir: `migrated/${bodaId}`,
-        filename,
-        contentType: contentTypeFromExt(ext),
-      });
-      cache.set(source, nextUrl);
-      uploaded += 1;
-      console.log(`[ok] ${source} → ${nextUrl}`);
-      return nextUrl;
-    } catch (error) {
-      failed += 1;
-      console.error(`[fail] ${source}`, error instanceof Error ? error.message : error);
-      return null;
-    }
+  const args = parseArgs(process.argv.slice(2));
+  const session = createRehostSession();
+  if (args.convertHeic) {
+    session.sharp = await loadOptionalSharp();
   }
+  console.log(
+    `[rehost] destino=${usesCloudStorage() ? "vercel-blob" : "public/uploads"} dryRun=${args.dryRun} hosts=${args.hosts.join(",")} maxMB=${(args.maxBytes / 1024 / 1024).toFixed(0)} heic=${args.convertHeic ? (session.sharp ? "sharp" : "sin sharp (se copian tal cual)") : "off"}${args.fromUploadsDir ? ` uploadsDir=${args.fromUploadsDir}` : ""}`,
+  );
 
   const bodas = await prisma.boda.findMany({
-    select: {
-      id: true,
-      slug: true,
-      featuredImageUrl: true,
-      banner: true,
-    },
+    where: args.boda ? { slug: args.boda } : undefined,
+    select: { id: true, slug: true },
+    orderBy: { createdAt: "asc" },
+    take: args.limit,
   });
 
+  const totals = { bodas: 0, updated: 0, failed: 0, uploaded: 0, reused: 0, heicConverted: 0, heicUnconverted: 0 };
   for (const boda of bodas) {
-    let featured = boda.featuredImageUrl;
-    let banner = (boda.banner ?? {}) as BannerJson;
-    let dirty = false;
-
-    if (shouldRehost(featured, hosts)) {
-      const next = await resolveUrl(featured!, boda.id);
-      if (next && next !== featured && !dryRun) {
-        featured = next;
-        dirty = true;
-      }
+    const r = await rehostBodaImages(boda.id, {
+      client: prisma,
+      dryRun: args.dryRun,
+      hosts: args.hosts,
+      fromUploadsDir: args.fromUploadsDir,
+      maxBytes: args.maxBytes,
+      convertHeic: args.convertHeic,
+      session,
+    });
+    totals.bodas += 1;
+    totals.updated += r.updated;
+    totals.failed += r.failed;
+    totals.uploaded += r.uploaded;
+    totals.reused += r.reused;
+    totals.heicConverted += r.heicConverted;
+    totals.heicUnconverted += r.heicUnconverted;
+    if (r.uploaded || r.updated || r.failed) {
+      console.log(`[boda] ${boda.slug}: nuevos=${r.uploaded} reusados=${r.reused} filas=${r.updated} fallas=${r.failed}`);
     }
-
-    const bannerUrl = banner.image?.url;
-    if (shouldRehost(bannerUrl, hosts)) {
-      const next = await resolveUrl(bannerUrl!, boda.id);
-      if (next && next !== bannerUrl && !dryRun) {
-        banner = {
-          ...banner,
-          image: { ...(banner.image ?? {}), url: next },
-        };
-        dirty = true;
-        if (featured === bannerUrl) {
-          featured = next;
-        }
-      }
-    }
-
-    if (dirty && !dryRun) {
-      await prisma.boda.update({
-        where: { id: boda.id },
-        data: {
-          featuredImageUrl: featured,
-          banner: banner as Prisma.InputJsonValue,
-        },
-      });
-      updated += 1;
+    for (const e of r.errors) {
+      console.error(`  [fail] ${e.url} → ${e.error}`);
     }
   }
 
-  const gifts = await prisma.gift.findMany({
-    select: { id: true, bodaId: true, imageUrl: true },
-  });
-  for (const gift of gifts) {
-    if (!shouldRehost(gift.imageUrl, hosts)) continue;
-    const next = await resolveUrl(gift.imageUrl!, gift.bodaId);
-    if (next && next !== gift.imageUrl && !dryRun) {
-      await prisma.gift.update({
-        where: { id: gift.id },
-        data: { imageUrl: next },
-      });
-      updated += 1;
-    }
-  }
-
-  const pictures = await prisma.picture.findMany({
-    select: { id: true, bodaId: true, url: true },
-  });
-  for (const picture of pictures) {
-    if (!shouldRehost(picture.url, hosts)) continue;
-    const next = await resolveUrl(picture.url, picture.bodaId);
-    if (next && next !== picture.url && !dryRun) {
-      await prisma.picture.update({
-        where: { id: picture.id },
-        data: { url: next },
-      });
-      updated += 1;
-    }
-  }
-
-  const vouchers = await prisma.confirmedGift.findMany({
-    select: { id: true, bodaId: true, voucherUrl: true },
-  });
-  for (const voucher of vouchers) {
-    if (!shouldRehost(voucher.voucherUrl, hosts)) continue;
-    const next = await resolveUrl(voucher.voucherUrl!, voucher.bodaId);
-    if (next && next !== voucher.voucherUrl && !dryRun) {
-      await prisma.confirmedGift.update({
-        where: { id: voucher.id },
-        data: { voucherUrl: next },
-      });
-      updated += 1;
-    }
-  }
-
-  const emptyGalleries = await prisma.boda.findMany({
-    where: { pictures: { none: {} } },
-    select: { slug: true, featuredImageUrl: true },
-  });
-  const pendingWpUrls = await prisma.picture.count({
-    where: {
-      OR: [
-        { url: { contains: "debodas.com.ar/wp-content/uploads" } },
-        { url: { contains: "test.debodas.com.ar/wp-content/uploads" } },
-      ],
-    },
-  });
-
-  console.log(
-    `[rehost] scanned=${scanned} uploaded=${uploaded} fromDisk=${fromDisk} updatedRows=${updated} failed=${failed} skipped=${skipped}`,
-  );
-  console.log(
-    `[report] bodas sin galería=${emptyGalleries.length} pictures con URL WP pendientes=${pendingWpUrls}`,
-  );
-  if (emptyGalleries.length > 0 && emptyGalleries.length <= 20) {
-    for (const row of emptyGalleries) {
-      console.log(`[gallery-empty] ${row.slug}`);
-    }
-  }
+  console.log(`[rehost] ${JSON.stringify(totals)}`);
+  console.log(`[report] URLs wp-content/uploads pendientes: ${JSON.stringify(await countPendingWpUrls())}`);
 }
 
 main()
   .catch((error) => {
-    console.error(error);
+    console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
   })
   .finally(async () => {

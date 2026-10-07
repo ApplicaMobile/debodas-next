@@ -15,7 +15,8 @@ export interface WpUserRow {
   user_registered: Date;
 }
 
-export type WpMigrationStatus = "pendiente" | "migrada";
+/** "eliminada": ya migrada pero la cuenta se dio de baja; no se vuelve a importar. */
+export type WpMigrationStatus = "pendiente" | "migrada" | "eliminada";
 
 export interface WpBodaListItem {
   wpPostId: number;
@@ -64,20 +65,42 @@ export interface WpBodaPreview {
   warnings: WpImportWarning[];
 }
 
+/** Modo de importación: ver `persistWpBoda`. */
+export type WpImportMode = "only-new" | "changed" | "overwrite";
+
+export type WpImportAction =
+  | "created"
+  | "updated"
+  | "overwritten"
+  | "skipped"
+  | "would_create"
+  | "would_update"
+  | "would_overwrite"
+  | "error";
+
 export interface WpMigrateResult {
   ok: boolean;
   wpPostId: number;
   slug: string;
   email?: string;
   bodaId?: string | null;
+  action?: WpImportAction;
+  /** Motivo del salteo: already_imported | unchanged | edited_in_next | no_baseline. */
+  reason?: string;
+  /** Tipo de hash WP del dueño (wp-bcrypt, bcrypt, phpass, md5, unknown). */
+  hashKind?: string;
+  sourceHash?: string;
+  counts?: { gifts: number; pictures: number; guests: number; confirmedGifts: number };
   needsPasswordReset?: boolean;
   error?: string;
   warnings?: WpImportWarning[];
 }
 
 export interface WpMigrateOptions {
-  overwrite?: boolean;
+  /** Por defecto `only-new`. `overwrite` es destructivo y solo para staging. */
+  mode?: WpImportMode;
   dryRun?: boolean;
+  runId?: string;
   /** Hash bcrypt ya resuelto (login: el usuario tipeó la clave). */
   passwordHash?: string;
 }

@@ -17,9 +17,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR?.trim() || ".next",
   allowedDevOrigins: ["*.trycloudflare.com"],
-  serverActions: {
-    // Fotos de banner/galería y comprobantes: tope de 5 MB + overhead del form.
-    bodySizeLimit: "6mb",
+  experimental: {
+    // Next 16: serverActions vive acá (no en la raíz de NextConfig).
+    serverActions: {
+      bodySizeLimit: "6mb",
+    },
   },
   images: {
     remotePatterns: [

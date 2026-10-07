@@ -10,16 +10,44 @@ import type { Prisma } from "@prisma/client";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import {
+  ACCOUNT_STATUS_LABELS,
+  normalizeAccountStatus,
+} from "@/lib/account/status";
+
+/** Por defecto se ocultan las bodas de cuentas eliminadas. */
+const ESTADO_FILTERS: Record<string, { label: string; where: Prisma.UserWhereInput | null }> = {
+  visibles: { label: "Activas y suspendidas", where: { status: { in: ["active", "suspended"] } } },
+  active: { label: "Activas", where: { status: "active" } },
+  suspended: { label: "Suspendidas", where: { status: "suspended" } },
+  deleted: { label: "Eliminadas", where: { status: "deleted" } },
+  todas: { label: "Todas", where: null },
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const normalized = normalizeAccountStatus(status);
+  if (normalized === "active") return null;
+  return (
+    <span
+      className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+        normalized === "suspended" ? "bg-amber-50 text-amber-900" : "bg-stone-200 text-stone-600"
+      }`}
+    >
+      {ACCOUNT_STATUS_LABELS[normalized]}
+    </span>
+  );
+}
 
 const PAGE_SIZE = 25;
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; plan?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; plan?: string; page?: string; estado?: string }>;
 }
 
 export default async function AdminBodasPage({ searchParams }: PageProps) {
   await requireAdmin();
-  const { q, plan, page: pageRaw } = await searchParams;
+  const { q, plan, page: pageRaw, estado: estadoRaw } = await searchParams;
+  const estado = estadoRaw && estadoRaw in ESTADO_FILTERS ? estadoRaw : "visibles";
   const query = (q ?? "").trim();
   const planFilter = (plan ?? "").trim().toLowerCase();
 
@@ -35,6 +63,10 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
   if (planFilter && ["free", "basico", "premium"].includes(planFilter)) {
     where.plan = planFilter;
   }
+  const estadoWhere = ESTADO_FILTERS[estado].where;
+  if (estadoWhere) {
+    where.user = estadoWhere;
+  }
 
   const total = await prisma.boda.count({ where });
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -49,7 +81,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
     skip: (page - 1) * PAGE_SIZE,
     take: PAGE_SIZE,
     include: {
-      user: { select: { email: true, name: true } },
+      user: { select: { email: true, name: true, status: true } },
       _count: {
         select: {
           gifts: true,
@@ -115,6 +147,21 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
             <option value="basico">basico</option>
             <option value="premium">premium</option>
           </select>
+          <label htmlFor="admin-bodas-estado" className="sr-only">
+            Filtrar por estado de cuenta
+          </label>
+          <select
+            id="admin-bodas-estado"
+            name="estado"
+            defaultValue={estado}
+            className="min-h-11 rounded-xl border border-stone-300 px-3 py-2.5 text-sm"
+          >
+            {Object.entries(ESTADO_FILTERS).map(([key, filter]) => (
+              <option key={key} value={key}>
+                {filter.label}
+              </option>
+            ))}
+          </select>
           <button
             type="submit"
             className="min-h-11 rounded-full bg-[#06263a] px-5 py-2.5 text-sm font-semibold text-white"
@@ -137,6 +184,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                   >
                     {coupleLabel(boda.couple, boda.title)}
                   </Link>
+                  <StatusBadge status={boda.user.status} />
                   <p className="mt-1 break-all text-xs text-stone-500">
                     /{boda.slug}
                   </p>
@@ -242,6 +290,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                     >
                       {coupleLabel(boda.couple, boda.title)}
                     </Link>
+                    <StatusBadge status={boda.user.status} />
                     <p className="text-xs text-stone-500">/{boda.slug}</p>
                     <p className="text-xs text-stone-400">{boda.micrositeTheme}</p>
                   </td>
@@ -331,6 +380,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
           query={{
             ...(query ? { q: query } : {}),
             ...(planFilter ? { plan: planFilter } : {}),
+            ...(estado !== "visibles" ? { estado } : {}),
           }}
         />
       </section>
