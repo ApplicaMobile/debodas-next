@@ -51,17 +51,17 @@ export default async function VerificarEmailPage() {
       <SiteHeader />
       <main className="relative min-h-screen overflow-hidden bg-[#EBEBEB] pt-24 pb-16">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(230,218,199,0.75),transparent_40%),radial-gradient(circle_at_10%_85%,rgba(6,38,58,0.07),transparent_45%)]" />
-        <div className="relative mx-auto max-w-lg rounded-3xl bg-white p-8 shadow-xl sm:p-12">
+        <div className="relative mx-auto max-w-lg rounded-3xl bg-white p-6 shadow-xl sm:p-12">
           <p className="font-serif text-2xl font-semibold tracking-tight text-stone-800">DeBodas</p>
-          <h1 className="mt-4 font-serif text-3xl font-semibold text-stone-800">
+          <h1 className="mt-4 font-serif text-3xl font-semibold text-stone-800 sm:text-4xl">
             {t(messages, "emailVerification.title")}
           </h1>
-          <p className="mt-4 text-stone-600">
+          <p className="mt-4 break-words text-stone-600">
             {t(messages, "emailVerification.lead", { email: user.email })}
           </p>
           <p className="mt-2 text-sm text-stone-500">{t(messages, "emailVerification.spamHint")}</p>
           {paidPlan ? (
-            <p className="mt-4 rounded-lg bg-[#f4edcc] px-3 py-2 text-sm text-[#6f5f47]">
+            <p className="mt-4 rounded-xl bg-[#f4edcc] px-4 py-3 text-sm text-[#6f5f47]">
               {t(messages, "emailVerification.paidPlanNote")}
             </p>
           ) : null}
@@ -71,7 +71,7 @@ export default async function VerificarEmailPage() {
             initialResendAvailableAt={pending ? pending.resendAvailableAt.getTime() : undefined}
           />
 
-          <div className="mt-8 flex items-center gap-3 border-t border-stone-200 pt-6 text-sm text-stone-500">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-6 text-sm text-stone-500">
             <span>{t(messages, "emailVerification.wrongEmail")}</span>
             <LogoutButton />
           </div>

@@ -26,10 +26,11 @@ function SubmitButton({
 }) {
   const { pending, data } = useFormStatus();
   const mine = pending && data?.get("intent") === intent;
+  // Mismo lenguaje que el login: CTA beige a todo el ancho y secundario con borde.
   const styles =
     variant === "primary"
-      ? "bg-[#06263a] text-white hover:bg-[#0a3550]"
-      : "border border-stone-300 bg-white text-stone-700 hover:bg-stone-50";
+      ? "w-full bg-[#e6dac7] text-stone-800 hover:bg-[#dccdb5]"
+      : "w-full border border-stone-300 bg-white text-stone-700 hover:bg-stone-50 sm:w-auto";
   return (
     <button
       type="submit"
@@ -37,7 +38,8 @@ function SubmitButton({
       value={intent}
       disabled={pending}
       formNoValidate={intent === "resend"}
-      className={`inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${styles}`}
+      aria-busy={mine || undefined}
+      className={`focus-ring inline-flex min-h-12 items-center justify-center rounded-full px-5 py-3 text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${styles}`}
     >
       {mine ? pendingLabel : label}
     </button>
@@ -75,19 +77,23 @@ export function EmailVerificationPanel({
   }, [state.redirectTo]);
 
   return (
-    <form action={formAction} className="mt-6 space-y-4" autoComplete="off">
+    <form action={formAction} className="mt-8 space-y-5" autoComplete="off">
       {state.error ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+        <p
+          id="verify-code-error"
+          className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
           {state.error}
         </p>
       ) : null}
       {state.info ? (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">
+        <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
           {state.info}
         </p>
       ) : null}
       {showNoCode ? (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800" role="status">
+        <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">
           {t("emailVerification.noCode")}
         </p>
       ) : null}
@@ -106,20 +112,23 @@ export function EmailVerificationPanel({
           required
           autoFocus
           autoComplete="one-time-code"
-          className="mt-1 w-44 rounded-lg border border-stone-300 px-3 py-2 text-center font-mono text-xl tracking-[0.3em]"
+          aria-describedby={state.error ? "verify-code-error" : undefined}
+          aria-invalid={state.error ? true : undefined}
+          placeholder="000000"
+          className="focus-ring mt-2 block min-h-14 w-full max-w-[16rem] rounded-xl border border-stone-200 bg-white px-4 py-3 text-center font-mono text-2xl tracking-[0.35em] text-stone-800 placeholder:text-stone-300"
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-3">
         <SubmitButton
           intent="confirm"
           label={redirecting ? t("emailVerification.verifying") : t("emailVerification.submit")}
           pendingLabel={t("emailVerification.verifying")}
         />
         {resendIn > 0 ? (
-          <span className="text-xs text-stone-500">
+          <p className="text-center text-sm text-stone-500 sm:text-left" aria-live="polite">
             {t("emailVerification.resendIn", { seconds: resendIn })}
-          </span>
+          </p>
         ) : (
           <SubmitButton
             intent="resend"
