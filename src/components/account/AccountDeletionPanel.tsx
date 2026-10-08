@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { Alert, Button, Checkbox, Input, IconAlert } from "@/components/ui";
 import {
   accountDeletionAction,
   type AccountDeletionState,
@@ -28,23 +29,21 @@ function SubmitButton({
 }) {
   const { pending, data } = useFormStatus();
   const mine = pending && data?.get("intent") === intent;
-  const base =
-    "inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60";
-  const styles =
-    variant === "danger"
-      ? "bg-red-600 text-white hover:bg-red-700"
-      : "border border-stone-300 bg-white text-stone-700 hover:bg-stone-50";
   return (
-    <button
+    <Button
       type="submit"
       name="intent"
       value={intent}
-      disabled={pending}
-      className={`${base} ${styles}`}
+      variant={variant === "danger" ? "peligro" : "secundario"}
+      size="md"
+      loading={mine}
+      loadingLabel={pendingLabel}
+      disabled={pending && !mine}
       formNoValidate={intent === "resend"}
+      className="w-full sm:w-auto"
     >
-      {mine ? pendingLabel : label}
-    </button>
+      {label}
+    </Button>
   );
 }
 
@@ -72,14 +71,25 @@ export function AccountDeletionPanel({
   const resendIn = useSecondsUntil(state.resendAvailableAt);
 
   return (
-    <section className="rounded-2xl border-2 border-red-200 bg-red-50/40 p-5 sm:p-6">
-      <h3 className="font-serif text-lg font-semibold text-red-800">
-        {t("accountDeletion.dangerTitle")}
-      </h3>
+    <section
+      aria-labelledby="cuenta-eliminar"
+      className="rounded-lg border-2 border-status-error-border bg-surface-default p-6 sm:p-8"
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-1 shrink-0 text-status-error-fg" aria-hidden="true">
+          <IconAlert size={24} />
+        </span>
+        <h3 id="cuenta-eliminar" className="type-h4 text-status-error-fg">
+          {t("accountDeletion.dangerTitle")}
+        </h3>
+      </div>
 
-      <div className="mt-4 rounded-xl border border-red-200 bg-white p-4" role="note">
-        <p className="text-sm font-semibold text-red-700">{t("accountDeletion.legalTitle")}</p>
-        <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-stone-700">
+      <div
+        className="mt-5 rounded-md border border-status-error-border bg-status-error-bg p-4 sm:p-5"
+        role="note"
+      >
+        <p className="type-label text-status-error-fg">{t("accountDeletion.legalTitle")}</p>
+        <ul className="mt-3 list-disc space-y-2 pl-5 type-body-sm text-text-primary">
           <li>{t("accountDeletion.itemMicrosite")}</li>
           <li>{t("accountDeletion.itemGuests")}</li>
           <li>{t("accountDeletion.itemGifts")}</li>
@@ -90,50 +100,39 @@ export function AccountDeletionPanel({
       </div>
 
       {state.error ? (
-        <p className="mt-4 rounded-lg bg-red-100 px-3 py-2 text-sm text-red-800" role="alert">
-          {state.error}
-        </p>
+        <Alert tone="error" title={state.error} className="mt-5" />
       ) : null}
       {state.info ? (
-        <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">
-          {state.info}
-        </p>
+        <Alert tone="exito" title={state.info} className="mt-5" />
       ) : null}
 
       {state.step === "form" ? (
-        <form action={formAction} className="mt-5 space-y-4" autoComplete="off">
-          <div>
-            <label htmlFor="del-password" className="block text-sm font-medium text-stone-700">
-              {t("accountDeletion.passwordLabel")}
-            </label>
-            <input
-              id="del-password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="mt-1 w-full max-w-sm rounded-lg border border-stone-300 px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="del-confirm" className="block text-sm font-medium text-stone-700">
-              {t("accountDeletion.confirmLabel")}
-            </label>
-            <input
-              id="del-confirm"
-              name="confirm_word"
-              type="text"
-              required
-              autoComplete="off"
-              spellCheck={false}
-              placeholder="ELIMINAR"
-              className="mt-1 w-full max-w-sm rounded-lg border border-stone-300 px-3 py-2 text-sm uppercase"
-            />
-          </div>
-          <label className="flex items-start gap-2 text-sm text-stone-800">
-            <input type="checkbox" name="understand" required className="mt-0.5 h-4 w-4" />
-            <span>{t("accountDeletion.checkboxLabel")}</span>
-          </label>
+        <form action={formAction} className="mt-6 max-w-md space-y-5" autoComplete="off">
+          <Input
+            id="del-password"
+            name="password"
+            type="password"
+            label={t("accountDeletion.passwordLabel")}
+            required
+            autoComplete="current-password"
+          />
+          <Input
+            id="del-confirm"
+            name="confirm_word"
+            type="text"
+            label={t("accountDeletion.confirmLabel")}
+            required
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="ELIMINAR"
+            inputClassName="uppercase"
+          />
+          <Checkbox
+            id="del-understand"
+            name="understand"
+            required
+            label={t("accountDeletion.checkboxLabel")}
+          />
           <SubmitButton
             intent="request"
             label={t("accountDeletion.sendCode")}
@@ -141,36 +140,35 @@ export function AccountDeletionPanel({
           />
         </form>
       ) : (
-        <form action={formAction} className="mt-5 space-y-4" autoComplete="off">
-          <p className="text-sm text-stone-600">
-            {t("accountDeletion.emailLabel")}: <strong>{email}</strong>
+        <form action={formAction} className="mt-6 space-y-5" autoComplete="off">
+          <p className="break-words type-body-sm text-text-secondary">
+            {t("accountDeletion.emailLabel")}:{" "}
+            <strong className="break-all text-text-primary">{email}</strong>
           </p>
-          <div>
-            <label htmlFor="del-code" className="block text-sm font-medium text-stone-700">
-              {t("accountDeletion.codeLabel")}
-            </label>
-            <input
-              id="del-code"
-              name="code"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9 ]{6,7}"
-              maxLength={7}
-              required
-              autoComplete="one-time-code"
-              className="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2 text-center font-mono text-lg tracking-[0.3em]"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <Input
+            id="del-code"
+            name="code"
+            type="text"
+            label={t("accountDeletion.codeLabel")}
+            inputMode="numeric"
+            pattern="[0-9 ]{6,7}"
+            maxLength={7}
+            required
+            autoComplete="one-time-code"
+            placeholder="000000"
+            className="max-w-[16rem]"
+            inputClassName="text-center font-mono text-2xl tracking-[0.35em]"
+          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <SubmitButton
               intent="confirm"
               label={t("accountDeletion.confirmDelete")}
               pendingLabel={t("accountDeletion.deleting")}
             />
             {resendIn > 0 ? (
-              <span className="text-xs text-stone-500">
+              <p className="type-body-sm text-text-secondary" aria-live="polite">
                 {t("accountDeletion.resendIn", { seconds: resendIn })}
-              </span>
+              </p>
             ) : (
               <SubmitButton
                 intent="resend"

@@ -1,5 +1,11 @@
 import { redirect } from "next/navigation";
 import { AccountDeletionPanel } from "@/components/account/AccountDeletionPanel";
+import {
+  AccountPageBody,
+  AccountPageHeader,
+  AccountSection,
+} from "@/components/account/AccountPage";
+import { Alert } from "@/components/ui";
 import { DELETION_CODE_PURPOSE } from "@/lib/account/deletion-code";
 import { findPendingVerificationCode } from "@/lib/auth/verification-code";
 import { isAdminRole } from "@/lib/auth/roles";
@@ -38,23 +44,20 @@ export default async function MiCuentaCuentaPage() {
   const admin = isAdminRole(user.role);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-serif text-xl font-semibold text-stone-800 sm:text-2xl">
-          {t(messages, "accountDeletion.title")}
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">{t(messages, "accountDeletion.lead")}</p>
-      </div>
+    <AccountPageBody>
+      <AccountPageHeader
+        href="/mi-cuenta/cuenta"
+        section="Cuenta"
+        title={t(messages, "accountDeletion.title")}
+        description={t(messages, "accountDeletion.lead")}
+      />
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6">
-        <p className="text-sm text-stone-500">{t(messages, "accountDeletion.emailLabel")}</p>
-        <p className="mt-1 text-base font-medium text-stone-800">{user.email}</p>
-      </section>
+      <AccountSection id="cuenta-acceso" title={t(messages, "accountDeletion.emailLabel")}>
+        <p className="break-all type-body-lg font-semibold text-text-primary">{user.email}</p>
+      </AccountSection>
 
       {admin ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          {t(messages, "accountDeletion.errorAdmin")}
-        </p>
+        <Alert tone="pendiente" title={t(messages, "accountDeletion.errorAdmin")} />
       ) : (
         <AccountDeletionPanel
           email={user.email}
@@ -64,6 +67,6 @@ export default async function MiCuentaCuentaPage() {
           }
         />
       )}
-    </div>
+    </AccountPageBody>
   );
 }
