@@ -6,6 +6,11 @@ import {
   type PlanId,
 } from "@/components/ui";
 import type { HealthLevel } from "@/lib/admin/system-health";
+import {
+  ACCOUNT_STATUS_LABELS,
+  normalizeAccountStatus,
+  type AccountStatus,
+} from "@/lib/account/status";
 
 /**
  * Estados del panel admin como Badge del sistema (color + ícono + texto).
@@ -44,6 +49,7 @@ const tones: Record<AdminStatusKind, Record<string, BadgeTone>> = {
   migration: {
     migrada: "aprobado",
     pendiente: "pendiente",
+    eliminada: "neutro",
   },
 };
 
@@ -110,6 +116,29 @@ export function AdminPlanBadge({
     <Badge tone="neutro" icon={false} className={className}>
       <span className="sr-only">Plan </span>
       {plan || "—"}
+    </Badge>
+  );
+}
+
+const accountStatusTones: Record<AccountStatus, BadgeTone> = {
+  active: "aprobado",
+  suspended: "pendiente",
+  deleted: "rechazado",
+};
+
+/** Estado de la cuenta (User.status): Activa, Suspendida o Eliminada. */
+export function AdminAccountStatusBadge({
+  status,
+  className,
+}: {
+  status: string | null | undefined;
+  className?: string;
+}) {
+  const normalized = normalizeAccountStatus(status);
+  return (
+    <Badge tone={accountStatusTones[normalized]} className={className}>
+      <span className="sr-only">Estado de la cuenta: </span>
+      {ACCOUNT_STATUS_LABELS[normalized]}
     </Badge>
   );
 }

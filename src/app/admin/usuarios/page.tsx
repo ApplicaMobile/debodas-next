@@ -19,8 +19,44 @@ import {
 } from "@/components/account/AccountPage";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
-import { AdminPlanBadge } from "@/components/admin/AdminStatusBadge";
-import { Alert, Badge, IconCheck, IconSubmitButton, Input } from "@/components/ui";
+import { AdminAccountStatusForm } from "@/components/admin/AdminAccountStatusForm";
+import {
+  AdminAccountStatusBadge,
+  AdminPlanBadge,
+} from "@/components/admin/AdminStatusBadge";
+import { Alert, Badge, IconCheck, IconSubmitButton, Input, Select } from "@/components/ui";
+import { normalizeAccountStatus } from "@/lib/account/status";
+
+/** Filtro de estado: por defecto se ocultan las eliminadas. */
+const STATUS_FILTERS = {
+  visibles: { label: "Activas y suspendidas", where: { status: { in: ["active", "suspended"] } } },
+  active: { label: "Activas", where: { status: "active" } },
+  suspended: { label: "Suspendidas", where: { status: "suspended" } },
+  deleted: { label: "Eliminadas", where: { status: "deleted" } },
+  todas: { label: "Todas", where: {} },
+} satisfies Record<string, { label: string; where: Prisma.UserWhereInput }>;
+
+type StatusFilterKey = keyof typeof STATUS_FILTERS;
+
+function parseStatusFilter(value: string | undefined): StatusFilterKey {
+  return value && value in STATUS_FILTERS ? (value as StatusFilterKey) : "visibles";
+}
+
+const STATUS_FLASH: Record<string, string> = {
+  suspend: "Cuenta suspendida.",
+  reactivate: "Cuenta reactivada.",
+  delete: "Cuenta eliminada (baja lógica). Podés verla con el filtro Eliminadas.",
+  restore: "Cuenta restaurada.",
+};
+
+const STATUS_ERRORS: Record<string, string> = {
+  self: "No podés suspender ni eliminar tu propia cuenta.",
+  last_admin: "No podés suspender ni eliminar al último administrador activo.",
+  confirm_email: "Para eliminar, escribí exactamente el email de la cuenta.",
+  invalid_transition: "La cuenta ya no está en un estado que permita esa acción. Recargá la página.",
+  erased: "Esa cuenta fue borrada definitivamente por la pareja y no se puede modificar.",
+  not_found: "No encontramos la cuenta.",
+};
 
 const PAGE_SIZE = 25;
 
@@ -30,6 +66,7 @@ interface PageProps {
     error?: string;
     q?: string;
     page?: string;
+    estado?: string;
   }>;
 }
 
@@ -37,16 +74,21 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
   const admin = await requireAdmin();
   const flash = await searchParams;
   const q = (flash.q ?? "").trim();
-  const where: Prisma.UserWhereInput | undefined = q
-    ? {
-        OR: [
-          { email: { contains: q } },
-          { name: { contains: q } },
-          { boda: { title: { contains: q } } },
-          { boda: { slug: { contains: q } } },
-        ],
-      }
-    : undefined;
+  const estado = parseStatusFilter(flash.estado);
+  const hasFilters = Boolean(q) || estado !== "visibles";
+  const where: Prisma.UserWhereInput = {
+    ...STATUS_FILTERS[estado].where,
+    ...(q
+      ? {
+          OR: [
+            { email: { contains: q } },
+            { name: { contains: q } },
+            { boda: { title: { contains: q } } },
+            { boda: { slug: { contains: q } } },
+          ],
+        }
+      : {}),
+  };
   const total = await prisma.user.count({ where });
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const requestedPage = Number.parseInt(flash.page ?? "1", 10);
@@ -72,23 +114,27 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
         area="Panel admin"
         section="Bodas y clientes"
         title="Usuarios"
-        description="Cuentas del sistema y su rol de acceso."
+        description="Cuentas del sistema, su rol de acceso y su estado."
         meta={
           <span className="type-body-sm tabular-nums text-text-secondary">
             {total} cuenta{total === 1 ? "" : "s"}
-            {q ? ` para “${q}”` : " en el sistema"}.
+            {q ? ` para “${q}”` : " en el sistema"}
+            {estado !== "todas" ? ` (${STATUS_FILTERS[estado].label.toLowerCase()})` : ""}.
           </span>
         }
       />
 
-      {flash.ok ? <Alert tone="exito" title="Rol actualizado." /> : null}
+      {flash.ok ? (
+        <Alert tone="exito" title={STATUS_FLASH[flash.ok] ?? "Rol actualizado."} />
+      ) : null}
       {flash.error ? (
         <Alert
           tone="error"
           title={
-            flash.error === "self"
+            STATUS_ERRORS[flash.error] ??
+            (flash.error === "self"
               ? "No podés quitarte el rol admin a vos mismo."
-              : "No se pudo actualizar el rol."
+              : "No se pudo actualizar la cuenta.")
           }
         />
       ) : null}
@@ -96,13 +142,13 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
       <AccountSection
         id="admin-usuarios-listado"
         title="Cuentas"
-        description="Buscá por email, nombre o boda. El cambio de rol pide confirmación."
+        description="Buscá por email, nombre o boda y filtrá por estado. Los cambios de rol y de estado piden confirmación; las eliminadas se ocultan salvo que las filtres."
       >
         <AccountFilterBar
           label="Buscar usuarios"
           submitLabel="Buscar"
           clearHref="/admin/usuarios"
-          showClear={Boolean(q)}
+          showClear={hasFilters}
         >
           <Input
             id="admin-usuarios-search"
@@ -112,6 +158,16 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
             defaultValue={q}
             placeholder="Buscar por email, nombre o boda…"
           />
+          <Select
+            id="admin-usuarios-estado"
+            name="estado"
+            label="Estado"
+            defaultValue={estado}
+            options={Object.entries(STATUS_FILTERS).map(([key, filter]) => ({
+              value: key,
+              label: filter.label,
+            }))}
+          />
         </AccountFilterBar>
 
         <div className="mt-6">
@@ -119,31 +175,34 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
             <AccountEmptyState
               illustration={IllustrationGuests}
               title={
-                q
+                hasFilters
                   ? "No hay usuarios que coincidan con la búsqueda."
                   : "Sin usuarios todavía."
               }
               description={
-                q
-                  ? "Probá con otro email, nombre o boda."
+                hasFilters
+                  ? "Probá con otro email, nombre o boda, o cambiá el filtro de estado."
                   : "Las cuentas nuevas van a aparecer acá."
               }
               actions={
-                q ? [{ label: "Limpiar búsqueda", href: "/admin/usuarios" }] : undefined
+                hasFilters ? [{ label: "Limpiar filtros", href: "/admin/usuarios" }] : undefined
               }
             />
           ) : (
-            <AccountTable caption="Usuarios, roles y bodas" tableClassName="min-[769px]:min-w-[720px]">
+            <AccountTable caption="Usuarios, roles, estado y bodas" tableClassName="min-[769px]:min-w-[960px]">
               <thead className={accountTableHeadClass}>
                 <tr>
                   <th scope="col" className={accountTableThClass}>Usuario</th>
                   <th scope="col" className={accountTableThClass}>Rol</th>
+                  <th scope="col" className={accountTableThClass}>Estado</th>
                   <th scope="col" className={accountTableThClass}>Boda</th>
                   <th scope="col" className={accountTableThClass}>Alta</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
+                {users.map((user) => {
+                  const status = normalizeAccountStatus(user.status);
+                  return (
                   <tr key={user.id} className={accountTableRowClass}>
                     <td className={accountTableTdClass} data-primary="">
                       <p className="flex flex-wrap items-center gap-2 font-semibold">
@@ -186,6 +245,33 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                         />
                       </AdminActionForm>
                     </td>
+                    <td className={accountTableTdClass} data-label="Estado">
+                      <div className="w-full space-y-2 min-[769px]:w-64">
+                        <AdminAccountStatusBadge status={status} />
+                        {user.statusReason && status !== "active" ? (
+                          <p className="break-words type-caption text-text-secondary">
+                            Motivo: {user.statusReason}
+                          </p>
+                        ) : null}
+                        {user.statusChangedAt && status !== "active" ? (
+                          <p className="type-caption text-text-tertiary">
+                            Desde {user.statusChangedAt.toLocaleDateString("es-AR")}
+                          </p>
+                        ) : null}
+                        <AdminAccountStatusForm
+                          userId={user.id}
+                          email={user.email}
+                          status={status}
+                          erased={Boolean(user.erasedAt)}
+                          isSelf={user.id === admin.id}
+                          returnTo="/admin/usuarios"
+                          q={q}
+                          page={page}
+                          estado={estado}
+                          compact
+                        />
+                      </div>
+                    </td>
                     <td className={accountTableTdClass} data-label="Boda">
                       {user.boda ? (
                         <span className="flex max-w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center">
@@ -205,7 +291,8 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
                       {user.createdAt.toLocaleDateString("es-AR")}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </AccountTable>
           )}
@@ -213,7 +300,10 @@ export default async function AdminUsuariosPage({ searchParams }: PageProps) {
             pathname="/admin/usuarios"
             currentPage={page}
             totalPages={totalPages}
-            query={q ? { q } : {}}
+            query={{
+              ...(q ? { q } : {}),
+              ...(estado !== "visibles" ? { estado } : {}),
+            }}
           />
         </div>
       </AccountSection>

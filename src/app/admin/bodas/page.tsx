@@ -24,6 +24,8 @@ import {
 } from "@/components/account/AccountPage";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import { AdminAccountStatusBadge } from "@/components/admin/AdminStatusBadge";
+import { normalizeAccountStatus } from "@/lib/account/status";
 import {
   IconCheck,
   IconChevronRight,
@@ -37,15 +39,32 @@ import {
   planLabels,
 } from "@/components/ui";
 
+/** Por defecto se ocultan las bodas de cuentas eliminadas. */
+const ESTADO_FILTERS: Record<string, { label: string; where: Prisma.UserWhereInput | null }> = {
+  visibles: { label: "Activas y suspendidas", where: { status: { in: ["active", "suspended"] } } },
+  active: { label: "Activas", where: { status: "active" } },
+  suspended: { label: "Suspendidas", where: { status: "suspended" } },
+  deleted: { label: "Eliminadas", where: { status: "deleted" } },
+  todas: { label: "Todas", where: null },
+};
+
+/** Estado de la cuenta dueña: solo se muestra si no está activa. */
+function StatusBadge({ status }: { status: string }) {
+  const normalized = normalizeAccountStatus(status);
+  if (normalized === "active") return null;
+  return <AdminAccountStatusBadge status={normalized} />;
+}
+
 const PAGE_SIZE = 25;
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; plan?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; plan?: string; page?: string; estado?: string }>;
 }
 
 export default async function AdminBodasPage({ searchParams }: PageProps) {
   await requireAdmin();
-  const { q, plan, page: pageRaw } = await searchParams;
+  const { q, plan, page: pageRaw, estado: estadoRaw } = await searchParams;
+  const estado = estadoRaw && estadoRaw in ESTADO_FILTERS ? estadoRaw : "visibles";
   const query = (q ?? "").trim();
   const planFilter = (plan ?? "").trim().toLowerCase();
 
@@ -61,6 +80,10 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
   if (planFilter && ["free", "basico", "premium"].includes(planFilter)) {
     where.plan = planFilter;
   }
+  const estadoWhere = ESTADO_FILTERS[estado].where;
+  if (estadoWhere) {
+    where.user = estadoWhere;
+  }
 
   const total = await prisma.boda.count({ where });
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -75,7 +98,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
     skip: (page - 1) * PAGE_SIZE,
     take: PAGE_SIZE,
     include: {
-      user: { select: { email: true, name: true } },
+      user: { select: { email: true, name: true, status: true } },
       _count: {
         select: {
           gifts: true,
@@ -96,7 +119,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
   }`;
 
   const planOptions = ["free", "basico", "premium"] as const;
-  const hasFilters = Boolean(query || planFilter);
+  const hasFilters = Boolean(query || planFilter) || estado !== "visibles";
 
   return (
     <AccountPageBody>
@@ -125,7 +148,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
       <AccountSection
         id="admin-bodas-listado"
         title="Listado de bodas"
-        description="Buscá por título, slug, email o nombre del dueño y filtrá por plan. El cambio de plan pide confirmación."
+        description="Buscá por título, slug, email o nombre del dueño y filtrá por plan o estado de la cuenta. Las bodas de cuentas eliminadas se ocultan salvo que las filtres. El cambio de plan pide confirmación."
       >
         <AccountFilterBar
           label="Buscar bodas"
@@ -154,6 +177,16 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
               })),
             ]}
           />
+          <Select
+            id="admin-bodas-estado"
+            name="estado"
+            label="Estado de la cuenta"
+            defaultValue={estado}
+            options={Object.entries(ESTADO_FILTERS).map(([value, filter]) => ({
+              value,
+              label: filter.label,
+            }))}
+          />
         </AccountFilterBar>
 
         <div className="mt-6">
@@ -163,7 +196,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
               title="No hay bodas con ese filtro."
               description={
                 hasFilters
-                  ? "Probá con otra búsqueda o quitá el filtro de plan."
+                  ? "Probá con otra búsqueda o quitá los filtros de plan y estado."
                   : "Cuando una pareja cree su micrositio, va a aparecer acá."
               }
               actions={
@@ -193,12 +226,15 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
                     return (
                       <tr key={boda.id} className={accountTableRowClass}>
                         <td className={`${accountTableTdClass} min-w-[11rem]`} data-primary="">
-                          <Link
-                            href={`/admin/bodas/${boda.id}`}
-                            className="focus-ring rounded-sm font-semibold text-text-primary hover:underline"
-                          >
-                            {name}
-                          </Link>
+                          <span className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/admin/bodas/${boda.id}`}
+                              className="focus-ring rounded-sm font-semibold text-text-primary hover:underline"
+                            >
+                              {name}
+                            </Link>
+                            <StatusBadge status={boda.user.status} />
+                          </span>
                           <p className="break-all type-caption text-text-secondary">
                             /{boda.slug}
                           </p>
@@ -282,6 +318,7 @@ export default async function AdminBodasPage({ searchParams }: PageProps) {
             query={{
               ...(query ? { q: query } : {}),
               ...(planFilter ? { plan: planFilter } : {}),
+              ...(estado !== "visibles" ? { estado } : {}),
             }}
           />
         </div>

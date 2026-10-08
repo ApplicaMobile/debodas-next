@@ -1,32 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { changeAccountStatusAction } from "@/lib/admin/actions";
+import { accountCompactControlClass } from "@/components/account/AccountPage";
+import {
+  Button,
+  IconButton,
+  IconPause,
+  IconPlay,
+  IconTrash,
+  IconUndo,
+  type ButtonVariant,
+  type IconButtonVariant,
+} from "@/components/ui";
 
+/**
+ * Botón de operación (name="op"). En modo compacto (filas de tabla) es un
+ * ícono con tooltip; en el detalle es un botón de texto chico.
+ */
 function OpButton({
   op,
-  idleLabel,
-  pendingLabel = "…",
-  className,
+  label,
+  pendingLabel = "Aplicando…",
+  icon,
+  compact,
+  variant = "secundario",
+  iconVariant = "neutral",
+  disabled,
 }: {
   op: string;
-  idleLabel: string;
+  label: string;
   pendingLabel?: string;
-  className?: string;
+  icon: ReactNode;
+  compact: boolean;
+  variant?: ButtonVariant;
+  iconVariant?: IconButtonVariant;
+  disabled?: boolean;
 }) {
-  const { pending } = useFormStatus();
+  const { pending, data } = useFormStatus();
+  // Solo el botón que se apretó muestra el spinner; el resto queda bloqueado.
+  const isThisOp = pending && data?.get("op") === op;
+  if (compact) {
+    return (
+      <IconButton
+        type="submit"
+        name="op"
+        value={op}
+        label={isThisOp ? pendingLabel : label}
+        icon={icon}
+        variant={iconVariant}
+        loading={isThisOp}
+        disabled={disabled || (pending && !isThisOp)}
+      />
+    );
+  }
   return (
-    <button
+    <Button
       type="submit"
       name="op"
       value={op}
-      disabled={pending}
-      aria-disabled={pending}
-      className={`${className ?? ""} disabled:cursor-wait disabled:opacity-60`}
+      size="sm"
+      variant={variant}
+      icon={icon}
+      loading={isThisOp}
+      loadingLabel={pendingLabel}
+      disabled={disabled || (pending && !isThisOp)}
     >
-      {pending ? pendingLabel : idleLabel}
-    </button>
+      {label}
+    </Button>
   );
 }
 
@@ -71,20 +113,23 @@ export function AdminAccountStatusForm({
 }: AdminAccountStatusFormProps) {
   const [confirmEmail, setConfirmEmail] = useState("");
   const [showDelete, setShowDelete] = useState(false);
+  const baseId = useId();
+  const reasonId = `${baseId}-reason`;
+  const confirmId = `${baseId}-confirm`;
+  const deletePanelId = `${baseId}-delete-panel`;
 
   if (erased) {
     return (
-      <p className="text-xs text-stone-500">
+      <p className="type-caption text-text-secondary">
         Borrada por la pareja (definitivo). No se puede restaurar.
       </p>
     );
   }
   if (isSelf) {
-    return <p className="text-xs text-stone-400">Tu cuenta</p>;
+    return <p className="type-caption text-text-tertiary">Tu cuenta</p>;
   }
 
   const emailMatches = confirmEmail.trim().toLowerCase() === email.trim().toLowerCase();
-  const buttonBase = "rounded-lg px-2.5 py-1.5 text-xs font-semibold";
 
   return (
     <form
@@ -121,69 +166,112 @@ export function AdminAccountStatusForm({
       {page && page > 1 ? <input type="hidden" name="page" value={page} /> : null}
       {estado ? <input type="hidden" name="estado" value={estado} /> : null}
 
-      {status !== "deleted" ? (
-        <input
-          type="text"
-          name="reason"
-          maxLength={500}
-          placeholder="Motivo (opcional)"
-          className="w-full rounded-lg border border-stone-200 px-2 py-1.5 text-xs"
-        />
-      ) : null}
+      <div className={compact ? "flex max-w-full items-center gap-2" : "space-y-3"}>
+        {status !== "deleted" ? (
+          <div className="min-w-0 flex-1">
+            <label
+              htmlFor={reasonId}
+              className={compact ? "sr-only" : "mb-1 block type-label text-text-primary"}
+            >
+              Motivo (opcional){compact ? ` para ${email}` : ""}
+            </label>
+            <input
+              id={reasonId}
+              type="text"
+              name="reason"
+              maxLength={500}
+              placeholder={compact ? "Motivo (opcional)" : "Ej.: pedido de la pareja, pago rechazado…"}
+              className={accountCompactControlClass}
+            />
+          </div>
+        ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        {status === "active" ? (
-          <OpButton
-            op="suspend"
-            idleLabel="Suspender"
-            pendingLabel="…"
-            className={`${buttonBase} border border-amber-300 text-amber-900`}
-          />
-        ) : null}
-        {status === "suspended" ? (
-          <OpButton
-            op="reactivate"
-            idleLabel="Reactivar"
-            pendingLabel="…"
-            className={`${buttonBase} bg-emerald-700 text-white`}
-          />
-        ) : null}
-        {status === "deleted" ? (
-          <OpButton
-            op="restore"
-            idleLabel="Restaurar"
-            pendingLabel="…"
-            className={`${buttonBase} bg-stone-800 text-white`}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowDelete((value) => !value)}
-            className={`${buttonBase} border border-red-200 text-red-700`}
-          >
-            Eliminar…
-          </button>
-        )}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {status === "active" ? (
+            <OpButton
+              op="suspend"
+              label="Suspender"
+              pendingLabel="Suspendiendo…"
+              icon={<IconPause />}
+              compact={compact}
+              variant="secundario"
+            />
+          ) : null}
+          {status === "suspended" ? (
+            <OpButton
+              op="reactivate"
+              label="Reactivar"
+              pendingLabel="Reactivando…"
+              icon={<IconPlay />}
+              compact={compact}
+              variant="primario"
+              iconVariant="primary"
+            />
+          ) : null}
+          {status === "deleted" ? (
+            <OpButton
+              op="restore"
+              label="Restaurar"
+              pendingLabel="Restaurando…"
+              icon={<IconUndo />}
+              compact={compact}
+              variant="primario"
+              iconVariant="primary"
+            />
+          ) : compact ? (
+            <IconButton
+              type="button"
+              label={showDelete ? "Cancelar eliminación" : "Eliminar cuenta…"}
+              icon={<IconTrash />}
+              variant="danger"
+              aria-expanded={showDelete}
+              aria-controls={deletePanelId}
+              onClick={() => setShowDelete((value) => !value)}
+            />
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              variant="fantasma"
+              icon={<IconTrash />}
+              aria-expanded={showDelete}
+              aria-controls={deletePanelId}
+              onClick={() => setShowDelete((value) => !value)}
+            >
+              {showDelete ? "Cancelar" : "Eliminar…"}
+            </Button>
+          )}
+        </div>
       </div>
 
       {showDelete && status !== "deleted" ? (
-        <div className="space-y-2 rounded-lg bg-red-50 p-2">
-          <label className="block text-xs text-red-800">
+        <div
+          id={deletePanelId}
+          className="space-y-3 rounded-md border border-status-error-border bg-status-error-bg p-3"
+        >
+          <label htmlFor={confirmId} className="block type-body-sm text-status-error-fg">
             Escribí <strong className="break-all">{email}</strong> para confirmar:
-            <input
-              type="text"
-              name="confirm_email"
-              autoComplete="off"
-              value={confirmEmail}
-              onChange={(event) => setConfirmEmail(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-red-200 bg-white px-2 py-1.5 text-xs"
-            />
           </label>
+          <input
+            id={confirmId}
+            type="text"
+            name="confirm_email"
+            autoComplete="off"
+            value={confirmEmail}
+            onChange={(event) => setConfirmEmail(event.target.value)}
+            className={accountCompactControlClass}
+          />
+          <p className="type-caption text-status-error-fg">
+            Es una baja lógica: la cuenta desaparece del sitio, pero los datos quedan y se puede restaurar.
+          </p>
           <OpButton
             op="delete"
-            idleLabel="Eliminar cuenta"
+            label="Eliminar cuenta"
             pendingLabel="Eliminando…"
-            className={`${buttonBase} bg-red-700 text-white ${emailMatches ? "" : "opacity-50"}`}
+            icon={<IconTrash />}
+            compact={false}
+            variant="peligro"
+            disabled={!emailMatches}
           />
         </div>
       ) : null}

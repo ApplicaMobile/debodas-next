@@ -138,3 +138,15 @@ export function Spinner({ size = 20, ...props }: IconProps) {
     </svg>
   );
 }
+/** Suspender (pausa). */
+export const IconPause = (p: IconProps) => (
+  <Svg {...p}><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></Svg>
+);
+/** Reactivar (reproducir). */
+export const IconPlay = (p: IconProps) => (
+  <Svg {...p}><path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5Z" /></Svg>
+);
+/** Restaurar / deshacer. */
+export const IconUndo = (p: IconProps) => (
+  <Svg {...p}><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></Svg>
+);

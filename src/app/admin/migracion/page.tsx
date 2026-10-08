@@ -33,7 +33,12 @@ import {
   migrateWpBodaAction,
   rehostWpBodaAction,
 } from "@/lib/admin/actions/migration";
-import { listWpBodas, previewBoda, wpTablesAvailable } from "@/lib/wp-import";
+import {
+  ADMIN_BATCH_CAP,
+  listWpBodas,
+  previewBoda,
+  wpTablesAvailable,
+} from "@/lib/wp-import";
 import { openWpConnection } from "@/lib/wp-import/connection";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
@@ -51,7 +56,9 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
   await requireAdmin();
   const { q, status, preview } = await searchParams;
   const statusFilter =
-    status === "pendiente" || status === "migrada" ? status : "all";
+    status === "pendiente" || status === "migrada" || status === "eliminada"
+      ? status
+      : "all";
 
   let wpReady = false;
   try {
@@ -74,13 +81,21 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
 
   const lastLogs = await prisma.adminAuditLog.findMany({
     where: {
-      action: { in: ["admin.wp.migrate", "admin.wp.migrate_all", "admin.wp.rehost"] },
+      action: {
+        in: [
+          "admin.wp.migrate",
+          "admin.wp.migrate_all",
+          "admin.wp.rehost",
+          "admin.wp.import_cli",
+        ],
+      },
     },
     orderBy: { createdAt: "desc" },
     take: 8,
   });
 
   const pendingCount = items.filter((i) => i.status === "pendiente").length;
+  const batchCount = Math.min(pendingCount, ADMIN_BATCH_CAP);
 
   const hasFilters = Boolean(q) || statusFilter !== "all";
 
@@ -111,10 +126,10 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
           wpReady && pendingCount > 0 ? (
             <AdminActionForm
               action={migrateAllPendingAction}
-              confirmMessage={`¿Migrar las ${pendingCount} bodas pendientes?`}
+              confirmMessage={`¿Migrar ${batchCount} de ${pendingCount} bodas pendientes? Solo crea bodas nuevas; no pisa nada.`}
             >
               <AdminSubmitButton
-                idleLabel={`Migrar ${pendingCount} pendientes`}
+                idleLabel={`Migrar ${batchCount} pendientes`}
                 pendingLabel="Migrando…"
                 variant="secundario"
               />
@@ -134,6 +149,14 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
         >
           Cargá el dump WP en phpMyAdmin (puerto 8889) sobre{" "}
           <code>debodas_web</code>.
+        </Alert>
+      ) : null}
+
+      {wpReady && pendingCount > ADMIN_BATCH_CAP ? (
+        <Alert tone="info" title={`El botón migra como máximo ${ADMIN_BATCH_CAP} bodas por clic.`}>
+          Para la corrida masiva usá el CLI:{" "}
+          <code className="break-all">npm run db:import-wp -- --dry-run</code> y
+          después <code className="break-all">npm run db:import-wp</code>.
         </Alert>
       ) : null}
 
@@ -178,9 +201,9 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
           <AccountFormActions>
             <AdminActionForm action={migrateWpBodaAction}>
               <input type="hidden" name="wp_post_id" value={previewData.wpPostId} />
-              <input type="hidden" name="overwrite" value="1" />
+              <input type="hidden" name="remigrate" value="1" />
               <AdminSubmitButton
-                idleLabel="Migrar / re-migrar esta boda"
+                idleLabel="Migrar / re-migrar esta boda (sin pisar ediciones)"
                 pendingLabel="Migrando…"
                 variant="primario"
                 size="md"
@@ -219,6 +242,7 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
               { value: "all", label: "Todas" },
               { value: "pendiente", label: "Pendientes" },
               { value: "migrada", label: "Migradas" },
+              { value: "eliminada", label: "Eliminadas" },
             ]}
           />
         </AccountFilterBar>
@@ -275,19 +299,21 @@ export default async function AdminMigracionPage({ searchParams }: PageProps) {
                           label="Vista previa"
                           icon={<IconEye />}
                         />
-                        <AdminActionForm action={migrateWpBodaAction}>
-                          <input type="hidden" name="wp_post_id" value={item.wpPostId} />
-                          <input
-                            type="hidden"
-                            name="overwrite"
-                            value={item.status === "migrada" ? "1" : "0"}
-                          />
-                          <IconSubmitButton
-                            label={item.status === "migrada" ? "Re-migrar" : "Migrar"}
-                            icon={item.status === "migrada" ? <IconRefresh /> : <IconImport />}
-                          />
-                        </AdminActionForm>
-                        {item.prismaSlug ? (
+                        {item.status === "eliminada" ? null : (
+                          <AdminActionForm action={migrateWpBodaAction}>
+                            <input type="hidden" name="wp_post_id" value={item.wpPostId} />
+                            <input
+                              type="hidden"
+                              name="remigrate"
+                              value={item.status === "migrada" ? "1" : "0"}
+                            />
+                            <IconSubmitButton
+                              label={item.status === "migrada" ? "Re-migrar" : "Migrar"}
+                              icon={item.status === "migrada" ? <IconRefresh /> : <IconImport />}
+                            />
+                          </AdminActionForm>
+                        )}
+                        {item.prismaSlug && item.status !== "eliminada" ? (
                           <IconLink
                             href={`/bodas/${item.prismaSlug}`}
                             newTab

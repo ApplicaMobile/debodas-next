@@ -14,9 +14,11 @@ import {
   AccountStatCard,
 } from "@/components/account/AccountPage";
 import {
+  AdminAccountStatusBadge,
   AdminPlanBadge,
   AdminStatusBadge,
 } from "@/components/admin/AdminStatusBadge";
+import { AdminAccountStatusForm } from "@/components/admin/AdminAccountStatusForm";
 import {
   Alert,
   Badge,
@@ -43,6 +45,21 @@ import { prisma } from "@/lib/db/prisma";
 import { getAppUrl } from "@/lib/email/client";
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import { normalizeAccountStatus } from "@/lib/account/status";
+
+const STATUS_FLASH: Record<string, string> = {
+  "estado:suspend": "Cuenta suspendida. El micrositio quedó offline.",
+  "estado:reactivate": "Cuenta reactivada.",
+  "estado:delete": "Cuenta eliminada (baja lógica).",
+  "estado:restore": "Cuenta restaurada.",
+  "estado:self": "No podés suspender ni eliminar tu propia cuenta.",
+  "estado:last_admin": "No podés suspender ni eliminar al último administrador activo.",
+  "estado:confirm_email": "Para eliminar, escribí exactamente el email de la cuenta.",
+  "estado:invalid_transition": "La cuenta ya no está en un estado que permita esa acción.",
+  "estado:erased": "Esa cuenta fue borrada definitivamente por la pareja.",
+  "estado:not_found": "No encontramos la cuenta.",
+  "estado:datos": "Datos inválidos.",
+};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -53,14 +70,25 @@ export default async function AdminBodaDetailPage({
   params,
   searchParams,
 }: PageProps) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const { id } = await params;
   const flash = await searchParams;
 
   const boda = await prisma.boda.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, email: true, name: true, role: true } },
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          status: true,
+          statusReason: true,
+          statusChangedAt: true,
+          erasedAt: true,
+        },
+      },
       ratings: { orderBy: { createdAt: "desc" } },
       _count: {
         select: {
@@ -88,6 +116,7 @@ export default async function AdminBodaDetailPage({
 
   const rateUrl = `${getAppUrl()}/calificar?bodaId=${boda.id}`;
   const name = coupleLabel(boda.couple, boda.title);
+  const accountStatus = normalizeAccountStatus(boda.user.status);
 
   return (
     <AccountPageBody>
@@ -105,6 +134,9 @@ export default async function AdminBodaDetailPage({
               <span className="sr-only">Micrositio: </span>
               {boda.isOnline ? "Online" : "Offline"}
             </Badge>
+            {accountStatus !== "active" ? (
+              <AdminAccountStatusBadge status={accountStatus} />
+            ) : null}
           </>
         }
         actions={
@@ -134,7 +166,7 @@ export default async function AdminBodaDetailPage({
         }
       />
 
-      {flash.ok ? <Alert tone="exito" title={flash.ok} /> : null}
+      {flash.ok ? <Alert tone="exito" title={STATUS_FLASH[flash.ok] ?? flash.ok} /> : null}
       {flash.error ? (
         <Alert
           tone="error"
@@ -143,7 +175,7 @@ export default async function AdminBodaDetailPage({
               ? "La pareja no tiene email."
               : flash.error === "ya-calificada"
                 ? "Esta boda ya tiene una calificación."
-                : flash.error
+                : (STATUS_FLASH[flash.error] ?? flash.error)
           }
         />
       ) : null}
@@ -265,6 +297,44 @@ export default async function AdminBodaDetailPage({
           </AdminActionForm>
         </AccountSection>
       </div>
+
+      <AccountSection
+        id="admin-boda-estado"
+        title="Estado de la cuenta"
+        description="Suspender o eliminar deja el micrositio offline y cierra la sesión de la pareja. Eliminar es una baja lógica: no se borran datos ni archivos y se puede restaurar."
+      >
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+          <AccountDetailList
+            items={[
+              {
+                label: "Estado",
+                value: <AdminAccountStatusBadge status={accountStatus} />,
+              },
+              ...(boda.user.statusChangedAt && accountStatus !== "active"
+                ? [
+                    {
+                      label: "Desde",
+                      value: boda.user.statusChangedAt.toLocaleString("es-AR"),
+                    },
+                  ]
+                : []),
+              ...(boda.user.statusReason && accountStatus !== "active"
+                ? [{ label: "Motivo", value: boda.user.statusReason, wide: true }]
+                : []),
+            ]}
+          />
+          <div>
+            <AdminAccountStatusForm
+              userId={boda.user.id}
+              email={boda.user.email}
+              status={accountStatus}
+              erased={Boolean(boda.user.erasedAt)}
+              isSelf={boda.user.id === admin.id}
+              returnTo={`/admin/bodas/${boda.id}`}
+            />
+          </div>
+        </div>
+      </AccountSection>
 
       <AccountSection
         id="admin-boda-calificacion"
